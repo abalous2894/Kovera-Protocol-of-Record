@@ -1,1 +1,79 @@
+# Sentinul-Governance-Protocol — public repo hygiene
+# https://github.com/abalous2894/Sentinul-Governance-Protocol
+
+# --- Dependencies (local installs / accidental npm in docs repo) ---
 node_modules/
+jspm_packages/
+.pnp
+.pnp.js
+.yarn/cache
+.yarn/unplugged
+.yarn/install-state.gz
+
+# --- Secrets & credentials (never commit) ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa
+id_rsa.*
+credentials.json
+*-credentials.json
+gcp-oauth.keys.json
+.npmrc
+.npmrc.local
+secrets/
+*.secret
+*.token
+
+# --- Logs & runtime noise ---
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# --- OS junk ---
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# --- Editors & local AI tooling ---
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.cursor/
+.claude/settings.local.json
+
+# --- Build / doc-site output (if tooling is added later) ---
+dist/
+build/
+out/
+.cache/
+.parcel-cache/
+.site/
+site/
+.docusaurus/
+.next/
+.nuxt/
+coverage/
+.nyc_output/
+*.tsbuildinfo
+
+# --- Archives & dumps (accidental exports) ---
+*.tgz
+*.zip
+*.tar.gz
+dump.rdb
