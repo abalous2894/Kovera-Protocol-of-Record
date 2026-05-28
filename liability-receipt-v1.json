@@ -1,0 +1,282 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kovera.tech/schemas/liability-receipt/v1",
+  "$comment": "Open Standard for Autonomous Session Accountability — liability-receipt/v1. Normative machine-readable definition published by Kovera as the reference implementation for Verified Autonomous Sessions (VAS).",
+  "title": "Liability Receipt v1 (Verified Autonomous Session)",
+  "description": "A portable accountability document binding Identity, Policy, Human Release (HITL), and Side Effects to cryptographic proof. Intended for regulatory auditors, financial institution CISOs, and assurance firms.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "receipt_id",
+    "issued_at",
+    "issuer",
+    "session",
+    "identity",
+    "policy",
+    "hitl",
+    "side_effects",
+    "proof",
+    "integrity",
+    "diligence_summary"
+  ],
+  "$defs": {
+    "accountability_pillars": {
+      "$comment": "Conceptual model — not a document field. Every conforming receipt MUST populate the four sections below.",
+      "pillar_identity": "Who acted: primary_actor, authority, optional human_release_actor.",
+      "pillar_policy": "What policy allowed it: policy_pack_id, policy_version_hash, decision, thresholds.",
+      "pillar_hitl": "Human release: required, status, approval_request_id, release_consumed, dual_signature_kind.",
+      "pillar_side_effects": "What happened: action, effect_class, auditor-safe summary.",
+      "pillar_proof": "What the proof says: aegis/1 anchors, verification status and methods."
+    }
+  },
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "liability-receipt/v1",
+      "$comment": "PILLAR: Document version. Implementations MUST reject unknown schema values."
+    },
+    "receipt_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Stable receipt identifier. Used in auditor portal URLs (/auditor-portal/:receiptId) and GRC evidence repositories."
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC timestamp (ISO 8601) when the accountability document was sealed."
+    },
+    "issuer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "product", "verification_profile"],
+      "description": "Issuing authority metadata for the accountability document.",
+      "properties": {
+        "name": { "type": "string", "const": "Kovera" },
+        "product": { "type": "string", "const": "Verified Autonomous Sessions" },
+        "verification_profile": {
+          "type": "string",
+          "description": "Cryptographic verification stack (e.g. aegis/1 ledger preimage + optional RS256 manifest)."
+        },
+        "organization_id": { "type": ["string", "null"] },
+        "organization_display_name": { "type": ["string", "null"] }
+      }
+    },
+    "session": {
+      "type": "object",
+      "$comment": "PILLAR: Session envelope — one governed autonomous outcome within a Verified Autonomous Session (VAS).",
+      "additionalProperties": false,
+      "required": ["session_id", "correlation_id", "vertical", "outcome"],
+      "properties": {
+        "session_id": { "type": "string" },
+        "correlation_id": { "type": "string", "description": "End-to-end trace: intercept → decide → prove." },
+        "vertical": {
+          "type": "string",
+          "enum": ["fintech_payments", "healthcare", "retail_pos", "enterprise_ops", "generic"]
+        },
+        "outcome": {
+          "type": "string",
+          "enum": ["permitted", "blocked", "pending_human_release", "released_after_hitl"]
+        },
+        "started_at": { "type": "string", "format": "date-time" },
+        "completed_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "identity": {
+      "type": "object",
+      "$comment": "PILLAR 1 — Identity: who acted under what delegated authority.",
+      "additionalProperties": false,
+      "required": ["primary_actor", "authority"],
+      "properties": {
+        "primary_actor": {
+          "type": "object",
+          "required": ["agent_id", "actor_class"],
+          "properties": {
+            "agent_id": { "type": "string" },
+            "actor_class": {
+              "type": "string",
+              "enum": ["autonomous_agent", "delegated_kiosk", "human_operator", "system_control_plane"]
+            },
+            "display_name": { "type": ["string", "null"] }
+          }
+        },
+        "authority": {
+          "type": "object",
+          "required": ["scoped_role", "permission_id"],
+          "properties": {
+            "scoped_role": { "type": "string", "description": "JIT passport role (SERVER, MANAGER, ADMIN)." },
+            "permission_id": { "type": "string" },
+            "location_id": { "type": ["string", "null"] },
+            "constraints_digest": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" }
+          }
+        },
+        "human_release_actor": {
+          "type": ["object", "null"],
+          "description": "Required when session.outcome is released_after_hitl.",
+          "properties": {
+            "agent_id": { "type": "string" },
+            "scoped_role": { "type": "string" },
+            "operator_id": { "type": ["string", "null"] }
+          }
+        }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "$comment": "PILLAR 2 — Policy: what governance rule allowed, escalated, or denied the action.",
+      "additionalProperties": false,
+      "required": ["policy_pack_id", "policy_version_hash", "decision"],
+      "properties": {
+        "policy_pack_id": { "type": "string" },
+        "policy_version_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "treaty_name": { "type": ["string", "null"] },
+        "decision": {
+          "type": "string",
+          "enum": ["allow_within_ceiling", "require_hitl", "deny", "released"]
+        },
+        "thresholds": {
+          "type": "object",
+          "additionalProperties": {
+            "oneOf": [{ "type": "number" }, { "type": "string" }, { "type": "boolean" }]
+          }
+        },
+        "regulatory_framing": {
+          "type": ["array", "null"],
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "hitl": {
+      "type": "object",
+      "$comment": "PILLAR 3 — Human Release (HITL): attestation that a qualified human authorized an exception.",
+      "additionalProperties": false,
+      "required": ["required", "status"],
+      "properties": {
+        "required": { "type": "boolean" },
+        "status": {
+          "type": "string",
+          "enum": ["not_required", "pending", "signed", "expired", "rejected"]
+        },
+        "approval_request_id": { "type": ["string", "null"], "format": "uuid" },
+        "required_role": { "type": ["string", "null"] },
+        "manager_signed_at": { "type": ["string", "null"], "format": "date-time" },
+        "dual_signature_kind": { "type": ["string", "null"] },
+        "release_consumed": {
+          "type": "boolean",
+          "description": "MUST be true for permitted financial voids after HITL — one-shot replay protection."
+        },
+        "sla_due_at": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "side_effects": {
+      "type": "object",
+      "$comment": "PILLAR 4 — Side Effects: material business outcome (redacted; no PAN/PII/prompts).",
+      "additionalProperties": false,
+      "required": ["action", "effect_class", "summary"],
+      "properties": {
+        "action": {
+          "type": "object",
+          "required": ["tool_name", "verb"],
+          "properties": {
+            "tool_name": { "type": "string" },
+            "verb": { "type": "string" },
+            "metric_name": { "type": ["string", "null"] },
+            "metric_value": { "type": ["number", "null"] },
+            "currency": { "type": ["string", "null"], "pattern": "^[A-Z]{3}$" }
+          }
+        },
+        "effect_class": {
+          "type": "string",
+          "enum": ["financial_void", "data_access", "configuration_change", "communication", "none"]
+        },
+        "summary": { "type": "string" },
+        "projected_liability_usd": { "type": ["number", "null"] },
+        "blocked_reason": { "type": ["string", "null"] }
+      }
+    },
+    "proof": {
+      "type": "object",
+      "$comment": "PILLAR 5 — Proof: independent verification anchors (aegis/1 + methods).",
+      "additionalProperties": false,
+      "required": ["ledger_spec", "primary_anchor", "verification"],
+      "properties": {
+        "ledger_spec": { "type": "string", "const": "aegis/1" },
+        "primary_anchor": {
+          "type": "object",
+          "required": ["entry_hash", "event_type"],
+          "properties": {
+            "entry_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+            "event_type": { "type": "string" },
+            "timestamp": { "type": "string", "format": "date-time" }
+          }
+        },
+        "secondary_anchors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["entry_hash", "event_type"],
+            "properties": {
+              "entry_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+              "event_type": { "type": "string" },
+              "timestamp": { "type": "string", "format": "date-time" }
+            }
+          }
+        },
+        "proof_of_action_bundle_id": { "type": ["string", "null"] },
+        "verification": {
+          "type": "object",
+          "required": ["status", "methods"],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": ["verified", "partial", "unverified", "demo"]
+            },
+            "methods": { "type": "array", "items": { "type": "string" } },
+            "verified_at": { "type": ["string", "null"], "format": "date-time" },
+            "portal_urls": {
+              "type": "object",
+              "properties": {
+                "auditor_portal": { "type": "string", "format": "uri" },
+                "truth_portal": { "type": "string", "format": "uri" },
+                "open_evidence": { "type": "string", "format": "uri" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "integrity": {
+      "type": "object",
+      "description": "Document integrity binding — receipt_digest over canonical JSON.",
+      "additionalProperties": false,
+      "required": ["receipt_digest", "signature_alg"],
+      "properties": {
+        "receipt_digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "signature_alg": { "type": "string", "enum": ["RS256", "Ed25519", "none"] },
+        "signature": { "type": ["string", "null"] },
+        "manifest_signature_jws": { "type": ["string", "null"] }
+      }
+    },
+    "diligence_summary": {
+      "type": "object",
+      "description": "15-minute diligence narrative for assurance professionals.",
+      "additionalProperties": false,
+      "required": ["who_acted", "what_policy_allowed", "what_proof_says"],
+      "properties": {
+        "who_acted": { "type": "string", "maxLength": 2000 },
+        "what_policy_allowed": { "type": "string", "maxLength": 2000 },
+        "what_proof_says": { "type": "string", "maxLength": 2000 },
+        "executive_headline": { "type": ["string", "null"], "maxLength": 280 },
+        "control_effectiveness": {
+          "type": "string",
+          "enum": ["effective", "effective_with_exceptions", "not_effective", "not_assessed"]
+        },
+        "recommended_auditor_actions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "maxItems": 8
+        }
+      }
+    }
+  }
+}
