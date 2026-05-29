@@ -1,0 +1,33 @@
+{
+  "name": "@kovera/verify",
+  "version": "0.1.0",
+  "description": "Stateless cryptographic verification engine for Kovera liability-receipt/v1 specifications",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./ledger": {
+      "import": "./src/ledgerExports.js"
+    }
+  },
+  "bin": {
+    "kovera": "./src/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test:liability-receipt": "npm run build && node scripts/smoke-liability-receipt.mjs"
+  },
+  "dependencies": {
+    "zod": "^3.0.0"
+  },
+  "peerDependencies": {},
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0"
+  },
+  "private": true
+}

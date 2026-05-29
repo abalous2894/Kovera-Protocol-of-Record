@@ -148,7 +148,7 @@ Link the badge to your conformance statement or this specification.
 
 Kovera grants implementers a royalty-free license to reproduce and implement this specification for interoperability purposes, provided that `liability-receipt/v1` schema identifiers are not altered. Derivative schema versions MUST use a new version identifier (e.g. `liability-receipt/v2`).
 
-**Conformance inquiries:** security@sentinul.dev
+**Conformance inquiries:** contact@kovera.tech
 
 ---
 
