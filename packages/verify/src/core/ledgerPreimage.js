@@ -37,6 +37,7 @@ export function buildGovernanceBindingFromStoredDoc(doc) {
     policyId: doc?.policyId,
     forensicSnapshot: doc?.forensicSnapshot,
     proofOfIntent: doc?.proofOfIntent,
+    intentContext: doc?.intentContext ?? payload?.intent_context ?? payload?.intentContext,
     normalizedPayload: payload,
   });
   return forHash;

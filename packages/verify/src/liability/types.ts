@@ -10,4 +10,10 @@ export interface VerificationResult {
   };
 }
 
+/** Proof-of-Intent — agent rationale bound into receipt_digest and aegis/1 governanceBinding. */
+export interface IntentContext {
+  reasoning_summary: string;
+  model_fingerprint: string;
+}
+
 export type LiabilityReceiptV1 = Record<string, unknown>;

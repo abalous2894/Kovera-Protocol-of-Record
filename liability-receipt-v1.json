@@ -182,7 +182,10 @@
             "verb": { "type": "string" },
             "metric_name": { "type": ["string", "null"] },
             "metric_value": { "type": ["number", "null"] },
-            "currency": { "type": ["string", "null"], "pattern": "^[A-Z]{3}$" }
+            "currency": { "type": ["string", "null"], "pattern": "^[A-Z]{3}$" },
+            "target_path": { "type": ["string", "null"] },
+            "target_host": { "type": ["string", "null"] },
+            "execution_scopes": { "type": "array", "items": { "type": "string" }, "maxItems": 16 }
           }
         },
         "effect_class": {
@@ -192,6 +195,71 @@
         "summary": { "type": "string" },
         "projected_liability_usd": { "type": ["number", "null"] },
         "blocked_reason": { "type": ["string", "null"] }
+      }
+    },
+    "intent_context": {
+      "type": "object",
+      "description": "Optional Proof-of-Intent: agent rationale and model fingerprint bound into receipt_digest and aegis/1 governanceBinding.intentContext.",
+      "additionalProperties": false,
+      "required": ["reasoning_summary", "model_fingerprint"],
+      "properties": {
+        "reasoning_summary": {
+          "type": "string",
+          "maxLength": 4096,
+          "description": "Redacted summary of agent reasoning before the governed tool invocation."
+        },
+        "model_fingerprint": {
+          "type": "string",
+          "maxLength": 256,
+          "description": "Exact model identifier that produced the stated intent (e.g. gpt-4.1-2025-04-14)."
+        }
+      }
+    },
+    "intent_alignment": {
+      "type": "object",
+      "description": "KVR-102 — structural divergence evaluation digest-bound with intent_context. Required when intent_context is present.",
+      "additionalProperties": false,
+      "required": ["score", "level", "signals"],
+      "properties": {
+        "score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "0.00 (aligned) to 1.00 (critical divergence)."
+        },
+        "level": {
+          "type": "string",
+          "enum": ["ALIGNED", "ELEVATED", "CRITICAL"]
+        },
+        "signals": {
+          "type": "array",
+          "items": { "type": "string" },
+          "maxItems": 16,
+          "description": "Deterministic rule tags; lexicographically sorted at digest time."
+        }
+      }
+    },
+    "causal_lineage": {
+      "type": "object",
+      "description": "KVR-301 — parent ledger anchor for delegated swarm child actions; digest-bound when present.",
+      "additionalProperties": false,
+      "required": ["parent_entry_hash"],
+      "properties": {
+        "parent_entry_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "entryHash of the parent agent's governing ledger row at delegation time."
+        },
+        "parent_session_id": {
+          "type": "string",
+          "maxLength": 256,
+          "description": "Session id of the delegating parent agent."
+        },
+        "root_session_id": {
+          "type": "string",
+          "maxLength": 256,
+          "description": "Swarm root session id for multi-hop delegation trees."
+        }
       }
     },
     "proof": {

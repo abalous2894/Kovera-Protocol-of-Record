@@ -1,15 +1,22 @@
 import type { VerificationResult } from './types.js';
-import { computeReceiptDigest } from './digest.js';
+import { verifyReceiptDigestMatch } from './digest.js';
 import { parseLiabilityReceiptStructure } from './schema.js';
 import { verifyAnchorHashChain, verifyPolicyVersionHash } from './anchors.js';
 import { verifyIntegritySignatures } from './signatures.js';
 import { validateAccountabilityPillars } from './pillars.js';
+import { verifyCausalLineageLedgerBinding } from './causalLineageBinding.js';
+import { verifyIntentContextLedgerBinding } from './intentContextBinding.js';
 
 export interface VerifyReceiptOptions {
   /** SPKI PEM or JWK JSON — required for Ed25519/RS256 when signature is present */
   issuerPublicKey?: string | Buffer;
   /** When true, enforce policy_version_hash === sha256(policy_pack_id) */
   strictPolicyVersionHash?: boolean;
+  /**
+   * Optional persisted aegis/1 row — when intent_context is present, recompute entryHash
+   * and confirm governanceBinding includes the same intent_context preimage.
+   */
+  ledgerDocument?: Record<string, unknown> | null;
 }
 
 /**
@@ -31,6 +38,34 @@ export function verifyReceipt(receiptData: unknown, options: VerifyReceiptOption
   }
 
   const receipt = structural.receipt;
+  const digestCheck = verifyReceiptDigestMatch(receipt as unknown as Record<string, unknown>);
+  if (!digestCheck.ok) {
+    return {
+      isValid: false,
+      error:
+        'integrity.receipt_digest mismatch — document preimage was altered after sealing (intent_context, intent_alignment, and causal_lineage when present)',
+      details: {
+        chainLength: 1 + (receipt.proof.secondary_anchors?.length ?? 0),
+        pillarsValidated: [],
+      },
+    };
+  }
+
+  if (
+    digestCheck.profile === 'current' &&
+    receipt.intent_context &&
+    !receipt.intent_alignment
+  ) {
+    return {
+      isValid: false,
+      error: 'intent_alignment is required when intent_context is present (KVR-102 current digest profile)',
+      details: {
+        chainLength: 1 + (receipt.proof.secondary_anchors?.length ?? 0),
+        pillarsValidated: [],
+      },
+    };
+  }
+
   const pillars = validateAccountabilityPillars(receipt);
   if (!pillars.ok) {
     return {
@@ -40,16 +75,32 @@ export function verifyReceipt(receiptData: unknown, options: VerifyReceiptOption
     };
   }
 
-  const recomputed = computeReceiptDigest(receipt as unknown as Record<string, unknown>);
-  if (recomputed !== receipt.integrity.receipt_digest) {
-    return {
-      isValid: false,
-      error: 'integrity.receipt_digest mismatch — document preimage was altered after sealing',
-      details: {
-        chainLength: 1 + (receipt.proof.secondary_anchors?.length ?? 0),
-        pillarsValidated: pillars.pillarsValidated,
-      },
-    };
+  if (receipt.intent_context) {
+    const intentBinding = verifyIntentContextLedgerBinding(receipt, options.ledgerDocument ?? null);
+    if (!intentBinding.ok) {
+      return {
+        isValid: false,
+        error: intentBinding.error,
+        details: {
+          chainLength: 1 + (receipt.proof.secondary_anchors?.length ?? 0),
+          pillarsValidated: pillars.pillarsValidated,
+        },
+      };
+    }
+  }
+
+  if (receipt.causal_lineage) {
+    const lineageBinding = verifyCausalLineageLedgerBinding(receipt, options.ledgerDocument ?? null);
+    if (!lineageBinding.ok) {
+      return {
+        isValid: false,
+        error: lineageBinding.error,
+        details: {
+          chainLength: 1 + (receipt.proof.secondary_anchors?.length ?? 0),
+          pillarsValidated: pillars.pillarsValidated,
+        },
+      };
+    }
   }
 
   const anchors = verifyAnchorHashChain(receipt);

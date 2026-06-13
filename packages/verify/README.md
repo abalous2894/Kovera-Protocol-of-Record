@@ -56,8 +56,22 @@ node packages/verify/src/cli.js verify-spec-vectors --spec path/to/kovera-sovere
 # programmatic: import from '@kovera/verify/ledger'
 ```
 
+## Browser bundle (verify.kovera.tech Tier A)
+
+Client-side `liability-receipt/v1` verification for the static verify portal:
+
+```bash
+npm run build:browser
+# → sentinul-app-site/src/js/kovera-verify.bundle.js
+```
+
+From the monorepo root: `npm run test:verify` (builds the bundle and runs `test:verify-ci`).
+
+**Deploy policy (Strategy A):** The bundle is **committed** to `sentinul-app-site/src/js/kovera-verify.bundle.js` (not gitignored). Netlify only runs Tailwind for the marketing site, so after changing verify code run `npm run test:verify` and commit the regenerated bundle before deploy.
+
 ## Smoke test
 
 ```bash
 npm run test:liability-receipt
+npm run test:verify-ci
 ```

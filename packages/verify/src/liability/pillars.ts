@@ -1,4 +1,9 @@
 import type { ParsedLiabilityReceipt } from './schema.js';
+import {
+  evaluateIntentAlignment,
+  normalizeStructuralPayload,
+  canonicalizeIntentAlignmentForDigest,
+} from '../core/intentAlignment.js';
 
 const PILLAR_IDS = ['identity', 'policy', 'hitl', 'side_effects', 'proof'] as const;
 
@@ -59,6 +64,39 @@ export function validateAccountabilityPillars(receipt: ParsedLiabilityReceipt): 
       error: 'diligence_summary narrative fields must be non-empty',
       pillarsValidated,
     };
+  }
+
+  if (receipt.intent_alignment && !receipt.intent_context) {
+    return {
+      ok: false,
+      error: 'intent_context is required when intent_alignment is present',
+      pillarsValidated,
+    };
+  }
+
+  if (receipt.intent_context && receipt.intent_alignment) {
+    const action = receipt.side_effects.action;
+    const recomputed = evaluateIntentAlignment(
+      receipt.intent_context,
+      normalizeStructuralPayload({
+        tool: action.tool_name,
+        verb: action.verb,
+        path: action.target_path,
+        host: action.target_host,
+        metric_value: action.metric_value,
+        amount: action.metric_value,
+        scopes: action.execution_scopes,
+      }),
+    );
+    const stamped = canonicalizeIntentAlignmentForDigest(receipt.intent_alignment);
+    const fresh = canonicalizeIntentAlignmentForDigest(recomputed);
+    if (JSON.stringify(stamped) !== JSON.stringify(fresh)) {
+      return {
+        ok: false,
+        error: 'intent_alignment does not match recomputed structural evaluation from intent_context and side_effects',
+        pillarsValidated,
+      };
+    }
   }
 
   return { ok: true, pillarsValidated };

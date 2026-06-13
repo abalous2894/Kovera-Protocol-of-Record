@@ -23,6 +23,7 @@ import {
   SPEC_TEST_VECTOR_SIGNING_SECRET,
 } from '../core/art12Manifest.js';
 import { buildSwarmDelegationTreeFromRows } from '../core/swarmDelegationTree.js';
+import { evaluateIntentAlignment } from '../core/intentAlignment.js';
 import {
   GOLDEN_VECTORS,
   extractSpecDocumentHashes,
@@ -244,6 +245,44 @@ export function runSpecVectors(opts = {}) {
   results.push({
     name: 'reasoningDigest spec string',
     pass: digestReasoningText('Transfer funds to vendor per approved invoice') === poi.expectedReasoningDigest,
+  });
+
+  const ia = GOLDEN_VECTORS.intentAlignment;
+  for (const key of ['aligned', 'elevated', 'critical']) {
+    const vec = ia[key];
+    const out = evaluateIntentAlignment(vec.intentContext, vec.payload);
+    results.push({
+      name: `${vec.id} intentAlignment score`,
+      pass: out.score === vec.expected.score,
+      detail: `got ${out.score}`,
+    });
+    results.push({
+      name: `${vec.id} intentAlignment level`,
+      pass: out.level === vec.expected.level,
+      detail: `got ${out.level}`,
+    });
+    const expectedSignals = vec.expected.signals || [];
+    const signalsMatch =
+      expectedSignals.every((s) => out.signals.includes(s)) &&
+      (key === 'aligned' ? out.signals.length === 0 : out.signals.length >= expectedSignals.length);
+    results.push({
+      name: `${vec.id} intentAlignment signals`,
+      pass: signalsMatch,
+      detail: `got [${out.signals.join(', ')}]`,
+    });
+  }
+
+  const perfIters = 500;
+  const perfVec = ia.aligned;
+  const perfStart = performance.now();
+  for (let i = 0; i < perfIters; i += 1) {
+    evaluateIntentAlignment(perfVec.intentContext, perfVec.payload);
+  }
+  const perfMs = (performance.now() - perfStart) / perfIters;
+  results.push({
+    name: '7.1.x intentAlignment perf budget',
+    pass: perfMs < ia.performanceBudgetMs,
+    detail: `${perfMs.toFixed(4)}ms avg (budget ${ia.performanceBudgetMs}ms)`,
   });
 
   const ok = results.every((r) => r.pass);

@@ -1,4 +1,5 @@
 import { canonicalize } from './canonicalize.js';
+import { canonicalizeIntentContextForBinding, serializeIntentContext } from './intentContext.js';
 
 /**
  * Financial / policy / forensic fields bound into the entryHash preimage (aegis/1).
@@ -10,6 +11,7 @@ export function resolveGovernanceBinding({
   policyId,
   forensicSnapshot,
   proofOfIntent,
+  intentContext,
   normalizedPayload,
 }) {
   const rawCost = cost !== undefined && cost !== null ? cost : normalizedPayload?.cost;
@@ -21,6 +23,10 @@ export function resolveGovernanceBinding({
       : normalizedPayload?.forensicSnapshot;
   const rawProofOfIntent =
     proofOfIntent !== undefined && proofOfIntent !== null ? proofOfIntent : normalizedPayload?.proofOfIntent;
+  const rawIntentContext =
+    intentContext !== undefined && intentContext !== null
+      ? intentContext
+      : normalizedPayload?.intent_context ?? normalizedPayload?.intentContext;
 
   const forHash = {
     cost: rawCost != null ? canonicalize(rawCost) : null,
@@ -36,5 +42,19 @@ export function resolveGovernanceBinding({
   if (rawProofOfIntent != null && String(rawProofOfIntent).trim() !== '') {
     forHash.proofOfIntent = String(rawProofOfIntent).trim().toLowerCase();
   }
-  return { forHash, rawCost, rawApprover, rawPolicy, rawForensic, rawProofOfIntent };
+  if (rawIntentContext != null && typeof rawIntentContext === 'object') {
+    const serialized = serializeIntentContext(rawIntentContext);
+    if (serialized.reasoning_summary || serialized.model_fingerprint) {
+      forHash.intentContext = canonicalizeIntentContextForBinding(serialized);
+    }
+  }
+  return {
+    forHash,
+    rawCost,
+    rawApprover,
+    rawPolicy,
+    rawForensic,
+    rawProofOfIntent,
+    rawIntentContext: rawIntentContext != null && typeof rawIntentContext === 'object' ? rawIntentContext : null,
+  };
 }

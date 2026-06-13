@@ -69,13 +69,38 @@ Anchors the receipt to the **Aegis ledger** (`aegis/1` `entry_hash`), lists **ve
 
 **Audit question:** *Can a third party recompute integrity without Kovera credentials?*
 
+### Optional — Proof-of-Intent (`intent_context`)
+
+When present, `intent_context` captures what the agent **claimed** it was doing before a governed tool invocation:
+
+| Field | Description |
+|-------|-------------|
+| `reasoning_summary` | Redacted rationale (max 4096 chars) — not raw chain-of-thought. |
+| `model_fingerprint` | Exact model identifier that produced the stated intent. |
+
+**Binding:** `intent_context` and **`intent_alignment`** (KVR-102) are included in `integrity.receipt_digest` when present. `intent_context` is also serialized into `governanceBinding.intentContext` for `aegis/1` `entryHash` preimages. The alignment object (`score`, `level`, `signals`) is canonicalized (sorted signal tags, two-decimal score) before hashing so tampering after seal fails verification. Legacy receipts without digest-bound `intent_alignment` verify under the `v1_intent_context` profile.
+
+### Causal lineage (KVR-301)
+
+When a child agent action follows an A2A delegation, the receipt MAY include:
+
+| Field | Description |
+|-------|-------------|
+| `parent_entry_hash` | 64-char hex `entryHash` of the parent agent's governing ledger row at delegation time. |
+| `parent_session_id` | Parent swarm session identifier (optional). |
+| `root_session_id` | Root swarm session for multi-hop trees (optional). |
+
+**Binding:** `causal_lineage` is included in `integrity.receipt_digest` when present and MUST match `payload.parentEntryHash` on the primary ledger anchor. This mirrors `causalBinding` in `aegis/1` proof-of-intent preimages but binds accountability at the receipt layer for offline verifier parity.
+
+Demo: `node private-backend/scripts/mint-intent-divergence-demo.mjs` · `npm run test:intent-divergence` in `@kovera/verify` · `npm run test:kvr-301` for swarm lineage digest binding.
+
 ---
 
 ## Document requirements
 
 1. Top-level field `schema` MUST equal `liability-receipt/v1`.
 2. `receipt_id` MUST be a UUID stable for the life of the evidence record.
-3. `integrity.receipt_digest` MUST be SHA-256 over canonical JSON (see implementation note in schema).
+3. `integrity.receipt_digest` MUST be SHA-256 over canonical JSON pillars (including `intent_context` when present; see schema).
 4. For `session.vertical: fintech_payments` and `effect_class: financial_void` where `hitl.required` is true:
    - `session.outcome` MUST be `released_after_hitl` only if `hitl.status` is `signed` and `hitl.release_consumed` is true.
 5. `diligence_summary` MUST include `who_acted`, `what_policy_allowed`, and `what_proof_says` in plain language.

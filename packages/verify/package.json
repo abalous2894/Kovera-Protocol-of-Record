@@ -12,21 +12,39 @@
     },
     "./ledger": {
       "import": "./src/ledgerExports.js"
+    },
+    "./offline": {
+      "import": "./src/offlinePromotionVerifier.js"
     }
   },
   "bin": {
-    "kovera": "./src/cli.js"
+    "kovera": "./src/cli.js",
+    "kovera-verify": "./dist/kovera-verify.js"
   },
   "scripts": {
-    "build": "tsc",
-    "test:liability-receipt": "npm run build && node scripts/smoke-liability-receipt.mjs"
+    "build": "tsc && node scripts/copy-core-js.mjs",
+    "build:browser": "npm run build && node scripts/build-browser-bundle.mjs",
+    "test:liability-receipt": "npm run build && node scripts/smoke-liability-receipt.mjs",
+    "test:intent-divergence": "npm run build && node scripts/intent-divergence-mock.mjs",
+    "test:intent-alignment": "npm run build && node --input-type=module -e \"import { runSpecVectors } from './src/spec/runSpecVectors.js'; const r = runSpecVectors({ silent: true }); if (!r.ok) { console.error(r.results.filter(x=>!x.pass)); process.exit(1);} console.log('intent alignment vectors OK');\" && node scripts/intent-alignment-parity.mjs",
+    "test:digest-binding": "npm run build && node scripts/test-digest-binding.mjs",
+    "test:kvr-301": "npm run build && node scripts/test-kvr-301-causal-lineage.mjs",
+    "test:jcs-receipt-leaf": "npm run build && node scripts/test-jcs-receipt-leaf.mjs",
+    "test:jcs-prototype-pollution": "npm run build && node scripts/test-jcs-prototype-pollution.mjs",
+    "test:attest-mcp-manifest": "npm run build && node scripts/test-attest-mcp-manifest.mjs",
+    "test:kovera-verify-cli": "npm run build && node scripts/test-kovera-verify-cli.mjs",
+    "test:offline-promotion": "node scripts/test-offline-promotion-verifier.mjs",
+    "test:verify-ci": "npm run build && npm run test:liability-receipt && npm run test:intent-alignment && npm run test:digest-binding && npm run test:kvr-301 && npm run test:jcs-receipt-leaf && npm run test:attest-mcp-manifest && npm run test:kovera-verify-cli && npm run test:offline-promotion && node scripts/verify-portal-intent-sample.mjs"
   },
   "dependencies": {
+    "jose": "^5.10.0",
     "zod": "^3.0.0"
   },
-  "peerDependencies": {},
   "devDependencies": {
+    "@noble/hashes": "^1.8.0",
     "@types/node": "^22.10.0",
+    "buffer": "^6.0.3",
+    "esbuild": "^0.25.0",
     "typescript": "^5.7.0"
   },
   "private": true

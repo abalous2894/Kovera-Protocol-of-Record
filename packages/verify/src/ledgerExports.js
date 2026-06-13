@@ -12,6 +12,31 @@ export { sha256Utf8, sha256Buffer } from './core/sha256.js';
 export { resolveGovernanceBinding } from './core/governanceBinding.js';
 
 export {
+  serializeIntentContext,
+  canonicalizeIntentContextForBinding,
+  computeIntentContextDigest,
+  buildIntentContextFromSources,
+  intentContextIsPresent,
+  INTENT_CONTEXT_MAX_REASONING,
+  INTENT_CONTEXT_MAX_MODEL,
+} from './core/intentContext.js';
+
+export {
+  evaluateIntentAlignment,
+  normalizeStructuralPayload,
+  intentAlignmentLevelFromScore,
+  INTENT_ALIGNMENT_LEVEL,
+  MAX_INTENT_ALIGNMENT_SIGNALS,
+  canonicalizeIntentAlignmentForDigest,
+} from './core/intentAlignment.js';
+
+export {
+  extractCausalLineageFromPayload,
+  canonicalizeCausalLineageForDigest,
+  causalLineageToProofBinding,
+} from './core/causalLineage.js';
+
+export {
   formatAegisLedgerTimestampIso,
   buildGovernanceBindingFromStoredDoc,
   buildContextLinkageFromStoredDoc,
@@ -47,6 +72,8 @@ export {
 } from './core/art12Manifest.js';
 
 export { verifyArt12PackPath, verifyArt12PackFiles, verifyArt12PackDirectory } from './core/art12PackVerify.js';
+
+export { verifyPolicyPromotionProof } from './offlinePromotionVerifier.js';
 
 export {
   normalizeSessionId,

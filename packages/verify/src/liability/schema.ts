@@ -1,4 +1,7 @@
 import { z } from 'zod';
+import { causalLineageSchema } from './causalLineageSchema.js';
+import { intentContextSchema } from './intentContext.js';
+import { intentAlignmentSchema } from './intentAlignmentSchema.js';
 
 const hex64 = z.string().regex(/^[a-f0-9]{64}$/);
 
@@ -78,6 +81,10 @@ export const liabilityReceiptV1ZodSchema = z
           .regex(/^[A-Z]{3}$/)
           .nullable()
           .optional(),
+        /** Structural alignment inputs (KVR-102) — bound into intent_alignment evaluation. */
+        target_path: z.string().nullable().optional(),
+        target_host: z.string().nullable().optional(),
+        execution_scopes: z.array(z.string()).max(16).optional(),
       }),
       effect_class: z.enum([
         'financial_void',
@@ -90,6 +97,11 @@ export const liabilityReceiptV1ZodSchema = z
       projected_liability_usd: z.number().nullable().optional(),
       blocked_reason: z.string().nullable().optional(),
     }),
+    intent_context: intentContextSchema.optional(),
+    /** KVR-102 — digest-bound when intent_context is present. */
+    intent_alignment: intentAlignmentSchema.optional(),
+    /** KVR-301 — parent ledger anchor for delegated / swarm child actions. */
+    causal_lineage: causalLineageSchema.optional(),
     proof: z.object({
       ledger_spec: z.literal('aegis/1'),
       primary_anchor: z.object({
