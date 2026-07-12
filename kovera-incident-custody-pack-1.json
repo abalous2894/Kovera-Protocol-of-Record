@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kovera.tech/schemas/kovera-incident-custody-pack-1.json",
+  "title": "Kovera Art. 73 Incident Custody Pack v1",
+  "description": "Witness-cosigned evidence preservation bundle for EU AI Act Art. 73 serious incident reporting.",
+  "type": "object",
+  "required": [
+    "incident_custody_pack_format_version",
+    "product",
+    "sku",
+    "schema",
+    "incident_ref",
+    "freeze_anchor_entry_hash",
+    "file_integrity"
+  ],
+  "properties": {
+    "incident_custody_pack_format_version": { "type": "string", "const": "1.0" },
+    "product": { "type": "string" },
+    "sku": { "type": "string", "const": "kovera-incident-custody-pack-v1" },
+    "schema": { "type": "string", "const": "kovera-incident-custody-pack/1" },
+    "incident_ref": { "type": "string", "minLength": 1, "maxLength": 32 },
+    "freeze_anchor_entry_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "organization_id": { "type": "string" },
+    "scope": { "type": "string" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "summary": {
+      "type": "object",
+      "properties": {
+        "receipt_index_count": { "type": "integer", "minimum": 0 },
+        "legal_hold_count": { "type": "integer", "minimum": 0 },
+        "delegation_hops": { "type": "integer", "minimum": 0 },
+        "witness_samples_ok": { "type": "integer", "minimum": 0 },
+        "freeze_anchor_entry_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "file_integrity": {
+      "type": "object",
+      "additionalProperties": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+    }
+  },
+  "additionalProperties": true
+}

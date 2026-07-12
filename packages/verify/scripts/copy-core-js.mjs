@@ -29,6 +29,10 @@ function copyStandaloneJs(dir, rel = '') {
     const to = path.join(pkgRoot, 'dist', relPath);
     fs.mkdirSync(path.dirname(to), { recursive: true });
     fs.copyFileSync(from, to);
+    const dtsSibling = from.replace(/\.js$/, '.d.ts');
+    if (fs.existsSync(dtsSibling)) {
+      fs.copyFileSync(dtsSibling, to.replace(/\.js$/, '.d.ts'));
+    }
   }
 }
 

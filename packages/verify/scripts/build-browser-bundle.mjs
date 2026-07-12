@@ -5,10 +5,12 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const entry = path.join(root, '../src/browserEntry.js');
-const outfile = path.resolve(
-  root,
-  '../../../sentinul-app-site/src/js/kovera-verify.bundle.js',
-);
+const outfile = process.env.AEVESA_VERIFY_BUNDLE_OUTFILE
+  ? path.resolve(process.env.AEVESA_VERIFY_BUNDLE_OUTFILE)
+  : path.resolve(
+      root,
+      '../../../sentinul-app-site/src/js/aevesa-verify.bundle.js',
+    );
 
 const cryptoShim = path.join(root, '../src/browser/nodeCryptoShim.js');
 const bufferInject = path.join(root, '../src/browser/bufferInject.js');

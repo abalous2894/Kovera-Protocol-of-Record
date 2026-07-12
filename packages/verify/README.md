@@ -1,10 +1,10 @@
-# @kovera/verify
+# @aevesa/verify
 
-Stateless cryptographic verification for **Kovera `liability-receipt/v1`** (Verified Autonomous Sessions).
+Stateless cryptographic verification for **Aevesa `liability-receipt/v1`** (Verified Autonomous Sessions).
 
 ## Open-core boundary
 
-| Open (this package) | Commercial (Kovera platform) |
+| Open (this package) | Commercial (Aevesa platform) |
 |---------------------|------------------------------|
 | Schema validation | Runtime intercept / gateway |
 | `receipt_digest` preimage | HITL signing service |
@@ -20,7 +20,7 @@ cd packages/verify && npm install && npm run build
 ## API
 
 ```typescript
-import { verifyReceipt, computeReceiptDigest } from '@kovera/verify';
+import { verifyReceipt, computeReceiptDigest } from '@aevesa/verify';
 
 const result = verifyReceipt(receiptJson);
 // { isValid: true, details: { chainLength: 2, pillarsValidated: [...] } }
@@ -43,9 +43,9 @@ In **[Kovera-Protocol-Of-Record](https://github.com/abalous2894/Kovera-Protocol-
 - **`verifyReceipt()` / `computeReceiptDigest()`** for `liability-receipt/v1`
 - **`npm run test:liability-receipt`** — offline smoke test
 
-The **aegis/1** and **Art. 12** commands below require `kovera-sovereign-ledger-spec.md`, which is **not** shipped in the public protocol repo. Run them from the full Kovera monorepo or pass `--spec` to a local copy of that document.
+The **aegis/1** and **Art. 12** commands below require `kovera-sovereign-ledger-spec.md`, which is **not** shipped in the public protocol repo. Run them from the full Aevesa monorepo or pass `--spec` to a local copy of that document.
 
-See **SECURITY.md** at the protocol repository root (`docs/standards/SECURITY.md` in the private monorepo) for test-fixture signing notes and `contact@kovera.tech`.
+See **SECURITY.md** at the protocol repository root (`docs/standards/SECURITY.md` in the private monorepo) for test-fixture signing notes and `security@aevesa.com`.
 
 ## Legacy ledger / Art. 12 CLI (full monorepo)
 
@@ -53,21 +53,21 @@ The **aegis/1** reference CLI and ledger exports remain under:
 
 ```bash
 node packages/verify/src/cli.js verify-spec-vectors --spec path/to/kovera-sovereign-ledger-spec.md
-# programmatic: import from '@kovera/verify/ledger'
+# programmatic: import from '@aevesa/verify/ledger'
 ```
 
-## Browser bundle (verify.kovera.tech Tier A)
+## Browser bundle (verify.aevesa.com Tier A)
 
 Client-side `liability-receipt/v1` verification for the static verify portal:
 
 ```bash
 npm run build:browser
-# → sentinul-app-site/src/js/kovera-verify.bundle.js
+# → sentinul-app-site/src/js/aevesa-verify.bundle.js
 ```
 
 From the monorepo root: `npm run test:verify` (builds the bundle and runs `test:verify-ci`).
 
-**Deploy policy (Strategy A):** The bundle is **committed** to `sentinul-app-site/src/js/kovera-verify.bundle.js` (not gitignored). Netlify only runs Tailwind for the marketing site, so after changing verify code run `npm run test:verify` and commit the regenerated bundle before deploy.
+**Deploy policy (Strategy A):** The bundle is **committed** to `sentinul-app-site/src/js/aevesa-verify.bundle.js` (not gitignored). After changing verify code run `npm run build:browser --workspace=@aevesa/verify` and commit the regenerated bundle before deploy. CI enforces sync via `npm run check:browser-bundle-sync --workspace=@aevesa/verify`.
 
 ## Smoke test
 

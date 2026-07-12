@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { canonicalizeJcs } from './jcs.js';
 import { assertNoForbiddenKeys, normalizeUnicodeNfkc, toNullPrototypeRecord } from './jcsSafeObject.js';
 
-export const CRYPTOGRAPHIC_RECEIPT_LEAF_SCHEMA = 'kovera/cryptographic-receipt-leaf/v1';
+export const CRYPTOGRAPHIC_RECEIPT_LEAF_SCHEMA = 'aevesa/cryptographic-receipt-leaf/v1';
 
 /** Normative leaf fields bound into the Merkle-DAG liability receipt. */
 export const CRYPTOGRAPHIC_RECEIPT_LEAF_KEYS = [

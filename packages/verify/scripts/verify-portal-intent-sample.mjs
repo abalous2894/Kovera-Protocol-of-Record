@@ -17,9 +17,9 @@ const portalPath = path.resolve(
   '../../../sentinul-app-site/src/js/liabilityReceiptPortal.js',
 );
 const src = readFileSync(portalPath, 'utf8');
-const match = src.match(/export const KOVERA_INTENT_DIVERGENCE_SAMPLE = (\{[\s\S]*?\n\});/);
+const match = src.match(/export const AEVESA_INTENT_DIVERGENCE_SAMPLE = (\{[\s\S]*?\n\});/);
 if (!match) {
-  console.error('Could not extract KOVERA_INTENT_DIVERGENCE_SAMPLE from portal source');
+  console.error('Could not extract AEVESA_INTENT_DIVERGENCE_SAMPLE from portal source');
   process.exit(1);
 }
 

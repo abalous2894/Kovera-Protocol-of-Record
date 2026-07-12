@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://kovera.tech/schemas/liability-receipt/v1",
-  "$comment": "Open Standard for Autonomous Session Accountability — liability-receipt/v1. Normative machine-readable definition published by Kovera as the reference implementation for Verified Autonomous Sessions (VAS).",
+  "$id": "https://aevesa.com/schemas/liability-receipt/v1",
+  "$comment": "Open Standard for Autonomous Session Accountability — liability-receipt/v1. Normative machine-readable definition published by Aevesa as the reference implementation for Verified Autonomous Sessions (VAS).",
   "title": "Liability Receipt v1 (Verified Autonomous Session)",
   "description": "A portable accountability document binding Identity, Policy, Human Release (HITL), and Side Effects to cryptographic proof. Intended for regulatory auditors, financial institution CISOs, and assurance firms.",
   "type": "object",
@@ -52,7 +52,7 @@
       "required": ["name", "product", "verification_profile"],
       "description": "Issuing authority metadata for the accountability document.",
       "properties": {
-        "name": { "type": "string", "const": "Kovera" },
+        "name": { "type": "string", "const": "Aevesa" },
         "product": { "type": "string", "const": "Verified Autonomous Sessions" },
         "verification_profile": {
           "type": "string",
@@ -259,6 +259,79 @@
           "type": "string",
           "maxLength": 256,
           "description": "Swarm root session id for multi-hop delegation trees."
+        }
+      }
+    },
+    "receipt_profile": {
+      "type": "string",
+      "enum": ["PERMITTED", "DENIED", "HITL_PENDING", "HITL_RELEASED"],
+      "description": "Wave 2.2 — explicit profile. DENIED = verifiable pre-execution refusal before side effects."
+    },
+    "denial": {
+      "type": "object",
+      "description": "Wave 2.2 — pre-execution denial semantics for DENIED profile receipts.",
+      "additionalProperties": false,
+      "required": ["pre_execution", "execution_occurred", "denial_stage"],
+      "properties": {
+        "pre_execution": { "type": "boolean", "const": true },
+        "execution_occurred": { "type": "boolean", "const": false },
+        "denial_stage": {
+          "type": "string",
+          "enum": ["gateway", "pep", "hitl", "runtime_firewall", "intent_alignment"]
+        },
+        "source": { "type": "string", "maxLength": 128 }
+      }
+    },
+    "refusal_alignment": {
+      "type": "object",
+      "description": "Wave 2.2 — SCITT refusal-event draft alignment metadata for procurement interop.",
+      "additionalProperties": false,
+      "properties": {
+        "profile": { "type": "string" },
+        "mapping_version": { "type": "string" },
+        "reference": { "type": "string" },
+        "scitt_event_type": { "type": "string" },
+        "mapped_fields": { "type": "array", "items": { "type": "string" } },
+        "evidence_hash": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+        "kovera_receipt_profile": { "type": "string" }
+      }
+    },
+    "gateway_attestation": {
+      "type": "object",
+      "description": "Proof Moat Phase 1 — external gateway permit/deny decision bound to Aevesa entryHash.",
+      "additionalProperties": false,
+      "required": ["gateway_decision_id", "gateway_source", "decision"],
+      "properties": {
+        "gateway_decision_id": {
+          "type": "string",
+          "maxLength": 512,
+          "description": "Opaque id from Unity AI Gateway, Portkey, APIM, or generic OTLP sink."
+        },
+        "gateway_source": {
+          "type": "string",
+          "enum": ["databricks_unity_ai", "portkey", "azure_apim", "bedrock", "generic_otlp", "generic_webhook"]
+        },
+        "decision": {
+          "type": "string",
+          "enum": ["permit", "deny"]
+        },
+        "gateway_event_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA-256 of canonical gateway event preimage (multi-party verify bundle)."
+        },
+        "data_classification_tag": {
+          "type": ["string", "null"],
+          "maxLength": 256,
+          "description": "Optional Cyera / DLP classification tag from gateway context."
+        },
+        "policy_reference": {
+          "type": ["string", "null"],
+          "maxLength": 512
+        },
+        "evaluated_at": {
+          "type": "string",
+          "format": "date-time"
         }
       }
     },

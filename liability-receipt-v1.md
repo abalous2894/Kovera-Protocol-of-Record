@@ -5,10 +5,10 @@
 | | |
 |---|---|
 | **Standard ID** | `liability-receipt/v1` |
-| **Product context** | Kovera Verified Autonomous Sessions (VAS) |
-| **Normative schema** | [liability-receipt-v1.json](./liability-receipt-v1.json) · [Canonical URI](https://kovera.tech/schemas/liability-receipt/v1) |
+| **Product context** | Aevesa Verified Autonomous Sessions (VAS) |
+| **Normative schema** | [liability-receipt-v1.json](./liability-receipt-v1.json) · [Canonical URI](https://aevesa.com/schemas/liability-receipt/v1) |
 | **Status** | Published reference implementation |
-| **Maintainer** | Kovera |
+| **Maintainer** | Aevesa |
 | **Intended adopters** | Financial institutions, acquirers, regulators, Big 4 assurance firms |
 
 ---
@@ -17,7 +17,7 @@
 
 Autonomous agents execute high-impact actions—payment voids, fund transfers, privileged configuration—without the evidentiary rigor that auditors and regulators require. Conventional application logs establish chronology but do not bind **accountability** to **policy** and **human authorization** in a single, portable artifact.
 
-**Liability Receipt v1** defines the minimum document that a governed autonomous session MUST produce to demonstrate accountability. Kovera publishes this specification as an **open standard** so counterparties may require `liability-receipt/v1` in procurement, diligence, and regulatory examination without vendor lock-in to a proprietary export format.
+**Liability Receipt v1** defines the minimum document that a governed autonomous session MUST produce to demonstrate accountability. Aevesa publishes this specification as an **open standard** so counterparties may require `liability-receipt/v1` in procurement, diligence, and regulatory examination without vendor lock-in to a proprietary export format.
 
 ---
 
@@ -27,7 +27,7 @@ This standard applies to a **single governed outcome** within a Verified Autonom
 
 It does not replace:
 
-- Full session record-keeping under EU AI Act Article 12 (see Kovera Art. 12 conformity packs).
+- Full session record-keeping under EU AI Act Article 12 (see Aevesa Art. 12 conformity packs).
 - Forensic Proof-of-Action bundles (artifact-level exports for litigation).
 - Real-time monitoring or guardrail scoring.
 
@@ -67,7 +67,7 @@ Describes the governed **action** (tool, verb, metric) and **effect class** (e.g
 
 Anchors the receipt to the **Aegis ledger** (`aegis/1` `entry_hash`), lists **verification methods** (preimage recompute, HITL dual-signature), and **verification status**. Proof MUST be independently verifiable without trusting the issuer's UI.
 
-**Audit question:** *Can a third party recompute integrity without Kovera credentials?*
+**Audit question:** *Can a third party recompute integrity without Aevesa credentials?*
 
 ### Optional — Proof-of-Intent (`intent_context`)
 
@@ -92,7 +92,20 @@ When a child agent action follows an A2A delegation, the receipt MAY include:
 
 **Binding:** `causal_lineage` is included in `integrity.receipt_digest` when present and MUST match `payload.parentEntryHash` on the primary ledger anchor. This mirrors `causalBinding` in `aegis/1` proof-of-intent preimages but binds accountability at the receipt layer for offline verifier parity.
 
-Demo: `node private-backend/scripts/mint-intent-divergence-demo.mjs` · `npm run test:intent-divergence` in `@kovera/verify` · `npm run test:kvr-301` for swarm lineage digest binding.
+Demo: `node private-backend/scripts/mint-intent-divergence-demo.mjs` · `npm run test:intent-divergence` in `@aevesa/verify` · `npm run test:kvr-301` for swarm lineage digest binding.
+
+### Session path binding (`partial_path`) — Proof Moat Phase 3
+
+When present, `partial_path` binds the agent's multi-hop execution path and proposed action:
+
+| Field | Description |
+|-------|-------------|
+| `partial_path_hash` | SHA-256 over canonical path material (`aevesa.partial-path/v1`) |
+| `step_index` | Zero-based hop index (e.g. hop 4 of 4 → `step_index: 3`) |
+| `proposed_action` | Tool name at receipt mint time |
+| `partial_steps` | Redacted prior hops (tool, verdict, optional `entry_hash`) |
+
+**Binding:** included in `integrity.receipt_digest` when present. Offline verify via `@aevesa/verify` → `verifyPartialPathCommitment()`.
 
 ---
 
@@ -115,7 +128,9 @@ Demo: `node private-backend/scripts/mint-intent-divergence-demo.mjs` · `npm run
 | **Consumer** | Rejects unknown `schema`; validates UUID and hex patterns; does not treat UI rendering as verification. |
 | **Verifier** | Recomputes `aegis/1` preimages; confirms HITL completeness for financial void profiles. |
 
-Kovera's reference implementation: Verified Autonomous Sessions platform, FinTech Lighthouse pilot (`fintech_payment_void_v1`).
+**Machine-readable clause + test map:** [LIABILITY_RECEIPT_CONFORMANCE.md](./LIABILITY_RECEIPT_CONFORMANCE.md) (Aevesa Conformant badge criteria).
+
+Aevesa's reference implementation: Verified Autonomous Sessions platform, FinTech Lighthouse pilot (`fintech_payment_void_v1`).
 
 ---
 
@@ -126,16 +141,16 @@ The **FinTech Lighthouse** pilot demonstrates conformance for payment voids:
 | Step | System behavior | `session.outcome` |
 |------|-----------------|-------------------|
 | 1 | Agent requests void above passport ceiling | `pending_human_release` |
-| 2 | Kovera intercepts; returns authority-required | — |
+| 2 | Aevesa intercepts; returns authority-required | — |
 | 3 | Manager signs HITL (`POST /api/v1/approvals/sign`) | — |
 | 4 | Agent retries with consumed release | `released_after_hitl` |
 | 5 | `liability-receipt/v1` sealed | Final receipt issued |
 
-**Reference demonstration (Kovera VAS):**
+**Reference demonstration (Aevesa VAS):**
 
 - Simulate FinTech payment void: `POST /api/v1/public/lighthouse/fintech-payment-void/simulate`
 - Retrieve receipt: `GET /api/v1/public/liability-receipt/:receiptId`
-- Auditor diligence report: `https://app.kovera.tech/auditor-portal/:receiptId`
+- Auditor diligence report: `https://app.aevesa.com/auditor-portal/:receiptId`
 
 ---
 
@@ -144,8 +159,8 @@ The **FinTech Lighthouse** pilot demonstrates conformance for payment voids:
 Adopters may display the following badge in repository README files once they implement a conforming producer or verifier:
 
 ```markdown
-[![Kovera liability-receipt/v1](https://img.shields.io/badge/standard-liability--receipt%2Fv1-2563eb?style=flat-square)](https://kovera.tech/schemas/liability-receipt/v1)
-**Verified Autonomous Session Accountability** — implements [liability-receipt/v1](https://kovera.tech/schemas/liability-receipt/v1)
+[![Aevesa liability-receipt/v1](https://img.shields.io/badge/standard-liability--receipt%2Fv1-2563eb?style=flat-square)](https://aevesa.com/schemas/liability-receipt/v1)
+**Verified Autonomous Session Accountability** — implements [liability-receipt/v1](https://aevesa.com/schemas/liability-receipt/v1)
 ```
 
 Link the badge to your conformance statement or this specification.
@@ -164,16 +179,16 @@ Link the badge to your conformance statement or this specification.
 
 - **Aegis ledger (`aegis/1`):** hash-chained audit ledger specification (entryHash preimage binding)
 - **Proof-of-Action bundle:** companion forensic export for single-anchor litigation and offline verify workflows
-- **Public verification portal:** [https://verify.kovera.tech](https://verify.kovera.tech)
-- **Open evidence API:** `GET /api/v1/public/evidence/spec` (hosted on Kovera API)
+- **Public verification portal:** [https://verify.aevesa.com](https://verify.aevesa.com)
+- **Open evidence API:** `GET /api/v1/public/evidence/spec` (hosted on Aevesa API)
 
 ---
 
 ## Intellectual property
 
-Kovera grants implementers a royalty-free license to reproduce and implement this specification for interoperability purposes, provided that `liability-receipt/v1` schema identifiers are not altered. Derivative schema versions MUST use a new version identifier (e.g. `liability-receipt/v2`).
+Aevesa grants implementers a royalty-free license to reproduce and implement this specification for interoperability purposes, provided that `liability-receipt/v1` schema identifiers are not altered. Derivative schema versions MUST use a new version identifier (e.g. `liability-receipt/v2`).
 
-**Conformance inquiries:** contact@kovera.tech
+**Conformance inquiries:** sales@aevesa.com
 
 ---
 

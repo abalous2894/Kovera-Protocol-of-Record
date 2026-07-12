@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
- * kovera-verify — offline cryptographic receipt leaf verifier (JCS / RFC 8785).
+ * aevesa-verify — offline cryptographic receipt leaf verifier (JCS / RFC 8785).
  *
  * Usage:
- *   kovera-verify --receipt ./receipt.json
- *   kovera-verify --receipt ./receipt.json --chain ./receipts/
- *   kovera-verify --receipt ./r.json --chain ./a.json,./b.json,./c.json
+ *   aevesa-verify --receipt ./receipt.json
+ *   aevesa-verify --receipt ./receipt.json --chain ./receipts/
+ *   aevesa-verify --receipt ./r.json --chain ./a.json,./b.json,./c.json
  */
 import { resolve } from 'node:path';
 import {
@@ -22,9 +22,9 @@ const RESET = '\x1b[0m';
 const BOLD = '\x1b[1m';
 
 function usage(): never {
-  console.error(`Usage: kovera-verify --receipt <path> [--chain <dir|file1,file2|json-array>]
+  console.error(`Usage: aevesa-verify --receipt <path> [--chain <dir|file1,file2|json-array>]
 
-Offline verification of Kovera cryptographic receipt leaves (JCS / RFC 8785 + SHA-256).
+Offline verification of Aevesa cryptographic receipt leaves (JCS / RFC 8785 + SHA-256).
 
 Options:
   --receipt <path>   Path to a liability receipt or cryptographic-receipt-leaf JSON file
@@ -62,7 +62,7 @@ function parseArgs(argv: string[]): { receipt: string; chain: string } {
 }
 
 function printVerified(digest: string, receiptPath: string, chainCount?: number): void {
-  console.log(`${GREEN}${BOLD}[VERIFIED]${RESET} ${GREEN}Kovera cryptographic receipt leaf${RESET}`);
+  console.log(`${GREEN}${BOLD}[VERIFIED]${RESET} ${GREEN}Aevesa cryptographic receipt leaf${RESET}`);
   console.log(`${GREEN}  digest:${RESET} ${digest}`);
   console.log(`${GREEN}  receipt:${RESET} ${receiptPath}`);
   if (chainCount != null && chainCount > 0) {
@@ -71,7 +71,7 @@ function printVerified(digest: string, receiptPath: string, chainCount?: number)
 }
 
 function fail(message: string, detail?: Record<string, unknown>): never {
-  console.error(`kovera-verify: ${message}`);
+  console.error(`aevesa-verify: ${message}`);
   if (detail) {
     for (const [k, v] of Object.entries(detail)) {
       if (v != null && v !== '') console.error(`  ${k}: ${v}`);
@@ -87,7 +87,7 @@ function main(): void {
   const receiptPath = resolve(process.cwd(), receipt);
   const loaded = loadReceiptJson(receiptPath);
   if (!loaded.ok) {
-    console.error(`kovera-verify: ${loaded.error.message}`);
+    console.error(`aevesa-verify: ${loaded.error.message}`);
     process.exit(ExitCode.FILE_ERROR);
   }
 
@@ -108,7 +108,7 @@ function main(): void {
     try {
       paths = resolveChainPaths(chain);
     } catch (e) {
-      console.error(`kovera-verify: invalid --chain argument: ${e instanceof Error ? e.message : String(e)}`);
+      console.error(`aevesa-verify: invalid --chain argument: ${e instanceof Error ? e.message : String(e)}`);
       process.exit(ExitCode.FILE_ERROR);
     }
 

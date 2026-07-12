@@ -221,8 +221,8 @@ export function verifyToolAgainstManifest(
 
 export function defaultAttestMcpRegistryDir(): string {
   const base =
-    process.env.KOVERA_MCP_DATA_DIR ||
-    process.env.KOVERA_ATTEST_MCP_REGISTRY_DIR ||
+    process.env.AEVESA_MCP_DATA_DIR ||
+    process.env.AEVESA_ATTEST_MCP_REGISTRY_DIR ||
     path.join(process.env.HOME || process.env.USERPROFILE || '/tmp', '.config', 'sentinul');
   return path.join(base, 'attestmcp-manifests');
 }

@@ -35,7 +35,7 @@ assert.match(digestA, /^[a-f0-9]{64}$/);
 
 const sealed = sealCryptographicReceiptLeaf(leafInput);
 assert.equal(sealed.receiptLeafDigest, digestA);
-assert.equal(sealed.schema, 'kovera/cryptographic-receipt-leaf/v1');
+assert.equal(sealed.schema, 'aevesa/cryptographic-receipt-leaf/v1');
 
 const tampered = computeCryptographicReceiptLeafDigest({ ...leafInput, logicalSeq: 8 });
 assert.notEqual(tampered, digestA);

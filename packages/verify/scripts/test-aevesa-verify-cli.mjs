@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * CLI smoke tests for kovera-verify offline receipt leaf verification.
+ * CLI smoke tests for aevesa-verify offline receipt leaf verification.
  */
 import assert from 'node:assert/strict';
 import { mkdtempSync, writeFileSync, rmSync, mkdirSync } from 'node:fs';
@@ -15,7 +15,7 @@ import {
 } from '../dist/core/cryptographicReceiptLeaf.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const cli = pathJoin(__dirname, '..', 'dist', 'kovera-verify.js');
+const cli = pathJoin(__dirname, '..', 'dist', 'aevesa-verify.js');
 
 function runCli(args) {
   return spawnSync(process.execPath, [cli, ...args], { encoding: 'utf8' });
@@ -43,7 +43,7 @@ const leaf2Input = {
 const sealed1 = sealCryptographicReceiptLeaf(leaf1Input);
 const sealed2 = sealCryptographicReceiptLeaf(leaf2Input);
 
-const tmp = mkdtempSync(join(tmpdir(), 'kovera-verify-cli-'));
+const tmp = mkdtempSync(join(tmpdir(), 'aevesa-verify-cli-'));
 const receiptPath = join(tmp, 'receipt.json');
 const chainDir = join(tmp, 'chain');
 mkdirSync(chainDir);
@@ -96,4 +96,4 @@ assert.equal(broken.status, 1);
 assert.match(broken.stderr, /chain broken/i);
 
 rmSync(tmp, { recursive: true, force: true });
-console.log('OK kovera-verify CLI tests');
+console.log('OK aevesa-verify CLI tests');
