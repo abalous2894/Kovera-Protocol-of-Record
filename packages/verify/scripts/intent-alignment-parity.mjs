@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * KVR-101 parity: RuntimeFirewall wrapper vs direct @kovera/verify evaluateIntentAlignment.
+ * KVR-101 parity: RuntimeFirewall wrapper vs direct @aevesa/verify evaluateIntentAlignment.
  */
 import { evaluateRuntimeIntentAlignment } from '../../../private-backend/src/services/agent/RuntimeFirewall.js';
 import { evaluateIntentAlignment, normalizeStructuralPayload } from '../src/ledgerExports.js';

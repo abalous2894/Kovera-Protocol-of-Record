@@ -81,5 +81,28 @@ export {
   buildSwarmDelegationTreeFromRows,
 } from './core/swarmDelegationTree.js';
 
+export {
+  DELEGATION_CHAIN_SCHEMA,
+  DELEGATION_CHAIN_DEMO_SIGNING_SECRET,
+  verifyDelegationChain,
+  verifyHdpHopChain,
+  verifyHdpHopReceipt,
+  buildDelegationChainProofTrace,
+  scopeHashFromEffectiveAccess,
+} from './core/delegationChainVerify.js';
+
+export {
+  RECEIPT_PROFILE_DENIED,
+  RECEIPT_PROFILE_PERMITTED,
+  SCITT_REFUSAL_PROFILE,
+  isDeniedReceiptProfile,
+  validateDeniedReceiptProfile,
+  buildDeniedReceiptProofSteps,
+} from './liability/deniedReceiptProfile.js';
+
+export { validateIncidentCustodyPackManifest } from './compliance/incidentCustodyPackVerify.js';
+export { validateConformanceLabManifest } from './compliance/conformanceLabVerify.js';
+export { validateCrossVendorIntegrationManifest } from './compliance/crossVendorIntegrationVerify.js';
+
 export { runSpecVectors } from './spec/runSpecVectors.js';
 export { GOLDEN_VECTORS } from './spec/goldenVectors.js';

@@ -126,7 +126,7 @@ export const GOLDEN_VECTORS = {
         },
       ],
       expected: {
-        schema: 'kovera.swarm.delegation-tree/v1',
+        schema: 'aevesa.swarm.delegation-tree/v1',
         rootSessionId: 'root-swarm-001',
         nodeCount: 2,
         edgeCount: 1,

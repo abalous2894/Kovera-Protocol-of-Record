@@ -115,7 +115,7 @@ export function buildSwarmDelegationTreeFromRows(rootSessionId, rows) {
 
   return {
     ok: true,
-    schema: 'kovera.swarm.delegation-tree/v1',
+    schema: 'aevesa.swarm.delegation-tree/v1',
     rootSessionId: root,
     nodeCount: serializedNodes.length,
     edgeCount: edges.length,

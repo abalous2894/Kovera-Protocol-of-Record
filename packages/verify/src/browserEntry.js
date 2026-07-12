@@ -3,8 +3,11 @@
  * Import subpaths directly (not dist/index.js) so esbuild never pulls node-only CLI/offline exports.
  */
 export { verifyReceipt } from '../dist/liability/verifyReceipt.js';
+export { parseLiabilityReceiptStructure } from '../dist/liability/schema.js';
 export {
   computeReceiptDigest,
+  computeCanonicalReceiptDigest,
+  receiptDigestPreimage,
   verifyReceiptDigestMatch,
   RECEIPT_DIGEST_PROFILE_ORDER,
 } from '../dist/liability/digest.js';

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kovera.tech/schemas/kovera-cross-vendor-integration-1.json",
+  "title": "Kovera Cross-Vendor Integration v1",
+  "description": "Wave 3.2 — named integration packs: GRC auto-push, witness Rekor metadata, OTLP pilot, tool treaties, Fortress PDP.",
+  "type": "object",
+  "required": ["schema", "sku", "integration_packs"],
+  "properties": {
+    "schema": { "type": "string", "const": "kovera.cross-vendor-integration/1" },
+    "sku": { "type": "string", "const": "kovera-cross-vendor-integration-v1" },
+    "gtm_line": { "type": "string" },
+    "integration_packs": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["id", "priority", "title"],
+        "properties": {
+          "id": { "type": "string" },
+          "priority": { "type": "string", "enum": ["P1", "P2"] },
+          "title": { "type": "string" },
+          "test": { "type": "string" },
+          "doc": { "type": "string" },
+          "openSpec": { "type": "string" },
+          "env": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "grc_auto_push": { "type": "object" },
+    "witness_transparency": { "type": "object" },
+    "otlp_pilot": { "type": "object" },
+    "fortress_pdp": { "type": "object" },
+    "tool_treaties": { "type": "object" }
+  },
+  "additionalProperties": true
+}

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * kovera — reference implementation CLI for kovera-sovereign-ledger-spec.md
+ * aevesa — reference implementation CLI for kovera-sovereign-ledger-spec.md
  *
  * Exit codes: 0 verified | 1 mismatch | 2 file/config error
  */
@@ -14,8 +14,8 @@ import { ExitCode } from './exitCodes.js';
 const program = new Command();
 
 program
-  .name('kovera')
-  .description('Kovera sovereign ledger reference verifier (@kovera/verify)')
+  .name('aevesa')
+  .description('Aevesa sovereign ledger reference verifier (@aevesa/verify)')
   .version('0.1.0');
 
 program

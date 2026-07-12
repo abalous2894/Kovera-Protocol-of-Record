@@ -1,14 +1,14 @@
 /**
  * APoR — offline policy promotion proof verification (stateless, zero I/O).
- * Validates kovera-rgp/v1 promotion JWS envelopes without database access.
+ * Validates aevesa-rgp/v1 promotion JWS envelopes without database access.
  */
 
 import * as jose from 'jose';
 import { z } from 'zod';
 
 const KoveraRgpPromotionPayloadSchema = z.object({
-  policyDialect: z.literal('kovera-rgp/v1').optional(),
-  policy_dialect: z.literal('kovera-rgp/v1').optional(),
+  policyDialect: z.literal('aevesa-rgp/v1').optional(),
+  policy_dialect: z.literal('aevesa-rgp/v1').optional(),
   tenantId: z.string().min(1).optional(),
   tenant_id: z.string().min(1).optional(),
   contextStructureHash: z.string().min(1).optional(),
@@ -91,7 +91,7 @@ function buildVerifiedResult(parsed, verifiedPayload, options = {}) {
       allowedTransitions: normalized.allowedTransitions,
       sovereigntyLawSeal: normalized.sovereigntyLawSeal,
       sealedAt: normalized.sealedAt,
-      policyDialect: 'kovera-rgp/v1',
+      policyDialect: 'aevesa-rgp/v1',
       precedentId: parsed.data.precedent_id || null,
       policyDiffHash: parsed.data.policy_diff_hash || null,
       promotionJti: normalized.promotionJti || verifiedPayload.jti || null,
@@ -104,7 +104,7 @@ function buildVerifiedResult(parsed, verifiedPayload, options = {}) {
 
 function validateKoveraRgpStructures(normalized) {
   return (
-    normalized.policyDialect === 'kovera-rgp/v1'
+    normalized.policyDialect === 'aevesa-rgp/v1'
     && normalized.contextStructureHash
     && normalized.sovereigntyLawSeal
   );
@@ -167,7 +167,7 @@ export async function verifyPolicyPromotionProof(jwsString, trustedRootPublicKey
         if (!validateKoveraRgpStructures(normalized)) {
           return {
             verified: false,
-            error: 'Malformed policy dialect: Missing kovera-rgp/v1 schema structures.',
+            error: 'Malformed policy dialect: Missing aevesa-rgp/v1 schema structures.',
           };
         }
 
@@ -206,7 +206,7 @@ export async function verifyPolicyPromotionProof(jwsString, trustedRootPublicKey
           if (!validateKoveraRgpStructures(normalized)) {
             return {
               verified: false,
-              error: 'Malformed policy dialect: Missing kovera-rgp/v1 schema structures.',
+              error: 'Malformed policy dialect: Missing aevesa-rgp/v1 schema structures.',
             };
           }
 

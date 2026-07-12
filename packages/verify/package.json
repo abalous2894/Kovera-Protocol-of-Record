@@ -1,7 +1,7 @@
 {
-  "name": "@kovera/verify",
+  "name": "@aevesa/verify",
   "version": "0.1.0",
-  "description": "Stateless cryptographic verification engine for Kovera liability-receipt/v1 specifications",
+  "description": "Stateless cryptographic verification engine for Aevesa liability-receipt/v1 specifications",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -15,11 +15,15 @@
     },
     "./offline": {
       "import": "./src/offlinePromotionVerifier.js"
+    },
+    "./core/stableStringify": {
+      "types": "./dist/core/stableStringify.d.ts",
+      "import": "./dist/core/stableStringify.js"
     }
   },
   "bin": {
-    "kovera": "./src/cli.js",
-    "kovera-verify": "./dist/kovera-verify.js"
+    "aevesa": "./src/cli.js",
+    "aevesa-verify": "./dist/aevesa-verify.js"
   },
   "scripts": {
     "build": "tsc && node scripts/copy-core-js.mjs",
@@ -32,11 +36,13 @@
     "test:jcs-receipt-leaf": "npm run build && node scripts/test-jcs-receipt-leaf.mjs",
     "test:jcs-prototype-pollution": "npm run build && node scripts/test-jcs-prototype-pollution.mjs",
     "test:attest-mcp-manifest": "npm run build && node scripts/test-attest-mcp-manifest.mjs",
-    "test:kovera-verify-cli": "npm run build && node scripts/test-kovera-verify-cli.mjs",
+    "test:aevesa-verify-cli": "npm run build && node scripts/test-aevesa-verify-cli.mjs",
     "test:offline-promotion": "node scripts/test-offline-promotion-verifier.mjs",
-    "test:verify-ci": "npm run build && npm run test:liability-receipt && npm run test:intent-alignment && npm run test:digest-binding && npm run test:kvr-301 && npm run test:jcs-receipt-leaf && npm run test:attest-mcp-manifest && npm run test:kovera-verify-cli && npm run test:offline-promotion && node scripts/verify-portal-intent-sample.mjs"
+    "test:verify-ci": "npm run build && npm run test:liability-receipt && npm run test:intent-alignment && npm run test:digest-binding && npm run test:kvr-301 && npm run test:jcs-receipt-leaf && npm run test:attest-mcp-manifest && npm run test:aevesa-verify-cli && npm run test:offline-promotion && node scripts/test-stable-stringify-export.mjs && node scripts/test-isRecord-export.mjs && node scripts/verify-portal-intent-sample.mjs",
+    "check:browser-bundle-sync": "node scripts/check-browser-bundle-sync.mjs"
   },
   "dependencies": {
+    "commander": "^12.1.0",
     "jose": "^5.10.0",
     "zod": "^3.0.0"
   },

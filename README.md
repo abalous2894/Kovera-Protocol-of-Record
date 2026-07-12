@@ -9,22 +9,22 @@
 
 | | |
 |---|---|
-| **Dashboard** | [app.kovera.tech](https://app.kovera.tech) — sign up, operate agents, export proof |
-| **Verify portal** | [verify.kovera.tech](https://verify.kovera.tech) — zero-trust receipt & bundle checks |
-| **API** | `https://api.kovera.tech` |
-| **Standard** | [`liability-receipt/v1`](./liability-receipt-v1.md) · [`@kovera/verify`](./packages/verify/) |
+| **Dashboard** | [app.aevesa.com](https://app.aevesa.com) — sign up, operate agents, export proof |
+| **Verify portal** | [verify.aevesa.com](https://verify.aevesa.com) — zero-trust receipt & bundle checks |
+| **API** | `https://api.aevesa.com` |
+| **Standard** | [`liability-receipt/v1`](./liability-receipt-v1.md) · [`@aevesa/verify`](./packages/verify/) |
 
 ---
 
 ## Overview
 
-**Kovera** is a deterministic, multi-layer **enforcement** platform for autonomous AI agents in production. Every LLM call, MCP tool invocation, and delegated action passes through a fail-closed pipeline **before** side effects occur. Decisions are recorded on the **Aegis audit ledger** (hash-chained, tamper-evident) and exportable as **Proof-of-Action bundles** or **`liability-receipt/v1`** documents for auditors.
+**Aevesa** is a deterministic, multi-layer **enforcement** platform for autonomous AI agents in production. Every LLM call, MCP tool invocation, and delegated action passes through a fail-closed pipeline **before** side effects occur. Decisions are recorded on the **Aegis audit ledger** (hash-chained, tamper-evident) and exportable as **Proof-of-Action bundles** or **`liability-receipt/v1`** documents for auditors.
 
 Product loop: **Intercept · Decide · Prove.**
 
 This is not a monitoring system. It is an enforcement system.
 
-**This repository** publishes the open **`liability-receipt/v1`** specification, the **`@kovera/verify`** reference verifier, and product usage documentation. The hosted control plane (dashboard, Genesis gateway, HITL broker) runs at **kovera.tech** — you do not need to self-host to use Kovera.
+**This repository** publishes the open **`liability-receipt/v1`** specification, the **`@aevesa/verify`** reference verifier, and product usage documentation. The hosted control plane (dashboard, Genesis gateway, HITL broker) runs at **aevesa.com** — you do not need to self-host to use Aevesa.
 
 ---
 
@@ -34,28 +34,28 @@ Pick the path that matches your role:
 
 | I am a… | Do this first |
 |---|---|
-| **Operator / security lead** | [Sign up](https://app.kovera.tech) → open **Infrastructure** (`/?tab=vanguard-infrastructure`) → run **Preset B · Exceeds mandate** → complete manager HITL → **Open verification dashboard** |
-| **Developer integrating agents** | [Log in](https://app.kovera.tech) → copy session JWT → route LLM calls through **`POST /api/v1/genesis/proxy/call`** ([§4 Proxied LLM Calls](#proxied-llm-calls)) |
-| **Auditor / compliance** | Export a Proof-of-Action bundle from the dashboard → paste at [verify.kovera.tech](https://verify.kovera.tech) ([§4 Proof-of-Action export](#proof-of-action-export-and-verification-loop)) |
+| **Operator / security lead** | [Sign up](https://app.aevesa.com) → open **Infrastructure** (`/?tab=vanguard-infrastructure`) → run **Preset B · Exceeds mandate** → complete manager HITL → **Open verification dashboard** |
+| **Developer integrating agents** | [Log in](https://app.aevesa.com) → copy session JWT → route LLM calls through **`POST /api/v1/genesis/proxy/call`** ([§4 Proxied LLM Calls](#proxied-llm-calls)) |
+| **Auditor / compliance** | Export a Proof-of-Action bundle from the dashboard → paste at [verify.aevesa.com](https://verify.aevesa.com) ([§4 Proof-of-Action export](#proof-of-action-export-and-verification-loop)) |
 | **Protocol adopter / integrator** | Read [`liability-receipt-v1.md`](./liability-receipt-v1.md) → run `cd packages/verify && npm install && npm run build && npm run test:liability-receipt` |
-| **IDE / MCP user** | `npm install -g @kovera/mcp-server` → `kovera-mcp setup` ([§4 MCP plugin](#kovera-mcp-plugin-public-mcp-plugin)) |
+| **IDE / MCP user** | `npm install -g @aevesa/mcp-server` → `aevesa-mcp setup` ([§4 MCP plugin](#aevesa-mcp-plugin-public-mcp-plugin)) |
 
 ### Five-minute operator demo
 
-1. Go to [app.kovera.tech](https://app.kovera.tech) and create an account.
+1. Go to [app.aevesa.com](https://app.aevesa.com) and create an account.
 2. Navigate to **Infrastructure** (Vanguard lab).
 3. Run **Preset B · Exceeds mandate** — you should see **`402 PENDING_APPROVAL`** (step-up required).
 4. Click **Complete manager HITL sign** — expect **`200 PERMITTED`**.
-5. Click **Open verification dashboard** (requires governance viewer role) or copy the export JSON to [verify.kovera.tech](https://verify.kovera.tech).
+5. Click **Open verification dashboard** (requires governance viewer role) or copy the export JSON to [verify.aevesa.com](https://verify.aevesa.com).
 
-Every step above appends to your tenant's Aegis ledger. You can export auditor-grade proof without trusting Kovera's UI alone.
+Every step above appends to your tenant's Aegis ledger. You can export auditor-grade proof without trusting Aevesa's UI alone.
 
 ### Five-minute developer integration
 
 After logging into the dashboard, route one LLM call through Genesis:
 
 ```bash
-curl -X POST "https://api.kovera.tech/api/v1/genesis/proxy/call" \
+curl -X POST "https://api.aevesa.com/api/v1/genesis/proxy/call" \
   -H "Authorization: Bearer <dashboard-jwt>" \
   -H "Content-Type: application/json" \
   -H "X-LLM-Api-Key: <your-openai-or-anthropic-key>" \
@@ -88,7 +88,7 @@ Provider API keys go in the **`X-LLM-Api-Key`** header (or your tenant's configu
    - [Proof-of-Action bundles](#proof-of-action-bundles)
 3. [Account setup & integrations](#3-account-setup--integrations)
    - [Dashboard access](#dashboard-access)
-   - [Offline verifier (`@kovera/verify`)](#offline-verifier-koveraverify)
+   - [Offline verifier (`@aevesa/verify`)](#offline-verifier-koveraverify)
    - [Open standard (`liability-receipt/v1`)](#open-standard-liability-receiptv1)
 4. [Usage](#4-usage)
    - [Proxied LLM Calls](#proxied-llm-calls)
@@ -99,7 +99,7 @@ Provider API keys go in the **`X-LLM-Api-Key`** header (or your tenant's configu
    - [Public sovereignty verification (receipt portal)](#public-sovereignty-verification-receipt-portal)
    - [Proof-of-Action export and verification loop](#proof-of-action-export-and-verification-loop)
    - [Operator dashboard workspaces](#operator-dashboard-workspaces)
-   - [Kovera MCP plugin](#kovera-mcp-plugin-public-mcp-plugin)
+   - [Aevesa MCP plugin](#aevesa-mcp-plugin-public-mcp-plugin)
    - [Live Telemetry Dashboard](#live-telemetry-dashboard)
    - [Web dashboard, MFA, and settings](#web-dashboard-mfa-and-settings)
    - [Live Threat Feed (SSE)](#live-threat-feed-sse)
@@ -117,7 +117,7 @@ Provider API keys go in the **`X-LLM-Api-Key`** header (or your tenant's configu
 
 Every LLM call, tool invocation, and agent action is forced through a **5-Layer Enforcement Gauntlet** before execution and again upon response. Layers execute sequentially; a block at any layer terminates the operation immediately and emits an immutable audit record. There is no bypass path.
 
-**Cryptographic accountability:** Enforcement decisions, delegated-action outcomes, and **human-in-the-loop (HITL)** releases are written into the **Aegis audit ledger** with hash-chained entries (Merkle-oriented binding per event). That design yields a **tamper-evident history**: the agent request, the Kovera verdict, and (when applicable) the manager's step-up approval are linked in a way that breaks forensic integrity if any single row is altered—not merely a conventional append-only SQL log.
+**Cryptographic accountability:** Enforcement decisions, delegated-action outcomes, and **human-in-the-loop (HITL)** releases are written into the **Aegis audit ledger** with hash-chained entries (Merkle-oriented binding per event). That design yields a **tamper-evident history**: the agent request, the Aevesa verdict, and (when applicable) the manager's step-up approval are linked in a way that breaks forensic integrity if any single row is altered—not merely a conventional append-only SQL log.
 
 ```
 INBOUND REQUEST
@@ -271,7 +271,7 @@ The Proxy Adapter returns the same `HTTP 403` shape for any block phase. It does
 
 **FDLP** (FinTech Data Loss Prevention) is an optional, pack-driven layer on the **LLM Proxy Adapter** path and on **POST /api/v1/genesis/scan** (non-LLM inspection).
 
-- **Policy packs:** FinTech FDLP packs (`customer_support_copilot`, `internal_ops_strict`, `fraud_aml_analyst_assistant`, etc.) with per-direction actions **`block`** | **`redact`** | **`log_only`**. Activated per tenant via dashboard settings or **`KOVERA_FINTECH_POLICY_PACK`** (see [§4 FinTech FDLP configuration](#fintech-fdlp-configuration-and-behavior)).
+- **Policy packs:** FinTech FDLP packs (`customer_support_copilot`, `internal_ops_strict`, `fraud_aml_analyst_assistant`, etc.) with per-direction actions **`block`** | **`redact`** | **`log_only`**. Activated per tenant via dashboard settings or **`AEVESA_FINTECH_POLICY_PACK`** (see [§4 FinTech FDLP configuration](#fintech-fdlp-configuration-and-behavior)).
 - **Default:** FDLP is off until a pack is selected.
 
 This is distinct from Skill Scanner (supply-chain / injection). FDLP targets **regulated or secret-bearing content** in chat transcripts.
@@ -280,12 +280,12 @@ This is distinct from Skill Scanner (supply-chain / injection). FDLP targets **r
 
 ### Step-Up Authorization (HITL)
 
-Kovera implements a **Human-in-the-Loop (HITL) gate** for high-risk **delegated** actions—patterns that matter for POS, fintech, and operations workflows where a kiosk or agent must not move money or void transactions beyond its **passport ceiling** without explicit human authority.
+Aevesa implements a **Human-in-the-Loop (HITL) gate** for high-risk **delegated** actions—patterns that matter for POS, fintech, and operations workflows where a kiosk or agent must not move money or void transactions beyond its **passport ceiling** without explicit human authority.
 
 - **402 Payment Required (authority required):** When an invoke exceeds the delegated passport threshold (e.g. a **$500 void** with a **$50** ceiling), the gateway returns **`HTTP 402`** with a **`PENDING_APPROVAL`** verdict—not a silent deny. The body includes **`approval_request_id`** and **`correlation_id`** for binding the manager step-up to that single intent.
 - **Multi-role release:** A secondary party holding an elevated scoped role (e.g. **`MANAGER`** or **`ADMIN`**) must **`POST /api/v1/approvals/sign`** with their **manager passport `access_token`**. The broker verifies role and binds a **dual-signature** release to the pending row.
 - **One-shot consumption:** The release is **cryptographically bound** to the pending **`approval_request_id`** and is **consumed** when the kiosk retries the original invoke with **`hitl_approval_request_id`** set. Replays without a fresh pending row **fail closed**.
-- **Fail-closed:** Without a valid signed release, the delegated action **never** clears the gateway. Kovera blocks business only by default; **authorized exceptions** are explicit, audited, and non-replayable.
+- **Fail-closed:** Without a valid signed release, the delegated action **never** clears the gateway. Aevesa blocks business only by default; **authorized exceptions** are explicit, audited, and non-replayable.
 
 Try the full flow in the dashboard **Infrastructure** lab ([§4 HITL approval flow](#the-hitl-approval-flow-step-up)) or via the POS delegation API when your integration uses delegated passports.
 
@@ -312,16 +312,16 @@ Exports are **redacted** before leaving the API (no raw prompts, bearer tokens, 
 
 ### Dashboard access
 
-1. **Sign up** at [app.kovera.tech](https://app.kovera.tech).
+1. **Sign up** at [app.aevesa.com](https://app.aevesa.com).
 2. **Log in** with email + password (Cloudflare Turnstile on production hosts). Enable **MFA** at `/settings/mfa` when available.
 3. **Enterprise SSO:** if your tenant has Okta enabled, use **Sign in with Okta** on the login page.
 4. **Obtain a session JWT** for API calls — use browser devtools (session cookie) or your integration's auth flow. All **`/api/v1/genesis/*`** and **`/api/v1/governance/*`** routes require this token unless documented as public.
 
-**Deep links:** workspaces use `https://app.kovera.tech/?tab=<workspaceId>` — e.g. `vanguard-infrastructure`, `governance`, `compliance`. See [Operator dashboard workspaces](#operator-dashboard-workspaces).
+**Deep links:** workspaces use `https://app.aevesa.com/?tab=<workspaceId>` — e.g. `vanguard-infrastructure`, `governance`, `compliance`. See [Operator dashboard workspaces](#operator-dashboard-workspaces).
 
-### Offline verifier (`@kovera/verify`)
+### Offline verifier (`@aevesa/verify`)
 
-This repository ships the reference implementation for **`liability-receipt/v1`**. No Kovera account required for offline digest checks.
+This repository ships the reference implementation for **`liability-receipt/v1`**. No Aevesa account required for offline digest checks.
 
 ```bash
 cd packages/verify
@@ -331,7 +331,7 @@ npm run test:liability-receipt
 ```
 
 ```javascript
-import { verifyReceipt, computeReceiptDigest } from '@kovera/verify';
+import { verifyReceipt, computeReceiptDigest } from '@aevesa/verify';
 
 const result = verifyReceipt(receiptJson);
 // { isValid: true, details: { chainLength, pillarsValidated, ... } }
@@ -345,21 +345,21 @@ See [`packages/verify/README.md`](./packages/verify/README.md) for the full API,
 |---|---|
 | Normative spec | [`liability-receipt-v1.md`](./liability-receipt-v1.md) |
 | JSON Schema | [`liability-receipt-v1.json`](./liability-receipt-v1.json) |
-| Hosted schema URI | [kovera.tech/schemas/liability-receipt/v1](https://kovera.tech/schemas/liability-receipt/v1) |
+| Hosted schema URI | [aevesa.com/schemas/liability-receipt/v1](https://aevesa.com/schemas/liability-receipt/v1) |
 | Category context | [`COMPETITIVE_MATRIX.md`](./COMPETITIVE_MATRIX.md) |
 | Security / reporting | [`SECURITY.md`](./SECURITY.md) |
 
-Adopters can require **`liability-receipt/v1`** in procurement and verify conformance with **`@kovera/verify`** without access to Kovera's hosted UI.
+Adopters can require **`liability-receipt/v1`** in procurement and verify conformance with **`@aevesa/verify`** without access to Aevesa's hosted UI.
 
 ### MCP IDE plugin
 
 ```bash
-npm install -g @kovera/mcp-server
-kovera-mcp setup    # set backendUrl to https://api.kovera.tech
-kovera-mcp --check
+npm install -g @aevesa/mcp-server
+aevesa-mcp setup    # set backendUrl to https://api.aevesa.com
+aevesa-mcp --check
 ```
 
-Configure in Claude Desktop — see [§4 MCP plugin](#kovera-mcp-plugin-public-mcp-plugin).
+Configure in Claude Desktop — see [§4 MCP plugin](#aevesa-mcp-plugin-public-mcp-plugin).
 
 ---
 
@@ -370,7 +370,7 @@ Configure in Claude Desktop — see [§4 MCP plugin](#kovera-mcp-plugin-public-m
 All production LLM calls must be routed through the Proxy Adapter. Direct calls to LLM provider APIs that bypass this endpoint are outside the enforcement perimeter.
 
 ```bash
-curl -X POST https://api.kovera.tech/api/v1/genesis/proxy/call \
+curl -X POST https://api.aevesa.com/api/v1/genesis/proxy/call \
   -H "Authorization: Bearer <JWT>" \
   -H "Content-Type: application/json" \
   -H "X-LLM-Api-Key: <provider-api-key>" \
@@ -420,17 +420,17 @@ curl -X POST https://api.kovera.tech/api/v1/genesis/proxy/call \
 
 ### FinTech FDLP configuration and behavior
 
-1. **Choose a pack** — contact your tenant admin or set **`KOVERA_FINTECH_POLICY_PACK`** if you operate a dedicated deployment.
+1. **Choose a pack** — contact your tenant admin or set **`AEVESA_FINTECH_POLICY_PACK`** if you operate a dedicated deployment.
 2. **Activate** via dashboard policy settings or environment variables. Legacy **`SENTINUL_*`** names are still honored with a deprecation warning.
 
 | Variable | Purpose |
 |---|---|
-| `KOVERA_FINTECH_POLICY_PACK` | Pack id (e.g. `customer_support_copilot`, `internal_ops_strict`). Overrides YAML `default_active_pack` when set. *Legacy:* `SENTINUL_FINTECH_POLICY_PACK` |
-| `KOVERA_FDLP_ENABLED` | Set to `0` / `false` to force FDLP off even if a pack is selected. *Legacy:* `SENTINUL_FDLP_ENABLED` |
-| `KOVERA_FDLP_PROMPT_ACTION` | Optional override: `block` \| `redact` \| `log_only`. *Legacy:* `SENTINUL_FDLP_PROMPT_ACTION` |
-| `KOVERA_FDLP_RESPONSE_ACTION` | Optional override: `block` \| `redact` \| `log_only`. *Legacy:* `SENTINUL_FDLP_RESPONSE_ACTION` |
-| `KOVERA_FDLP_MAX_SCAN_CHARS` | Cap scanned characters (bounded in code). *Legacy:* `SENTINUL_FDLP_MAX_SCAN_CHARS` |
-| `KOVERA_FINTECH_POLICY_PACKS_PATH` | Absolute path to an alternate YAML packs file. *Legacy:* `SENTINUL_FINTECH_POLICY_PACKS_PATH` |
+| `AEVESA_FINTECH_POLICY_PACK` | Pack id (e.g. `customer_support_copilot`, `internal_ops_strict`). Overrides YAML `default_active_pack` when set. *Legacy:* `SENTINUL_FINTECH_POLICY_PACK` |
+| `AEVESA_FDLP_ENABLED` | Set to `0` / `false` to force FDLP off even if a pack is selected. *Legacy:* `SENTINUL_FDLP_ENABLED` |
+| `AEVESA_FDLP_PROMPT_ACTION` | Optional override: `block` \| `redact` \| `log_only`. *Legacy:* `SENTINUL_FDLP_PROMPT_ACTION` |
+| `AEVESA_FDLP_RESPONSE_ACTION` | Optional override: `block` \| `redact` \| `log_only`. *Legacy:* `SENTINUL_FDLP_RESPONSE_ACTION` |
+| `AEVESA_FDLP_MAX_SCAN_CHARS` | Cap scanned characters (bounded in code). *Legacy:* `SENTINUL_FDLP_MAX_SCAN_CHARS` |
+| `AEVESA_FINTECH_POLICY_PACKS_PATH` | Absolute path to an alternate YAML packs file. *Legacy:* `SENTINUL_FINTECH_POLICY_PACKS_PATH` |
 
 With no pack active, FDLP does not run. When active, proxy statistics include FDLP-related counters in the Genesis adapter stats API.
 
@@ -441,7 +441,7 @@ With no pack active, FDLP does not run. When active, proxy statistics include FD
 Inspect chat-style **messages** without calling an LLM — useful for UI “preflight” or DLP checks using the same policy pack as the proxy.
 
 ```bash
-curl -X POST https://api.kovera.tech/api/v1/genesis/scan \
+curl -X POST https://api.aevesa.com/api/v1/genesis/scan \
   -H "Authorization: Bearer <JWT>" \
   -H "Content-Type: application/json" \
   -d '{
@@ -458,16 +458,16 @@ curl -X POST https://api.kovera.tech/api/v1/genesis/scan \
 
 ### The HITL approval flow (step-up)
 
-Use this handshake when a **delegated invoke** returns **`HTTP 402`** with **`verdict: "PENDING_APPROVAL"`** (e.g. POS void above passport ceiling). Integration partners using delegated passports obtain kiosk and manager **`permission_id` / `access_token`** pairs via **`POST /api/v1/identity/mint`** and **`POST /api/v1/permissions/passport`** (enterprise integrations — contact Kovera for **`INTERNAL_SERVICE_KEY`** provisioning).
+Use this handshake when a **delegated invoke** returns **`HTTP 402`** with **`verdict: "PENDING_APPROVAL"`** (e.g. POS void above passport ceiling). Integration partners using delegated passports obtain kiosk and manager **`permission_id` / `access_token`** pairs via **`POST /api/v1/identity/mint`** and **`POST /api/v1/permissions/passport`** (enterprise integrations — contact Aevesa for **`INTERNAL_SERVICE_KEY`** provisioning).
 
-**Dashboard demo:** use the **Infrastructure** tab at [app.kovera.tech](https://app.kovera.tech/?tab=vanguard-infrastructure) — no manual API calls required.
+**Dashboard demo:** use the **Infrastructure** tab at [app.aevesa.com](https://app.aevesa.com/?tab=vanguard-infrastructure) — no manual API calls required.
 
 **API integration example** (requires tenant **`INTERNAL_SERVICE_KEY`** — never expose in browser code):
 
 **1) Invoke — exceeds ceiling → capture IDs**
 
 ```bash
-curl -sS -X POST "https://api.kovera.tech/api/v1/internal/vanguard/pos-delegation/invoke" \
+curl -sS -X POST "https://api.aevesa.com/api/v1/internal/vanguard/pos-delegation/invoke" \
   -H "Content-Type: application/json" \
   -H "x-internal-service-key: $INTERNAL_SERVICE_KEY" \
   -d '{
@@ -494,7 +494,7 @@ curl -sS -X POST "https://api.kovera.tech/api/v1/internal/vanguard/pos-delegatio
 **2) Manager authorizes — dual-signature release**
 
 ```bash
-curl -sS -X POST "https://api.kovera.tech/api/v1/approvals/sign" \
+curl -sS -X POST "https://api.aevesa.com/api/v1/approvals/sign" \
   -H "Content-Type: application/json" \
   -H "x-internal-service-key: $INTERNAL_SERVICE_KEY" \
   -d '{
@@ -508,7 +508,7 @@ The manager passport must carry an elevated scoped role (**`MANAGER`** / **`ADMI
 **3) Retry invoke — one-shot binding**
 
 ```bash
-curl -sS -X POST "https://api.kovera.tech/api/v1/internal/vanguard/pos-delegation/invoke" \
+curl -sS -X POST "https://api.aevesa.com/api/v1/internal/vanguard/pos-delegation/invoke" \
   -H "Content-Type: application/json" \
   -H "x-internal-service-key: $INTERNAL_SERVICE_KEY" \
   -d '{
@@ -530,7 +530,7 @@ Expect **`HTTP 200`** with **`verdict: "PERMITTED"`** when the release matches. 
 Before deploying a tool or MCP server for agent use, submit its definition payload for a Skill Scan. Payloads that return `UNTRUSTED` are not permitted to execute in the enforcement pipeline.
 
 ```bash
-curl -X POST https://api.kovera.tech/api/v1/skills/scan \
+curl -X POST https://api.aevesa.com/api/v1/skills/scan \
   -H "Authorization: Bearer <JWT>" \
   -H "Content-Type: application/json" \
   -d '{
@@ -557,18 +557,18 @@ An `UNTRUSTED` verdict includes a `static_findings` array identifying detected s
 
 ### Public sovereignty verification (receipt portal)
 
-Operators and auditors verify **Kovera sovereignty receipts** and **Proof-of-Action bundles** at **[verify.kovera.tech](https://verify.kovera.tech)**.
+Operators and auditors verify **Aevesa sovereignty receipts** and **Proof-of-Action bundles** at **[verify.aevesa.com](https://verify.aevesa.com)**.
 
 | Input | Behavior |
 |---|---|
-| **`liability-receipt/v1`** JSON | Tier A — in-browser digest verify via **`@kovera/verify`** (also runnable from [`packages/verify/`](./packages/verify/)) |
+| **`liability-receipt/v1`** JSON | Tier A — in-browser digest verify via **`@aevesa/verify`** (also runnable from [`packages/verify/`](./packages/verify/)) |
 | **Sovereignty receipt JSON** | Server-assisted checks via **`POST /api/v1/public/verify-receipt`** (HMAC / seals / optional Merkle). |
 | **64-character hex `entryHash`** | Merkle continuation proof against the public anchor path. |
 | **Proof-of-Action bundle JSON** | **Client-side only:** RS256 manifest JWS + **`file_integrity`** SHA-256. Public key from bundle metadata or **`GET /api/v1/public/bundle-verify-key`**. |
 
 **Shared receipt links:** **`POST /api/v1/governance/mint-public-share-receipt`** (authenticated dashboard) mints a redacted JSON payload loaded by **`?receipt_id=`** on the verify portal.
 
-**Guardian witness demo:** open [verify.kovera.tech](https://verify.kovera.tech) → **Independent Guardian witness demo**, or **`GET /api/v1/public/evidence/guardian-demo`**.
+**Guardian witness demo:** open [verify.aevesa.com](https://verify.aevesa.com) → **Independent Guardian witness demo**, or **`GET /api/v1/public/evidence/guardian-demo`**.
 
 ---
 
@@ -585,7 +585,7 @@ Operators and auditors verify **Kovera sovereignty receipts** and **Proof-of-Act
 **2) Export (authenticated)**
 
 ```bash
-curl -sS -X POST "https://api.kovera.tech/api/v1/governance/proof-bundle" \
+curl -sS -X POST "https://api.aevesa.com/api/v1/governance/proof-bundle" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <dashboard-jwt>" \
   -d '{"approvalRequestId":"<from-402>"}'
@@ -594,7 +594,7 @@ curl -sS -X POST "https://api.kovera.tech/api/v1/governance/proof-bundle" \
 **Auditor one-click report** (bundle + executive summary + `session_digest`):
 
 ```bash
-curl -sS -X POST "https://api.kovera.tech/api/v1/governance/auditor-export" \
+curl -sS -X POST "https://api.aevesa.com/api/v1/governance/auditor-export" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <dashboard-jwt>" \
   -d '{"approvalRequestId":"<from-402>"}'
@@ -604,9 +604,9 @@ Optional body: `"mintPortalShare": false` to skip public share-receipt minting. 
 
 **3) Verify (zero-trust)**
 
-1. Paste the full `{ "ok": true, "bundle": { ... } }` or bare bundle object into **`verify.kovera.tech`**.
+1. Paste the full `{ "ok": true, "bundle": { ... } }` or bare bundle object into **`verify.aevesa.com`**.
 2. Click **Validate** — **Verification dashboard** shows primary Aegis anchor vs MCP / forensic drill-down.
-3. Read the **Enterprise Verification Guide** on [verify.kovera.tech](https://verify.kovera.tech/verification-guide-enterprise.html) for **Policy Drift** interpretation (also shipped as **`VERIFICATION_GUIDE_ENTERPRISE.md`** inside exported bundles).
+3. Read the **Enterprise Verification Guide** on [verify.aevesa.com](https://verify.aevesa.com/verification-guide-enterprise.html) for **Policy Drift** interpretation (also shipped as **`VERIFICATION_GUIDE_ENTERPRISE.md`** inside exported bundles).
 
 **Policy drift:** `forensic/session_chain.json` → `policy_drift.policy_context_stable === false` means `policy_version_hash` changed between hops—correlate with change management, not automatic fraud.
 
@@ -614,34 +614,34 @@ Optional body: `"mintPortalShare": false` to skip public share-receipt minting. 
 
 ### Operator dashboard workspaces
 
-After login at [app.kovera.tech](https://app.kovera.tech), workspaces are addressable as **`https://app.kovera.tech/?tab=<workspaceId>`**.
+After login at [app.aevesa.com](https://app.aevesa.com), workspaces are addressable as **`https://app.aevesa.com/?tab=<workspaceId>`**.
 
 | `tab` | How to use |
 |---|---|
 | `scan` / `history` | Upload or paste code for compliance scan; review prior runs. |
 | `governance` | Sovereignty Protocol — policy strips, timeline, receipt actions. |
 | `compliance` / `security` | Compliance metrics and audit exports (governance viewer; Okta SSO for CSV/JSON when enforced). |
-| `kovera-vfp` / `verification-vault` | Simulate receipts, Trust Links, Evidence of Care wizard. |
+| `aevesa-vfp` / `verification-vault` | Simulate receipts, Trust Links, Evidence of Care wizard. |
 | `evidence-locker` | Batch verify / seal evidence artefacts. |
 | `command-center` / `interception-center` | Ledger summary, HITL queue, interception telemetry. |
 | `escalations` / `aegis` / `precedents` / `sovereign` / `policy-simulator` | Tier-gated operations surfaces. |
-| **`vanguard-infrastructure`** | **Start here:** POS + HITL demo → **402** → manager sign → **200 PERMITTED** → export Proof-of-Action → [verify.kovera.tech](https://verify.kovera.tech). |
+| **`vanguard-infrastructure`** | **Start here:** POS + HITL demo → **402** → manager sign → **200 PERMITTED** → export Proof-of-Action → [verify.aevesa.com](https://verify.aevesa.com). |
 | `vanguard-integrations` / `vanguard-consequences` | Integration previews and consequence modeling. |
 
 **Infrastructure export:** buttons show **Generating verifiable proof…** while the API assembles artifacts; the verify portal opens via a one-shot handoff (`?from=infrastructure_demo`).
 
 ---
 
-### Kovera MCP plugin
+### Aevesa MCP plugin
 
-Package **`@kovera/mcp-server`** runs standalone against your Kovera tenant API. Local credentials default to **`~/.config/sentinul/`** unless **`KOVERA_MCP_DATA_DIR`** is set.
+Package **`@aevesa/mcp-server`** runs standalone against your Aevesa tenant API. Local credentials default to **`~/.config/sentinul/`** unless **`AEVESA_MCP_DATA_DIR`** is set.
 
 **Install and configure**
 
 ```bash
-npm install -g @kovera/mcp-server
-kovera-mcp setup    # writes config.json — set backendUrl to https://api.kovera.tech
-kovera-mcp --check  # health check against your tenant
+npm install -g @aevesa/mcp-server
+aevesa-mcp setup    # writes config.json — set backendUrl to https://api.aevesa.com
+aevesa-mcp --check  # health check against your tenant
 ```
 
 **Claude Desktop** (`claude_desktop_config.json`):
@@ -649,14 +649,14 @@ kovera-mcp --check  # health check against your tenant
 ```json
 {
   "mcpServers": {
-    "kovera": {
-      "command": "kovera-mcp"
+    "aevesa": {
+      "command": "aevesa-mcp"
     }
   }
 }
 ```
 
-Use an absolute path to **`kovera-mcp`** if global npm `bin` is not on Claude’s PATH.
+Use an absolute path to **`aevesa-mcp`** if global npm `bin` is not on Claude’s PATH.
 
 **MCP tools (stdio server)**
 
@@ -672,11 +672,11 @@ Use an absolute path to **`kovera-mcp`** if global npm `bin` is not on Claude’
 
 | Variable | Purpose |
 |---|---|
-| **`API_BASE`** | Backend root or `.../api` (set by `kovera-mcp setup` or shell). |
-| **`KOVERA_MCP_DATA_DIR`** | Relocate local credentials + file-backed ledger. |
-| **`KOVERA_MCP_DEBUG`** | Verbose logging when `1`. |
-| **`KOVERA_MCP_BRIDGE_KEY`** / **`INTERNAL_MCP_SECRET`** | Bridge to hosted **`/api/mcp/sse`** (server-side secret—never commit). |
-| **`KOVERA_API_KEY`** / legacy **`SENTINUL_API_KEY`** | User API key after **`auditor_login`**. |
+| **`API_BASE`** | Backend root or `.../api` (set by `aevesa-mcp setup` or shell). |
+| **`AEVESA_MCP_DATA_DIR`** | Relocate local credentials + file-backed ledger. |
+| **`AEVESA_MCP_DEBUG`** | Verbose logging when `1`. |
+| **`AEVESA_MCP_BRIDGE_KEY`** / **`INTERNAL_MCP_SECRET`** | Bridge to hosted **`/api/mcp/sse`** (server-side secret—never commit). |
+| **`AEVESA_API_KEY`** / legacy **`SENTINUL_API_KEY`** | User API key after **`auditor_login`**. |
 
 **Relationship to Proof-of-Action:** MCP tool invokes that flow through the cloud control plane produce ledger rows that appear in bundles exported via **`POST /api/v1/governance/proof-bundle`**.
 
@@ -686,7 +686,7 @@ Use an absolute path to **`kovera-mcp`** if global npm `bin` is not on Claude’
 
 The Sovereign Dashboard provides real-time visibility into all enforcement activity across every layer.
 
-**Access:** [app.kovera.tech](https://app.kovera.tech) (primary dashboard) · [kovera.tech](https://kovera.tech) (marketing)
+**Access:** [app.aevesa.com](https://app.aevesa.com) (primary dashboard) · [aevesa.com](https://aevesa.com) (marketing)
 
 | Panel | Data Source | Purpose |
 |---|---|---|
@@ -704,7 +704,7 @@ The Sovereign Dashboard provides real-time visibility into all enforcement activ
 **Live Pulse (REST) example:**
 
 ```bash
-curl -sS "https://api.kovera.tech/api/v1/health/pulse"
+curl -sS "https://api.aevesa.com/api/v1/health/pulse"
 ```
 
 **MCP / governance SSE:** real-time tool streams use `GET /api/mcp/sse` (MCP auth), not a separate `/api/v1/genesis/pulse` endpoint.
@@ -722,11 +722,11 @@ High-signal governance event types (ledger / exports) include:
 
 ### Web dashboard, MFA, and settings
 
-The **Kovera dashboard** at [app.kovera.tech](https://app.kovera.tech) is the operator UI for login, Genesis telemetry, governance exports, and account controls.
+The **Aevesa dashboard** at [app.aevesa.com](https://app.aevesa.com) is the operator UI for login, Genesis telemetry, governance exports, and account controls.
 
 | Area | How to use |
 |---|---|
-| **Login / signup** | Email + password at [app.kovera.tech](https://app.kovera.tech). Cloudflare Turnstile on production hosts. |
+| **Login / signup** | Email + password at [app.aevesa.com](https://app.aevesa.com). Cloudflare Turnstile on production hosts. |
 | **MFA (TOTP)** | Enable at **`/settings/mfa`** after login. |
 | **Okta SSO** | **Sign in with Okta** when your tenant has SSO configured. |
 | **Privacy & data** | **`/settings/privacy`** — GDPR/CCPA deletion scheduling. |
@@ -749,7 +749,7 @@ The dashboard subscribes to **Server-Sent Events** for high-signal threat notifi
 
 ```bash
 curl -sS -N -H "Accept: text/event-stream" \
-  "https://api.kovera.tech/api/v1/genesis/threats/stream?access_token=<JWT>"
+  "https://api.aevesa.com/api/v1/genesis/threats/stream?access_token=<JWT>"
 ```
 
 Event stream payloads include a `CONNECTED` heartbeat and `THREAT_SIGNAL` JSON objects in the dashboard live feed.
@@ -845,7 +845,7 @@ Manifest signing uses deployment key material (public half available via **`GET 
 
 ### Public verification (unauthenticated)
 
-Rate-limited public routes on **`https://api.kovera.tech`**:
+Rate-limited public routes on **`https://api.aevesa.com`**:
 
 | Method | Path | Description |
 |---|---|---|
@@ -860,7 +860,7 @@ Rate-limited public routes on **`https://api.kovera.tech`**:
 | `GET` | `/api/v1/public/apor/rgp-schema` | Agent Protocol of Record reference schema |
 | `POST` | `/api/v1/public/intent-alignment/evaluate` | Structural Proof-of-Intent scoring (anonymous playground) |
 
-**Zero-trust rule:** Proof-of-Action **manifest RS256** and **`file_integrity`** are verified in the browser at **[verify.kovera.tech](https://verify.kovera.tech)**. Offline **`liability-receipt/v1`** checks use **[`@kovera/verify`](./packages/verify/)** in this repository.
+**Zero-trust rule:** Proof-of-Action **manifest RS256** and **`file_integrity`** are verified in the browser at **[verify.aevesa.com](https://verify.aevesa.com)**. Offline **`liability-receipt/v1`** checks use **[`@aevesa/verify`](./packages/verify/)** in this repository.
 
 ---
 
@@ -868,7 +868,7 @@ Rate-limited public routes on **`https://api.kovera.tech`**:
 
 ### Zero-Trust by Architecture
 
-Kovera operates on the principle that no agent, tool, or LLM provider is trusted by default. Trust is not established at connection time — it is re-evaluated at every layer, on every call.
+Aevesa operates on the principle that no agent, tool, or LLM provider is trusted by default. Trust is not established at connection time — it is re-evaluated at every layer, on every call.
 
 The enforcement pipeline is:
 
@@ -880,9 +880,9 @@ The enforcement pipeline is:
 
 ### Immutable accountability (Merkle-chain audit)
 
-Every enforcement decision is bound into the **Aegis audit ledger** using **per-entry hashing and signatures** and **Merkle-style chaining** (e.g. Vanguard / lab simulations expose roots for verification). That yields a **cryptographically verifiable history** in which the **agent request**, the **Kovera verdict**, and—when step-up applies—the **manager HITL approval** are linked in the same tamper-evident stream. **Altering a single log entry invalidates the chain** for downstream verification, which supports **forensic integrity** and regulatory-style audit narratives beyond a plain SQL append log.
+Every enforcement decision is bound into the **Aegis audit ledger** using **per-entry hashing and signatures** and **Merkle-style chaining** (e.g. Vanguard / lab simulations expose roots for verification). That yields a **cryptographically verifiable history** in which the **agent request**, the **Aevesa verdict**, and—when step-up applies—the **manager HITL approval** are linked in the same tamper-evident stream. **Altering a single log entry invalidates the chain** for downstream verification, which supports **forensic integrity** and regulatory-style audit narratives beyond a plain SQL append log.
 
-**Proof-of-Action bundles** package that narrative for external auditors: primary **`aegis/1`** anchor, optional MCP witness + forensic session chain, and a signed manifest—verified offline or on **`verify.kovera.tech`** without exposing raw agent prompts.
+**Proof-of-Action bundles** package that narrative for external auditors: primary **`aegis/1`** anchor, optional MCP witness + forensic session chain, and a signed manifest—verified offline or on **`verify.aevesa.com`** without exposing raw agent prompts.
 
 ### Sovereign Workflow
 
@@ -906,7 +906,7 @@ This is intentional. An adversary who can enumerate detection thresholds can opt
 
 ### For dashboard users
 
-No configuration required beyond your account at [app.kovera.tech](https://app.kovera.tech). Enable MFA at `/settings/mfa`. Governance exports require a **governance viewer** role (`OWNER`, `SECURITY_ADMIN`, `AUDITOR`, or legacy Admin / Governance Officer / Read Only).
+No configuration required beyond your account at [app.aevesa.com](https://app.aevesa.com). Enable MFA at `/settings/mfa`. Governance exports require a **governance viewer** role (`OWNER`, `SECURITY_ADMIN`, `AUDITOR`, or legacy Admin / Governance Officer / Read Only).
 
 ### For API integrators
 
@@ -914,7 +914,7 @@ No configuration required beyond your account at [app.kovera.tech](https://app.k
 |---|---|
 | **Session JWT** | Log in to the dashboard; use session cookie or bearer token for `Authorization: Bearer <jwt>` |
 | **Provider LLM key** | Pass as **`X-LLM-Api-Key`** header on Genesis proxy calls — never in JSON body |
-| **Delegated passports** | Enterprise integration — contact Kovera for identity mint + passport APIs |
+| **Delegated passports** | Enterprise integration — contact Aevesa for identity mint + passport APIs |
 | **`INTERNAL_SERVICE_KEY`** | Enterprise control-plane integrations only — never embed in browser or mobile apps |
 
 ### FinTech FDLP (tenant operators)
@@ -923,28 +923,28 @@ Activate a named pack via dashboard or environment:
 
 | Variable | Purpose |
 |---|---|
-| `KOVERA_FINTECH_POLICY_PACK` | Pack id (e.g. `customer_support_copilot`, `internal_ops_strict`) |
-| `KOVERA_FDLP_ENABLED` | Set to `0` / `false` to force FDLP off |
-| `KOVERA_FDLP_PROMPT_ACTION` | Override: `block` \| `redact` \| `log_only` |
-| `KOVERA_FDLP_RESPONSE_ACTION` | Override: `block` \| `redact` \| `log_only` |
+| `AEVESA_FINTECH_POLICY_PACK` | Pack id (e.g. `customer_support_copilot`, `internal_ops_strict`) |
+| `AEVESA_FDLP_ENABLED` | Set to `0` / `false` to force FDLP off |
+| `AEVESA_FDLP_PROMPT_ACTION` | Override: `block` \| `redact` \| `log_only` |
+| `AEVESA_FDLP_RESPONSE_ACTION` | Override: `block` \| `redact` \| `log_only` |
 
 Legacy **`SENTINUL_*`** names are still honored with a deprecation warning.
 
-### Kovera vs. legacy environment variables
+### Aevesa vs. legacy environment variables
 
-Hosted SaaS tenants typically do not set these directly. Dedicated deployments prefer **`KOVERA_*`** over legacy **`SENTINUL_*`** names:
+Hosted SaaS tenants typically do not set these directly. Dedicated deployments prefer **`AEVESA_*`** over legacy **`SENTINUL_*`** names:
 
-| Kovera (preferred) | Legacy (still honored) |
+| Aevesa (preferred) | Legacy (still honored) |
 |---|---|
-| `KOVERA_TIER` | `SENTINUL_TIER` |
-| `KOVERA_API_KEY` | `SENTINUL_API_KEY` |
-| `KOVERA_PASSPORT_SECRET` | `SENTINUL_PASSPORT_SECRET` |
-| `KOVERA_FDLP_*` / `KOVERA_FINTECH_*` | `SENTINUL_FDLP_*` / `SENTINUL_FINTECH_*` |
-| `KOVERA_BYOK_ID` | `SENTINUL_BYOK_ID` |
+| `AEVESA_TIER` | `SENTINUL_TIER` |
+| `AEVESA_API_KEY` | `SENTINUL_API_KEY` |
+| `AEVESA_PASSPORT_SECRET` | `SENTINUL_PASSPORT_SECRET` |
+| `AEVESA_FDLP_*` / `AEVESA_FINTECH_*` | `SENTINUL_FDLP_*` / `SENTINUL_FINTECH_*` |
+| `AEVESA_BYOK_ID` | `SENTINUL_BYOK_ID` |
 
 ### Dedicated deployment secrets
 
-Enterprise operators running a private Kovera instance require at minimum:
+Enterprise operators running a private Aevesa instance require at minimum:
 
 | Variable | Purpose |
 |---|---|
@@ -958,13 +958,13 @@ Generate secure values:
 node -e "const c=require('crypto'); console.log(c.randomBytes(64).toString('hex'));"
 ```
 
-Optional: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `SIEM_ENDPOINT_URL`, `KOVERA_MERGE_ATTESTATION_*` for manifest signing. Contact **contact@kovera.tech** for dedicated deployment guides.
+Optional: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `SIEM_ENDPOINT_URL`, `AEVESA_MERGE_ATTESTATION_*` for manifest signing. Contact **sales@aevesa.com** for dedicated deployment guides.
 
 ---
 
 ## 8. BYOK (Bring Your Own Key)
 
-Enterprise operators on **dedicated deployments** can supply Customer-Managed Keys (CMK) for at-rest encryption of audit records. Set **`KOVERA_BYOK_ID`** (or legacy **`SENTINUL_BYOK_ID`**) or configure **`.sentinulrc`** on the server:
+Enterprise operators on **dedicated deployments** can supply Customer-Managed Keys (CMK) for at-rest encryption of audit records. Set **`AEVESA_BYOK_ID`** (or legacy **`SENTINUL_BYOK_ID`**) or configure **`.sentinulrc`** on the server:
 
 ```yaml
 vault:
@@ -980,12 +980,15 @@ The vault bridge fails loudly in production if CMK initialization fails — it d
 
 | Document | Purpose |
 |---|---|
+| [`STANDARDS.md`](./STANDARDS.md) | Index of all published open standards |
+| [`CHANGELOG.md`](./CHANGELOG.md) | Spec and verifier release history |
 | [`liability-receipt-v1.md`](./liability-receipt-v1.md) | Normative **`liability-receipt/v1`** standard |
+| [`LIABILITY_RECEIPT_CONFORMANCE.md`](./LIABILITY_RECEIPT_CONFORMANCE.md) | Conformance clauses and badge criteria |
 | [`packages/verify/README.md`](./packages/verify/README.md) | Offline verifier API |
 | [`COMPETITIVE_MATRIX.md`](./COMPETITIVE_MATRIX.md) | Category positioning |
 | [`SECURITY.md`](./SECURITY.md) | Vulnerability reporting |
 
-**Report security issues privately** — see [SECURITY.md](./SECURITY.md). **Contact:** [contact@kovera.tech](mailto:contact@kovera.tech)
+**Report security issues privately** — see [SECURITY.md](./SECURITY.md). **Contact:** [security@aevesa.com](mailto:security@aevesa.com)
 
 ---
 

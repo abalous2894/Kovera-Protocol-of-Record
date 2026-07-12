@@ -6,6 +6,7 @@ import {
   type CryptographicReceiptLeafInput,
 } from '../core/cryptographicReceiptLeaf.js';
 import { assertNoForbiddenKeys, normalizeUnicodeNfkc } from '../core/jcsSafeObject.js';
+import { isRecord } from '../core/isRecord.js';
 
 const HEX64 = /^[a-f0-9]{64}$/i;
 
@@ -71,10 +72,6 @@ export interface ChainVerifyFailure {
 }
 
 export type ChainVerifyResult = ChainVerifySuccess | ChainVerifyFailure;
-
-function isRecord(v: unknown): v is Record<string, unknown> {
-  return v !== null && typeof v === 'object' && !Array.isArray(v);
-}
 
 function normalizeHex64(value: unknown): string | null {
   const s = String(value ?? '').trim().toLowerCase();

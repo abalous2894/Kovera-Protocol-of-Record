@@ -5,7 +5,7 @@
 import { createHmac, createHash } from 'node:crypto';
 import { stableStringify } from './stableStringify.js';
 
-export const COMPLIANCE_PACK_SIGNING_KEY_ID = 'kovera-compliance-pack-signing-v1';
+export const COMPLIANCE_PACK_SIGNING_KEY_ID = 'aevesa-compliance-pack-signing-v1';
 
 /** Spec golden-vector secret (§6.6). */
 export const SPEC_TEST_VECTOR_SIGNING_SECRET = 'spec-test-vector-secret-v1';
@@ -48,15 +48,20 @@ export function hashManifestForSigning(manifest) {
 /**
  * @param {Record<string, unknown>} manifest
  * @param {string} [secret]
+ * @param {{ signedAt?: string }} [opts]
  */
-export function signConformityPackManifest(manifest, secret = getCompliancePackSigningSecret()) {
+export function signConformityPackManifest(manifest, secret = getCompliancePackSigningSecret(), opts = {}) {
   const manifestSha256 = hashManifestForSigning(manifest);
   const signature = createHmac('sha256', secret).update(manifestSha256, 'utf8').digest('base64');
+  const signedAt =
+    opts.signedAt ||
+    process.env.AEVESA_PACK_DETERMINISTIC_SIGNED_AT?.trim() ||
+    new Date().toISOString();
 
   return {
     algorithm: 'HMAC-SHA256',
     manifestSha256,
-    signedAt: new Date().toISOString(),
+    signedAt,
     keyId: COMPLIANCE_PACK_SIGNING_KEY_ID,
     signature,
   };

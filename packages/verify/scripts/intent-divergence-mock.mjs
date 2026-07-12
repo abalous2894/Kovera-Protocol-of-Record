@@ -82,7 +82,7 @@ const receipt = {
   receipt_id: randomUUID(),
   issued_at: now,
   issuer: {
-    name: 'Kovera',
+    name: 'Aevesa',
     product: 'Verified Autonomous Sessions',
     verification_profile: 'aegis/1+proof-of-intent',
   },

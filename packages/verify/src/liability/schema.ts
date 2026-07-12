@@ -1,9 +1,13 @@
 import { z } from 'zod';
 import { causalLineageSchema } from './causalLineageSchema.js';
+import { gatewayAttestationSchema } from './gatewayAttestationSchema.js';
+import { partialPathSchema } from './partialPathSchema.js';
 import { intentContextSchema } from './intentContext.js';
 import { intentAlignmentSchema } from './intentAlignmentSchema.js';
 
 const hex64 = z.string().regex(/^[a-f0-9]{64}$/);
+
+const policyThresholdValueSchema = z.union([z.number(), z.string(), z.boolean(), z.null()]);
 
 const primaryActorSchema = z.object({
   agent_id: z.string().min(1),
@@ -57,7 +61,7 @@ export const liabilityReceiptV1ZodSchema = z
       policy_version_hash: hex64,
       treaty_name: z.string().nullable().optional(),
       decision: z.enum(['allow_within_ceiling', 'require_hitl', 'deny', 'released']),
-      thresholds: z.record(z.union([z.number(), z.string(), z.boolean()])).optional(),
+      thresholds: z.record(policyThresholdValueSchema).optional(),
       regulatory_framing: z.array(z.string()).nullable().optional(),
     }),
     hitl: z.object({
@@ -102,6 +106,31 @@ export const liabilityReceiptV1ZodSchema = z
     intent_alignment: intentAlignmentSchema.optional(),
     /** KVR-301 — parent ledger anchor for delegated / swarm child actions. */
     causal_lineage: causalLineageSchema.optional(),
+    /** Proof Moat Phase 1 — external gateway decision bound to Aevesa entryHash. */
+    gateway_attestation: gatewayAttestationSchema.optional(),
+    /** Proof Moat Phase 3 — Kaptein path binding for multi-hop sessions. */
+    partial_path: partialPathSchema.optional(),
+    /** Wave 2.2 — explicit refusal profile for pre-execution denials. */
+    receipt_profile: z.enum(['PERMITTED', 'DENIED', 'HITL_PENDING', 'HITL_RELEASED']).optional(),
+    denial: z
+      .object({
+        pre_execution: z.literal(true),
+        execution_occurred: z.literal(false),
+        denial_stage: z.enum(['gateway', 'pep', 'hitl', 'runtime_firewall', 'intent_alignment']),
+        source: z.string().max(128).optional(),
+      })
+      .optional(),
+    refusal_alignment: z
+      .object({
+        profile: z.string().min(1),
+        mapping_version: z.string().min(1),
+        reference: z.string().min(1),
+        scitt_event_type: z.string().optional(),
+        mapped_fields: z.array(z.string()).optional(),
+        evidence_hash: z.string().nullable().optional(),
+        kovera_receipt_profile: z.string().optional(),
+      })
+      .optional(),
     proof: z.object({
       ledger_spec: z.literal('aegis/1'),
       primary_anchor: z.object({
@@ -152,16 +181,46 @@ export const liabilityReceiptV1ZodSchema = z
   })
   .strict();
 
+const privacyEnvelopeSchema = z
+  .object({
+    envelope_version: z.string().min(1),
+    subject_id: hex64,
+    encrypted_fields: z.record(z.unknown()).nullable().optional(),
+    shredded_at: z.string().datetime().nullable().optional(),
+    erasure_certificate_id: z.string().uuid().nullable().optional(),
+  })
+  .strict();
+
+export const liabilityReceiptV2ZodSchema = liabilityReceiptV1ZodSchema
+  .omit({ schema: true })
+  .extend({
+    schema: z.literal('liability-receipt/v2'),
+    privacy: privacyEnvelopeSchema.optional(),
+  })
+  .strict();
+
 export type ParsedLiabilityReceipt = z.infer<typeof liabilityReceiptV1ZodSchema>;
+export type ParsedLiabilityReceiptV2 = z.infer<typeof liabilityReceiptV2ZodSchema>;
 
 export function parseLiabilityReceiptStructure(
   receiptData: unknown,
-): { ok: true; receipt: ParsedLiabilityReceipt } | { ok: false; error: string } {
+):
+  | { ok: true; receipt: ParsedLiabilityReceipt | ParsedLiabilityReceiptV2; version: 'v1' | 'v2' }
+  | { ok: false; error: string } {
+  if (receiptData != null && typeof receiptData === 'object' && (receiptData as { schema?: string }).schema === 'liability-receipt/v2') {
+    const parsed = liabilityReceiptV2ZodSchema.safeParse(receiptData);
+    if (!parsed.success) {
+      const issue = parsed.error.issues[0];
+      const path = issue?.path?.length ? issue.path.join('.') : 'root';
+      return { ok: false, error: `Structural validation failed at ${path}: ${issue?.message ?? 'invalid'}` };
+    }
+    return { ok: true, receipt: parsed.data, version: 'v2' };
+  }
   const parsed = liabilityReceiptV1ZodSchema.safeParse(receiptData);
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
     const path = issue?.path?.length ? issue.path.join('.') : 'root';
     return { ok: false, error: `Structural validation failed at ${path}: ${issue?.message ?? 'invalid'}` };
   }
-  return { ok: true, receipt: parsed.data };
+  return { ok: true, receipt: parsed.data, version: 'v1' };
 }

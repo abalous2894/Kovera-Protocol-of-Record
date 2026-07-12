@@ -23,7 +23,7 @@ function baseReceipt() {
     schema: 'liability-receipt/v1',
     receipt_id: randomUUID(),
     issued_at: now,
-    issuer: { name: 'Kovera', product: 'VAS', verification_profile: 'aegis/1' },
+    issuer: { name: 'Aevesa', product: 'VAS', verification_profile: 'aegis/1' },
     session: {
       session_id: randomUUID(),
       correlation_id: randomUUID(),

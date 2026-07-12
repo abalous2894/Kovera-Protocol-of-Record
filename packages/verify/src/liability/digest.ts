@@ -11,3 +11,4 @@ export {
   assertSchemaId,
   type ReceiptDigestVerifyResult,
 } from './digestProfiles.js';
+export { computeCanonicalReceiptDigest, receiptDigestPreimage } from './digestCanonical.js';

@@ -4,7 +4,7 @@ export interface VerifiedPromotionPolicy {
   allowedTransitions: string[];
   sovereigntyLawSeal: unknown;
   sealedAt: string;
-  policyDialect: 'kovera-rgp/v1';
+  policyDialect: 'aevesa-rgp/v1';
   precedentId: string | null;
   policyDiffHash: string | null;
   promotionJti: string | null;
