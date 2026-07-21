@@ -1,6 +1,7 @@
 # Cryptographic vs Declarative Evidence for Art. 12 (Wave 3.1)
 
-**Audience:** Standards buyers, EU AI Act conformity assessors, security architects
+**Audience:** Standards buyers, EU AI Act conformity assessors, security architects  
+**Public page:** [https://aevesa.com/cryptographic-vs-declarative-evidence](https://aevesa.com/cryptographic-vs-declarative-evidence)
 
 ---
 

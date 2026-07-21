@@ -6,6 +6,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [2026-07-21]
+
+### Added
+
+- **PROTOCOL_COMPATIBILITY_POLICY.md** — public copy of the BC-PRT open-protocol compatibility policy (safe vs breaking changes for receipts, APIs, and `@aevesa/verify`).
+- **`packages/verify/PLATFORM_API.md`** — mirrored with the verify package sync.
+
+### Changed
+
+- **CRYPTOGRAPHIC_VS_DECLARATIVE_EVIDENCE.md** — links the hosted public article at `https://aevesa.com/cryptographic-vs-declarative-evidence`.
+- **README.md** — compatibility-policy row resolves to the flat-root public copy.
+
+---
+
 ## [2026-07-11]
 
 ### Added

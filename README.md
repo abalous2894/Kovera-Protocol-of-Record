@@ -2,15 +2,15 @@
 
 **Enterprise-Grade Enforcement for Autonomous AI Agents and Multi-Agent Systems**
 
-**Version:** 5.0.0 · Genesis Phase 5–6 (Production)  
+**Version:** 5.0.0 · Genesis Phase 5-6 (Production)  
 **Edition:** Sovereign Security Infrastructure
 
 > Beyond Guardrails. Real-Time Sovereignty.
 
 | | |
 |---|---|
-| **Dashboard** | [app.aevesa.com](https://app.aevesa.com) — sign up, operate agents, export proof |
-| **Verify portal** | [verify.aevesa.com](https://verify.aevesa.com) — zero-trust receipt & bundle checks |
+| **Dashboard** | [app.aevesa.com](https://app.aevesa.com) - sign up, operate agents, export proof |
+| **Verify portal** | [verify.aevesa.com](https://verify.aevesa.com) - zero-trust receipt & bundle checks |
 | **API** | `https://api.aevesa.com` |
 | **Standard** | [`liability-receipt/v1`](./liability-receipt-v1.md) · [`@aevesa/verify`](./packages/verify/) |
 
@@ -24,7 +24,7 @@ Product loop: **Intercept · Decide · Prove.**
 
 This is not a monitoring system. It is an enforcement system.
 
-**This repository** publishes the open **`liability-receipt/v1`** specification, the **`@aevesa/verify`** reference verifier, and product usage documentation. The hosted control plane (dashboard, Genesis gateway, HITL broker) runs at **aevesa.com** — you do not need to self-host to use Aevesa.
+**This repository** publishes the open **`liability-receipt/v1`** specification, the **`@aevesa/verify`** reference verifier, and product usage documentation. The hosted control plane (dashboard, Genesis gateway, HITL broker) runs at **aevesa.com** - you do not need to self-host to use Aevesa.
 
 ---
 
@@ -44,8 +44,8 @@ Pick the path that matches your role:
 
 1. Go to [app.aevesa.com](https://app.aevesa.com) and create an account.
 2. Navigate to **Infrastructure** (Vanguard lab).
-3. Run **Preset B · Exceeds mandate** — you should see **`402 PENDING_APPROVAL`** (step-up required).
-4. Click **Complete manager HITL sign** — expect **`200 PERMITTED`**.
+3. Run **Preset B · Exceeds mandate** - you should see **`402 PENDING_APPROVAL`** (step-up required).
+4. Click **Complete manager HITL sign** - expect **`200 PERMITTED`**.
 5. Click **Open verification dashboard** (requires governance viewer role) or copy the export JSON to [verify.aevesa.com](https://verify.aevesa.com).
 
 Every step above appends to your tenant's Aegis ledger. You can export auditor-grade proof without trusting Aevesa's UI alone.
@@ -70,7 +70,7 @@ curl -X POST "https://api.aevesa.com/api/v1/genesis/proxy/call" \
 - **`403`** + `blockPhase` → enforcement blocked the call; an audit row was written.
 - **`200`** → clean response plus inspection metadata (`intentVerdict`, `skillScanVerdict`, …).
 
-Provider API keys go in the **`X-LLM-Api-Key`** header (or your tenant's configured env) — never in the JSON body.
+Provider API keys go in the **`X-LLM-Api-Key`** header (or your tenant's configured env) - never in the JSON body.
 
 ---
 
@@ -117,7 +117,7 @@ Provider API keys go in the **`X-LLM-Api-Key`** header (or your tenant's configu
 
 Every LLM call, tool invocation, and agent action is forced through a **5-Layer Enforcement Gauntlet** before execution and again upon response. Layers execute sequentially; a block at any layer terminates the operation immediately and emits an immutable audit record. There is no bypass path.
 
-**Cryptographic accountability:** Enforcement decisions, delegated-action outcomes, and **human-in-the-loop (HITL)** releases are written into the **Aegis audit ledger** with hash-chained entries (Merkle-oriented binding per event). That design yields a **tamper-evident history**: the agent request, the Aevesa verdict, and (when applicable) the manager's step-up approval are linked in a way that breaks forensic integrity if any single row is altered—not merely a conventional append-only SQL log.
+**Cryptographic accountability:** Enforcement decisions, delegated-action outcomes, and **human-in-the-loop (HITL)** releases are written into the **Aegis audit ledger** with hash-chained entries (Merkle-oriented binding per event). That design yields a **tamper-evident history**: the agent request, the Aevesa verdict, and (when applicable) the manager's step-up approval are linked in a way that breaks forensic integrity if any single row is altered-not merely a conventional append-only SQL log.
 
 ```
 INBOUND REQUEST
@@ -132,7 +132,7 @@ INBOUND REQUEST
          │ PASS
          ▼
 ┌─────────────────────┐
-│  LAYER 2: SKILL     │  Skill Scanner — Proprietary Sovereign Logic
+│  LAYER 2: SKILL     │  Skill Scanner - Proprietary Sovereign Logic
 │                     │  Static analysis of tool payloads and prompt content;
 │  Supply-chain gate  │  exfiltration-probe detection; code-injection pattern
 │  for all tools      │  detection; supply-chain poisoning signals
@@ -151,7 +151,7 @@ INBOUND REQUEST
          │
          ▼
 ┌─────────────────────┐
-│  LAYER 4: RESPONSE  │  Response Binder — Proprietary Sovereign Logic
+│  LAYER 4: RESPONSE  │  Response Binder - Proprietary Sovereign Logic
 │                     │  Indirect prompt-injection detection; instruction
 │  Post-call LLM      │  override signals; goal hijacking; persona replacement;
 │  response guard     │  exfiltration-probe detection in LLM output
@@ -159,7 +159,7 @@ INBOUND REQUEST
          │ PASS
          ▼
 ┌─────────────────────┐
-│  LAYER 5: CHAIN     │  Chain Detector — Proprietary Sovereign Logic
+│  LAYER 5: CHAIN     │  Chain Detector - Proprietary Sovereign Logic
 │                     │  Stateful, session-scoped behavioral sequencing;
 │  Cross-turn attack  │  detects Salami Slicing, credential-harvesting chains,
 │  sequence analysis  │  and multi-turn permission escalation campaigns
@@ -192,7 +192,7 @@ The Skill Scanner is the mandatory execution gate for all MCP tool calls and LLM
 
 An `UNTRUSTED` verdict is an immediate, fail-closed block. `SUSPICIOUS` verdicts are logged and forwarded to the Chain Detector for session-level sequence analysis.
 
-Every MCP tool execution is gated through the Skill Scanner before the tool runs. This is not configurable — it is the enforcement contract.
+Every MCP tool execution is gated through the Skill Scanner before the tool runs. This is not configurable - it is the enforcement contract.
 
 ---
 
@@ -208,13 +208,13 @@ It detects:
 
 **Divergence levels:** `ALIGNED` | `WARNING` | `SUSPICIOUS` | `CRITICAL`
 
-A `CRITICAL` divergence terminates the request at the middleware layer — `HTTP 403` is returned before the route handler executes. The `blockOnCritical` enforcement posture is always active and is not a runtime option.
+A `CRITICAL` divergence terminates the request at the middleware layer - `HTTP 403` is returned before the route handler executes. The `blockOnCritical` enforcement posture is always active and is not a runtime option.
 
 ---
 
 ### Chain Detector
 
-The Chain Detector maintains stateful, session-scoped behavioral records across conversation turns. Its purpose is to identify **attack sequences** — coordinated patterns that exploit the fact that individual turns appear innocuous when evaluated in isolation.
+The Chain Detector maintains stateful, session-scoped behavioral records across conversation turns. Its purpose is to identify **attack sequences** - coordinated patterns that exploit the fact that individual turns appear innocuous when evaluated in isolation.
 
 Attack patterns detected include:
 
@@ -228,7 +228,7 @@ Every enforcement event across all five layers feeds the Chain Detector for the 
 
 ### LLM Proxy Adapter
 
-The Proxy Adapter is the fail-closed gateway for all proxied LLM calls. It is the single point through which every model invocation must pass. The Adapter orchestrates all five enforcement layers and enforces provider-aware API key resolution — **API keys are never accepted in the request body**.
+The Proxy Adapter is the fail-closed gateway for all proxied LLM calls. It is the single point through which every model invocation must pass. The Adapter orchestrates all five enforcement layers and enforces provider-aware API key resolution - **API keys are never accepted in the request body**.
 
 **Supported providers, detected automatically from the endpoint hostname:**
 
@@ -249,7 +249,7 @@ The Proxy Adapter is the fail-closed gateway for all proxied LLM calls. It is th
 
 **SSRF protection** is unconditional: private IP ranges (RFC 1918), link-local (RFC 3927), and CGNAT addresses are always blocked. `localhost` is permitted only in non-production environments.
 
-**Block phases** — where in the pipeline the call was terminated:
+**Block phases** - where in the pipeline the call was terminated:
 
 | Phase | Trigger |
 |---|---|
@@ -280,9 +280,9 @@ This is distinct from Skill Scanner (supply-chain / injection). FDLP targets **r
 
 ### Step-Up Authorization (HITL)
 
-Aevesa implements a **Human-in-the-Loop (HITL) gate** for high-risk **delegated** actions—patterns that matter for POS, fintech, and operations workflows where a kiosk or agent must not move money or void transactions beyond its **passport ceiling** without explicit human authority.
+Aevesa implements a **Human-in-the-Loop (HITL) gate** for high-risk **delegated** actions-patterns that matter for POS, fintech, and operations workflows where a kiosk or agent must not move money or void transactions beyond its **passport ceiling** without explicit human authority.
 
-- **402 Payment Required (authority required):** When an invoke exceeds the delegated passport threshold (e.g. a **$500 void** with a **$50** ceiling), the gateway returns **`HTTP 402`** with a **`PENDING_APPROVAL`** verdict—not a silent deny. The body includes **`approval_request_id`** and **`correlation_id`** for binding the manager step-up to that single intent.
+- **402 Payment Required (authority required):** When an invoke exceeds the delegated passport threshold (e.g. a **$500 void** with a **$50** ceiling), the gateway returns **`HTTP 402`** with a **`PENDING_APPROVAL`** verdict-not a silent deny. The body includes **`approval_request_id`** and **`correlation_id`** for binding the manager step-up to that single intent.
 - **Multi-role release:** A secondary party holding an elevated scoped role (e.g. **`MANAGER`** or **`ADMIN`**) must **`POST /api/v1/approvals/sign`** with their **manager passport `access_token`**. The broker verifies role and binds a **dual-signature** release to the pending row.
 - **One-shot consumption:** The release is **cryptographically bound** to the pending **`approval_request_id`** and is **consumed** when the kiosk retries the original invoke with **`hitl_approval_request_id`** set. Replays without a fresh pending row **fail closed**.
 - **Fail-closed:** Without a valid signed release, the delegated action **never** clears the gateway. Aevesa blocks business only by default; **authorized exceptions** are explicit, audited, and non-replayable.
@@ -298,13 +298,13 @@ Try the full flow in the dashboard **Infrastructure** lab ([§4 HITL approval fl
 | Layer | Role |
 |---|---|
 | **Primary anchor** | Aegis ledger row + **`aegis/1`** entryHash recompute (authoritative). |
-| **Secondary (MCP)** | Intent receipt + approval witness JWS (authorization digest—does **not** replace entryHash). |
+| **Secondary (MCP)** | Intent receipt + approval witness JWS (authorization digest-does **not** replace entryHash). |
 | **Secondary (forensic)** | MCP session receipt chain, **`session_digest`**, **`policy_drift`** (policy-context stability). |
 | **Manifest** | Per-file SHA-256 **`file_integrity`** + optional **RS256** **`manifest_signature_jws`**. |
 
-Exports are **redacted** before leaving the API (no raw prompts, bearer tokens, or tool argument bodies—digests and JWS only).
+Exports are **redacted** before leaving the API (no raw prompts, bearer tokens, or tool argument bodies-digests and JWS only).
 
-**Abandoned HITL:** If a pending approval never received a dual-signature release, export returns **`404`** with **`BUNDLE_INCOMPLETE`**—not a partial success bundle.
+**Abandoned HITL:** If a pending approval never received a dual-signature release, export returns **`404`** with **`BUNDLE_INCOMPLETE`**-not a partial success bundle.
 
 ---
 
@@ -315,9 +315,9 @@ Exports are **redacted** before leaving the API (no raw prompts, bearer tokens, 
 1. **Sign up** at [app.aevesa.com](https://app.aevesa.com).
 2. **Log in** with email + password (Cloudflare Turnstile on production hosts). Enable **MFA** at `/settings/mfa` when available.
 3. **Enterprise SSO:** if your tenant has Okta enabled, use **Sign in with Okta** on the login page.
-4. **Obtain a session JWT** for API calls — use browser devtools (session cookie) or your integration's auth flow. All **`/api/v1/genesis/*`** and **`/api/v1/governance/*`** routes require this token unless documented as public.
+4. **Obtain a session JWT** for API calls - use browser devtools (session cookie) or your integration's auth flow. All **`/api/v1/genesis/*`** and **`/api/v1/governance/*`** routes require this token unless documented as public.
 
-**Deep links:** workspaces use `https://app.aevesa.com/?tab=<workspaceId>` — e.g. `vanguard-infrastructure`, `governance`, `compliance`. See [Operator dashboard workspaces](#operator-dashboard-workspaces).
+**Deep links:** workspaces use `https://app.aevesa.com/?tab=<workspaceId>` - e.g. `vanguard-infrastructure`, `governance`, `compliance`. See [Operator dashboard workspaces](#operator-dashboard-workspaces).
 
 ### Offline verifier (`@aevesa/verify`)
 
@@ -347,6 +347,7 @@ See [`packages/verify/README.md`](./packages/verify/README.md) for the full API,
 | JSON Schema | [`liability-receipt-v1.json`](./liability-receipt-v1.json) |
 | Hosted schema URI | [aevesa.com/schemas/liability-receipt/v1](https://aevesa.com/schemas/liability-receipt/v1) |
 | Category context | [`COMPETITIVE_MATRIX.md`](./COMPETITIVE_MATRIX.md) |
+| Compatibility policy | [`PROTOCOL_COMPATIBILITY_POLICY.md`](./PROTOCOL_COMPATIBILITY_POLICY.md) |
 | Security / reporting | [`SECURITY.md`](./SECURITY.md) |
 
 Adopters can require **`liability-receipt/v1`** in procurement and verify conformance with **`@aevesa/verify`** without access to Aevesa's hosted UI.
@@ -359,7 +360,7 @@ aevesa-mcp setup    # set backendUrl to https://api.aevesa.com
 aevesa-mcp --check
 ```
 
-Configure in Claude Desktop — see [§4 MCP plugin](#aevesa-mcp-plugin-public-mcp-plugin).
+Configure in Claude Desktop - see [§4 MCP plugin](#aevesa-mcp-plugin-public-mcp-plugin).
 
 ---
 
@@ -420,7 +421,7 @@ curl -X POST https://api.aevesa.com/api/v1/genesis/proxy/call \
 
 ### FinTech FDLP configuration and behavior
 
-1. **Choose a pack** — contact your tenant admin or set **`AEVESA_FINTECH_POLICY_PACK`** if you operate a dedicated deployment.
+1. **Choose a pack** - contact your tenant admin or set **`AEVESA_FINTECH_POLICY_PACK`** if you operate a dedicated deployment.
 2. **Activate** via dashboard policy settings or environment variables. Legacy **`SENTINUL_*`** names are still honored with a deprecation warning.
 
 | Variable | Purpose |
@@ -438,7 +439,7 @@ With no pack active, FDLP does not run. When active, proxy statistics include FD
 
 ### Non-LLM Genesis scan (FDLP-only)
 
-Inspect chat-style **messages** without calling an LLM — useful for UI “preflight” or DLP checks using the same policy pack as the proxy.
+Inspect chat-style **messages** without calling an LLM - useful for UI “preflight” or DLP checks using the same policy pack as the proxy.
 
 ```bash
 curl -X POST https://api.aevesa.com/api/v1/genesis/scan \
@@ -458,13 +459,13 @@ curl -X POST https://api.aevesa.com/api/v1/genesis/scan \
 
 ### The HITL approval flow (step-up)
 
-Use this handshake when a **delegated invoke** returns **`HTTP 402`** with **`verdict: "PENDING_APPROVAL"`** (e.g. POS void above passport ceiling). Integration partners using delegated passports obtain kiosk and manager **`permission_id` / `access_token`** pairs via **`POST /api/v1/identity/mint`** and **`POST /api/v1/permissions/passport`** (enterprise integrations — contact Aevesa for **`INTERNAL_SERVICE_KEY`** provisioning).
+Use this handshake when a **delegated invoke** returns **`HTTP 402`** with **`verdict: "PENDING_APPROVAL"`** (e.g. POS void above passport ceiling). Integration partners using delegated passports obtain kiosk and manager **`permission_id` / `access_token`** pairs via **`POST /api/v1/identity/mint`** and **`POST /api/v1/permissions/passport`** (enterprise integrations - contact Aevesa for **`INTERNAL_SERVICE_KEY`** provisioning).
 
-**Dashboard demo:** use the **Infrastructure** tab at [app.aevesa.com](https://app.aevesa.com/?tab=vanguard-infrastructure) — no manual API calls required.
+**Dashboard demo:** use the **Infrastructure** tab at [app.aevesa.com](https://app.aevesa.com/?tab=vanguard-infrastructure) - no manual API calls required.
 
-**API integration example** (requires tenant **`INTERNAL_SERVICE_KEY`** — never expose in browser code):
+**API integration example** (requires tenant **`INTERNAL_SERVICE_KEY`** - never expose in browser code):
 
-**1) Invoke — exceeds ceiling → capture IDs**
+**1) Invoke - exceeds ceiling → capture IDs**
 
 ```bash
 curl -sS -X POST "https://api.aevesa.com/api/v1/internal/vanguard/pos-delegation/invoke" \
@@ -491,7 +492,7 @@ curl -sS -X POST "https://api.aevesa.com/api/v1/internal/vanguard/pos-delegation
 }
 ```
 
-**2) Manager authorizes — dual-signature release**
+**2) Manager authorizes - dual-signature release**
 
 ```bash
 curl -sS -X POST "https://api.aevesa.com/api/v1/approvals/sign" \
@@ -505,7 +506,7 @@ curl -sS -X POST "https://api.aevesa.com/api/v1/approvals/sign" \
 
 The manager passport must carry an elevated scoped role (**`MANAGER`** / **`ADMIN`**) sufficient for the pending policy.
 
-**3) Retry invoke — one-shot binding**
+**3) Retry invoke - one-shot binding**
 
 ```bash
 curl -sS -X POST "https://api.aevesa.com/api/v1/internal/vanguard/pos-delegation/invoke" \
@@ -551,7 +552,7 @@ curl -X POST https://api.aevesa.com/api/v1/skills/scan \
 }
 ```
 
-An `UNTRUSTED` verdict includes a `static_findings` array identifying detected signal categories. The category labels describe the class of threat detected. The detection logic itself is **Proprietary Sovereign Logic** and is intentionally not exposed — enforcement decisions are deterministic and fully auditable; the detection mechanism is not enumerable.
+An `UNTRUSTED` verdict includes a `static_findings` array identifying detected signal categories. The category labels describe the class of threat detected. The detection logic itself is **Proprietary Sovereign Logic** and is intentionally not exposed - enforcement decisions are deterministic and fully auditable; the detection mechanism is not enumerable.
 
 ---
 
@@ -561,7 +562,7 @@ Operators and auditors verify **Aevesa sovereignty receipts** and **Proof-of-Act
 
 | Input | Behavior |
 |---|---|
-| **`liability-receipt/v1`** JSON | Tier A — in-browser digest verify via **`@aevesa/verify`** (also runnable from [`packages/verify/`](./packages/verify/)) |
+| **`liability-receipt/v1`** JSON | Tier A - in-browser digest verify via **`@aevesa/verify`** (also runnable from [`packages/verify/`](./packages/verify/)) |
 | **Sovereignty receipt JSON** | Server-assisted checks via **`POST /api/v1/public/verify-receipt`** (HMAC / seals / optional Merkle). |
 | **64-character hex `entryHash`** | Merkle continuation proof against the public anchor path. |
 | **Proof-of-Action bundle JSON** | **Client-side only:** RS256 manifest JWS + **`file_integrity`** SHA-256. Public key from bundle metadata or **`GET /api/v1/public/bundle-verify-key`**. |
@@ -574,13 +575,13 @@ Operators and auditors verify **Aevesa sovereignty receipts** and **Proof-of-Act
 
 ### Proof-of-Action export and verification loop
 
-**Who may export:** dashboard users with **governance viewer** entitlement (Prisma **`governanceRole`** `OWNER` / `SECURITY_ADMIN` / `AUDITOR`, or legacy **`ADMIN`** / `GOVERNANCE_OFFICER` / `READ_ONLY`). This uses the **normal session JWT**—not **`INTERNAL_SERVICE_KEY`**.
+**Who may export:** dashboard users with **governance viewer** entitlement (Prisma **`governanceRole`** `OWNER` / `SECURITY_ADMIN` / `AUDITOR`, or legacy **`ADMIN`** / `GOVERNANCE_OFFICER` / `READ_ONLY`). This uses the **normal session JWT**-not **`INTERNAL_SERVICE_KEY`**.
 
 **1) Identify the anchor** (one of):
 
-- `entryHash` — 64-char hex ledger anchor
-- `correlationId` — HITL correlation from **402** body
-- `approvalRequestId` — `approval_request_id` from **402** (common after Infrastructure POS demo)
+- `entryHash` - 64-char hex ledger anchor
+- `correlationId` - HITL correlation from **402** body
+- `approvalRequestId` - `approval_request_id` from **402** (common after Infrastructure POS demo)
 
 **2) Export (authenticated)**
 
@@ -605,10 +606,10 @@ Optional body: `"mintPortalShare": false` to skip public share-receipt minting. 
 **3) Verify (zero-trust)**
 
 1. Paste the full `{ "ok": true, "bundle": { ... } }` or bare bundle object into **`verify.aevesa.com`**.
-2. Click **Validate** — **Verification dashboard** shows primary Aegis anchor vs MCP / forensic drill-down.
+2. Click **Validate** - **Verification dashboard** shows primary Aegis anchor vs MCP / forensic drill-down.
 3. Read the **Enterprise Verification Guide** on [verify.aevesa.com](https://verify.aevesa.com/verification-guide-enterprise.html) for **Policy Drift** interpretation (also shipped as **`VERIFICATION_GUIDE_ENTERPRISE.md`** inside exported bundles).
 
-**Policy drift:** `forensic/session_chain.json` → `policy_drift.policy_context_stable === false` means `policy_version_hash` changed between hops—correlate with change management, not automatic fraud.
+**Policy drift:** `forensic/session_chain.json` → `policy_drift.policy_context_stable === false` means `policy_version_hash` changed between hops-correlate with change management, not automatic fraud.
 
 ---
 
@@ -619,7 +620,7 @@ After login at [app.aevesa.com](https://app.aevesa.com), workspaces are addressa
 | `tab` | How to use |
 |---|---|
 | `scan` / `history` | Upload or paste code for compliance scan; review prior runs. |
-| `governance` | Sovereignty Protocol — policy strips, timeline, receipt actions. |
+| `governance` | Sovereignty Protocol - policy strips, timeline, receipt actions. |
 | `compliance` / `security` | Compliance metrics and audit exports (governance viewer; Okta SSO for CSV/JSON when enforced). |
 | `aevesa-vfp` / `verification-vault` | Simulate receipts, Trust Links, Evidence of Care wizard. |
 | `evidence-locker` | Batch verify / seal evidence artefacts. |
@@ -640,7 +641,7 @@ Package **`@aevesa/mcp-server`** runs standalone against your Aevesa tenant API.
 
 ```bash
 npm install -g @aevesa/mcp-server
-aevesa-mcp setup    # writes config.json — set backendUrl to https://api.aevesa.com
+aevesa-mcp setup    # writes config.json - set backendUrl to https://api.aevesa.com
 aevesa-mcp --check  # health check against your tenant
 ```
 
@@ -675,7 +676,7 @@ Use an absolute path to **`aevesa-mcp`** if global npm `bin` is not on Claude’
 | **`API_BASE`** | Backend root or `.../api` (set by `aevesa-mcp setup` or shell). |
 | **`AEVESA_MCP_DATA_DIR`** | Relocate local credentials + file-backed ledger. |
 | **`AEVESA_MCP_DEBUG`** | Verbose logging when `1`. |
-| **`AEVESA_MCP_BRIDGE_KEY`** / **`INTERNAL_MCP_SECRET`** | Bridge to hosted **`/api/mcp/sse`** (server-side secret—never commit). |
+| **`AEVESA_MCP_BRIDGE_KEY`** / **`INTERNAL_MCP_SECRET`** | Bridge to hosted **`/api/mcp/sse`** (server-side secret-never commit). |
 | **`AEVESA_API_KEY`** / legacy **`SENTINUL_API_KEY`** | User API key after **`auditor_login`**. |
 
 **Relationship to Proof-of-Action:** MCP tool invokes that flow through the cloud control plane produce ledger rows that appear in bundles exported via **`POST /api/v1/governance/proof-bundle`**.
@@ -729,9 +730,9 @@ The **Aevesa dashboard** at [app.aevesa.com](https://app.aevesa.com) is the oper
 | **Login / signup** | Email + password at [app.aevesa.com](https://app.aevesa.com). Cloudflare Turnstile on production hosts. |
 | **MFA (TOTP)** | Enable at **`/settings/mfa`** after login. |
 | **Okta SSO** | **Sign in with Okta** when your tenant has SSO configured. |
-| **Privacy & data** | **`/settings/privacy`** — GDPR/CCPA deletion scheduling. |
-| **SIEM / telemetry** | **`/settings/siem`** — configure enterprise webhook forwarding (when entitled). |
-| **Skill inventory** | **`/settings/skills`** — SBOM-style inventory and revoke trust by content hash. |
+| **Privacy & data** | **`/settings/privacy`** - GDPR/CCPA deletion scheduling. |
+| **SIEM / telemetry** | **`/settings/siem`** - configure enterprise webhook forwarding (when entitled). |
+| **Skill inventory** | **`/settings/skills`** - SBOM-style inventory and revoke trust by content hash. |
 | **Share to Verify** | Receipt cards → **`POST /api/v1/governance/mint-public-share-receipt`** → link with **`?receipt_id=`** on verify portal. |
 | **Proof-of-Action** | Infrastructure tab or **`POST /api/v1/governance/proof-bundle`** / **`auditor-export`** (governance viewer required). |
 
@@ -806,7 +807,7 @@ Event stream payloads include a `CONNECTED` heartbeat and `THREAT_SIGNAL` JSON o
 | `POST` | `/api/v1/approvals/sign` | Internal | **HITL:** manager signs a pending `approval_request_id` (body: `manager_access_token`) |
 | `POST` | `/api/v1/internal/vanguard/pos-delegation/invoke` | Internal | Lab **POS delegation** invoke; returns **402** + `approval_request_id` when step-up required |
 
-> **Internal routes** require the `X-Internal-Service-Key` header ( **`INTERNAL_SERVICE_KEY`** ) and are not intended for browser exposure. The key is validated with a constant-time comparison to prevent timing-based enumeration. **`INTERNAL_SERVICE_KEY`** is **required** at server startup alongside `JWT_SECRET` and `ENCRYPTION_KEY`—it is the control-plane credential for mint, passport, approvals, and `/api/v1/internal/*` gates.
+> **Internal routes** require the `X-Internal-Service-Key` header ( **`INTERNAL_SERVICE_KEY`** ) and are not intended for browser exposure. The key is validated with a constant-time comparison to prevent timing-based enumeration. **`INTERNAL_SERVICE_KEY`** is **required** at server startup alongside `JWT_SECRET` and `ENCRYPTION_KEY`-it is the control-plane credential for mint, passport, approvals, and `/api/v1/internal/*` gates.
 
 ### Governance and Proof-of-Action
 
@@ -818,7 +819,7 @@ Mount prefix: **`/api/v1/governance`**. Requires **authenticated** session + **`
 | `POST` | `/auditor-export` | Same | Bundle + **`auditor_report`** (executive summary, `session_digest`). |
 | `POST` | `/verify-entry` | Ledger entry verification for dashboard drawer. |
 | `POST` | `/sovereignty-receipt` | Issue/fetch sovereignty receipt JSON. |
-| `POST` | `/mint-public-share-receipt` | `{ entryHash }` — redacted public share for verify portal (auth; not full bundle). |
+| `POST` | `/mint-public-share-receipt` | `{ entryHash }` - redacted public share for verify portal (auth; not full bundle). |
 | `GET` | `/share-receipt-status` | Sandbox share quota status. |
 | `GET` | `/pending-approvals/queue` | Active HITL queue. |
 | `POST` | `/pending-approvals/resolve` | Resolve pending approval (approver role). |
@@ -832,7 +833,7 @@ Mount prefix: **`/api/v1/governance`**. Requires **authenticated** session + **`
 
 Errors: **`BUNDLE_INCOMPLETE`** (404) when HITL pending never received crypto release; **`HITL_ANCHOR_NOT_RESOLVED`** when correlators cannot find primary anchor.
 
-Manifest signing uses deployment key material (public half available via **`GET /api/v1/public/bundle-verify-key`** only — never commit private PEMs).
+Manifest signing uses deployment key material (public half available via **`GET /api/v1/public/bundle-verify-key`** only - never commit private PEMs).
 
 ### Open Evidence API (public)
 
@@ -868,7 +869,7 @@ Rate-limited public routes on **`https://api.aevesa.com`**:
 
 ### Zero-Trust by Architecture
 
-Aevesa operates on the principle that no agent, tool, or LLM provider is trusted by default. Trust is not established at connection time — it is re-evaluated at every layer, on every call.
+Aevesa operates on the principle that no agent, tool, or LLM provider is trusted by default. Trust is not established at connection time - it is re-evaluated at every layer, on every call.
 
 The enforcement pipeline is:
 
@@ -876,13 +877,13 @@ The enforcement pipeline is:
 
 **Deterministic.** For any given input, the enforcement decision is identical on every invocation. There is no probabilistic acceptance threshold that can be gamed with repeated requests.
 
-**Non-bypassable.** There is no runtime flag, request header, or body parameter that disables any enforcement layer. Security-relevant identity fields (`agentId`, cryptographic lock tokens) are never accepted from the request body — they are always derived server-side from `req.user.id` or authenticated session context.
+**Non-bypassable.** There is no runtime flag, request header, or body parameter that disables any enforcement layer. Security-relevant identity fields (`agentId`, cryptographic lock tokens) are never accepted from the request body - they are always derived server-side from `req.user.id` or authenticated session context.
 
 ### Immutable accountability (Merkle-chain audit)
 
-Every enforcement decision is bound into the **Aegis audit ledger** using **per-entry hashing and signatures** and **Merkle-style chaining** (e.g. Vanguard / lab simulations expose roots for verification). That yields a **cryptographically verifiable history** in which the **agent request**, the **Aevesa verdict**, and—when step-up applies—the **manager HITL approval** are linked in the same tamper-evident stream. **Altering a single log entry invalidates the chain** for downstream verification, which supports **forensic integrity** and regulatory-style audit narratives beyond a plain SQL append log.
+Every enforcement decision is bound into the **Aegis audit ledger** using **per-entry hashing and signatures** and **Merkle-style chaining** (e.g. Vanguard / lab simulations expose roots for verification). That yields a **cryptographically verifiable history** in which the **agent request**, the **Aevesa verdict**, and-when step-up applies-the **manager HITL approval** are linked in the same tamper-evident stream. **Altering a single log entry invalidates the chain** for downstream verification, which supports **forensic integrity** and regulatory-style audit narratives beyond a plain SQL append log.
 
-**Proof-of-Action bundles** package that narrative for external auditors: primary **`aegis/1`** anchor, optional MCP witness + forensic session chain, and a signed manifest—verified offline or on **`verify.aevesa.com`** without exposing raw agent prompts.
+**Proof-of-Action bundles** package that narrative for external auditors: primary **`aegis/1`** anchor, optional MCP witness + forensic session chain, and a signed manifest-verified offline or on **`verify.aevesa.com`** without exposing raw agent prompts.
 
 ### Sovereign Workflow
 
@@ -896,7 +897,7 @@ The Sovereign Workflow is the operational contract every deployment must honor:
 
 ### Protecting the Proprietary Moat
 
-The detection logic within the Skill Scanner, Intent Binder, Chain Detector, and Response Binder constitutes **Proprietary Sovereign Logic**. The enforcement contracts — verdicts, block phases, audit trails, and SSE events — are fully observable. The detection logic is not.
+The detection logic within the Skill Scanner, Intent Binder, Chain Detector, and Response Binder constitutes **Proprietary Sovereign Logic**. The enforcement contracts - verdicts, block phases, audit trails, and SSE events - are fully observable. The detection logic is not.
 
 This is intentional. An adversary who can enumerate detection thresholds can optimize attacks to stay below them. Black-box enforcement is the appropriate posture for a security-critical control plane. Observable inputs and outputs; opaque decision internals.
 
@@ -913,9 +914,9 @@ No configuration required beyond your account at [app.aevesa.com](https://app.ae
 | What you need | How to get it |
 |---|---|
 | **Session JWT** | Log in to the dashboard; use session cookie or bearer token for `Authorization: Bearer <jwt>` |
-| **Provider LLM key** | Pass as **`X-LLM-Api-Key`** header on Genesis proxy calls — never in JSON body |
-| **Delegated passports** | Enterprise integration — contact Aevesa for identity mint + passport APIs |
-| **`INTERNAL_SERVICE_KEY`** | Enterprise control-plane integrations only — never embed in browser or mobile apps |
+| **Provider LLM key** | Pass as **`X-LLM-Api-Key`** header on Genesis proxy calls - never in JSON body |
+| **Delegated passports** | Enterprise integration - contact Aevesa for identity mint + passport APIs |
+| **`INTERNAL_SERVICE_KEY`** | Enterprise control-plane integrations only - never embed in browser or mobile apps |
 
 ### FinTech FDLP (tenant operators)
 
@@ -972,7 +973,7 @@ vault:
   key_id: "cmk-prod-001"
 ```
 
-The vault bridge fails loudly in production if CMK initialization fails — it does not silently fall back.
+The vault bridge fails loudly in production if CMK initialization fails - it does not silently fall back.
 
 ---
 
@@ -988,7 +989,7 @@ The vault bridge fails loudly in production if CMK initialization fails — it d
 | [`COMPETITIVE_MATRIX.md`](./COMPETITIVE_MATRIX.md) | Category positioning |
 | [`SECURITY.md`](./SECURITY.md) | Vulnerability reporting |
 
-**Report security issues privately** — see [SECURITY.md](./SECURITY.md). **Contact:** [security@aevesa.com](mailto:security@aevesa.com)
+**Report security issues privately** - see [SECURITY.md](./SECURITY.md). **Contact:** [security@aevesa.com](mailto:security@aevesa.com)
 
 ---
 

@@ -13,6 +13,8 @@ Published specifications for Verified Autonomous Sessions (VAS) and agent accoun
 
 **Release history:** [CHANGELOG.md](./CHANGELOG.md)
 
+**Compatibility:** [PROTOCOL_COMPATIBILITY_POLICY.md](./PROTOCOL_COMPATIBILITY_POLICY.md) — what may change without a version bump on receipts, public APIs, and `@aevesa/verify`.
+
 ## Conformance & verification
 
 | Program | Document / tool |
