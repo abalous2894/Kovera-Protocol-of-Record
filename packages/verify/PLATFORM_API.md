@@ -54,6 +54,25 @@ Consumers may depend on **only** the export surfaces listed below. Deep imports 
 | Symbol | Purpose |
 |--------|---------|
 | `verifyReceipt` | Full liability-receipt/v1 verification |
+| `verifyProveBundle` | Gateway receipt + binding + witness/receiver/SCITT refusal metadata (P0–P2) |
+| `verifyEvidenceCustodianBundle` | Metagovernance custodian profile — guardian attest + required witness cosign (Wave 4) |
+| `EVIDENCE_CUSTODIAN_VERIFY_SCHEMA`, `EVIDENCE_CUSTODIAN_SKU` | Custodian profile identifiers |
+| `verifySetCompletenessBundle`, `computeSetCompletenessRoot` | Session set-completeness — anti tail-truncation (Wave 4 Track D) |
+| `SET_COMPLETENESS_SCHEMA`, `SET_COMPLETENESS_SKU` | Set-completeness profile identifiers |
+| `verifyCommitGateBundle` | Commit-gate / escalation-failure evidence — receipt-before-action + DENIED path (Tier 1) |
+| `COMMIT_GATE_VERIFY_SCHEMA`, `COMMIT_GATE_SKU`, `PEP_INVARIANT_RECEIPT_BEFORE_ACTION` | Commit-gate profile identifiers |
+| `verifyKillSwitchAttestationBundle`, `computeKillSwitchAttestationSignature` | Kill-switch live-test attestation — carrier control #1 (Tier 1) |
+| `KILL_SWITCH_ATTESTATION_SCHEMA`, `KILL_SWITCH_ATTESTATION_SKU` | Kill-switch attestation identifiers |
+| `verifyScittAirBundle`, `validateScittAirAlignment`, `applyScittAirAlignment` | SCITT AIR draft alignment — independent custodian (Tier 1) |
+| `SCITT_AIR_VERIFY_SCHEMA`, `SCITT_AIR_SKU`, `SCITT_AIR_PROFILE` | SCITT AIR profile identifiers |
+| `verifyAutonomyTierAttestationBundle`, `resolveCsaAutonomyTier` | CSA 4-tier + VERA evidence portfolio binding (Tier 2) |
+| `AUTONOMY_TIER_ATTESTATION_SCHEMA`, `AUTONOMY_TIER_ATTESTATION_SKU`, `CSA_AUTONOMY_TIERS` | Autonomy tier attestation identifiers |
+| `verifyDelegationAccountabilityBundle` | OWASP ASI-03/07/08 — scope narrowing, hop limits, cascade revoke (Tier 2) |
+| `DELEGATION_ACCOUNTABILITY_SCHEMA`, `DELEGATION_ACCOUNTABILITY_SKU` | Delegation accountability identifiers |
+| `verifyOwaspAsiRuntimeBundle` | OWASP ASI runtime integrity — independent PEP + agent/tool binding (Tier 2) |
+| `OWASP_ASI_RUNTIME_SCHEMA`, `OWASP_ASI_RUNTIME_SKU` | OWASP ASI runtime profile identifiers |
+| `validateScittRefusalAlignment` | SCITT refusal-event alignment on DENIED receipts |
+| `computeGatewayEventHash` | Stable hash over aevesa.gateway-decision/v1 event |
 | `computeReceiptDigest`, `computeCanonicalReceiptDigest` | Digest profiles (permit, denied, intent-context) |
 | `verifyReceiptDigestMatch` | Compare computed vs embedded digest |
 | `verifyIntegritySignatures` | Ed25519 / integrity signature checks |
@@ -156,6 +175,20 @@ Before merging a PR that imports `@aevesa/verify`:
 2. New symbol usage is listed above (or you added it to this doc + export map in the same PR)
 3. `npm run test:verify` passes
 4. Breaking changes have `COMPAT:` ledger entry and explicit user approval
+
+---
+
+## Canonicalization schemes
+
+Three schemes coexist by design — **never mix them within one digest profile**:
+
+| Scheme | Symbol / location | Use when |
+|--------|-------------------|----------|
+| **stableStringify** | `@aevesa/verify/core/stableStringify` | Legacy JSON digests, app-level stable ordering outside JCS profiles |
+| **JCS** | `canonicalizeJcs`, `serializeJcs` on `@aevesa/verify` | Liability receipt digests (`computeReceiptDigest`), ledger preimages, pack verify |
+| **Backend canonicalize** | `aegisTrust.canonicalize()` | Mongo Aegis ledger local ordering only — **not** for cross-package offline verify |
+
+When adding a new signed artifact, document its scheme in the artifact profile and golden vectors under `packages/verify/tests/`.
 
 ---
 

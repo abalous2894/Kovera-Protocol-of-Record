@@ -40,14 +40,22 @@ export function verifyReceipt(receiptData: unknown, options: VerifyReceiptOption
 
   const receipt = structural.receipt;
 
-  if (structural.version === 'v2' && 'privacy' in receipt && receipt.privacy?.shredded_at) {
-    return {
-      isValid: true,
-      details: {
-        chainLength: 1 + ((receipt as { proof?: { secondary_anchors?: unknown[] } }).proof?.secondary_anchors?.length ?? 0),
-        pillarsValidated: ['privacy_shredded', 'merkle_chain_intact'],
-      },
-    };
+  const isShreddedV2 =
+    structural.version === 'v2' &&
+    'privacy' in receipt &&
+    receipt.privacy?.shredded_at != null &&
+    String(receipt.privacy.shredded_at).trim() !== '';
+
+  if (isShreddedV2) {
+    const certId = receipt.privacy?.erasure_certificate_id;
+    if (typeof certId !== 'string' || !certId.trim()) {
+      return {
+        isValid: false,
+        error:
+          'shredded liability-receipt/v2 requires privacy.erasure_certificate_id — shredded_at alone is not a verify bypass',
+        details: { chainLength: 0, pillarsValidated: [] },
+      };
+    }
   }
 
   const receiptV1 = receipt as ParsedLiabilityReceipt;
@@ -78,6 +86,26 @@ export function verifyReceipt(receiptData: unknown, options: VerifyReceiptOption
         pillarsValidated: [],
       },
     };
+  }
+
+  if (digestCheck.ok && digestCheck.profile && digestCheck.profile !== 'current') {
+    const unboundPillars: string[] = [];
+    if (receiptV1.gateway_attestation) unboundPillars.push('gateway_attestation');
+    if (receiptV1.causal_lineage) unboundPillars.push('causal_lineage');
+    if (receiptV1.partial_path) unboundPillars.push('partial_path');
+    if (receiptV1.intent_alignment && digestCheck.profile === 'v1_0') {
+      unboundPillars.push('intent_alignment');
+    }
+    if (unboundPillars.length > 0) {
+      return {
+        isValid: false,
+        error: `legacy digest profile "${digestCheck.profile}" does not bind pillar(s): ${unboundPillars.join(', ')}`,
+        details: {
+          chainLength: 1 + (receiptV1.proof.secondary_anchors?.length ?? 0),
+          pillarsValidated: [],
+        },
+      };
+    }
   }
 
   const pillars = validateAccountabilityPillars(receiptV1);

@@ -19,6 +19,10 @@ export {
   canonicalizeGatewayAttestationForDigest,
 } from './core/gatewayAttestation.js';
 export {
+  computeGatewayEventHash,
+  normalizeGatewayDecisionEventForHash,
+} from './core/gatewayDecisionEvent.js';
+export {
   verifyPartialPathCommitment,
   canonicalizePartialPathForDigest,
   PARTIAL_PATH_SCHEMA,
@@ -49,6 +53,127 @@ export { verifyIntegritySignatures } from './liability/signatures.js';
 export { validateAccountabilityPillars } from './liability/pillars.js';
 export type { VerifyReceiptOptions } from './liability/verifyReceipt.js';
 export { verifyReceipt } from './liability/verifyReceipt.js';
+export type {
+  ProveBundleVerifyOptions,
+  ProveBundleVerifyResult,
+  ProveBundleVerifyChecks,
+  ProveBundleWitnessCosignInput,
+  ProveBundleCosignFragment,
+} from './liability/proveBundleVerify.js';
+export {
+  verifyProveBundle,
+  PROVE_BUNDLE_VERIFY_SCHEMA,
+  SCITT_REFUSAL_STATEMENT_TYPE as PROVE_BUNDLE_SCITT_REFUSAL_STATEMENT_TYPE,
+  COSIGN_FRAGMENT_SCHEMA as PROVE_BUNDLE_COSIGN_FRAGMENT_SCHEMA,
+} from './liability/proveBundleVerify.js';
+export type {
+  EvidenceCustodianVerifyOptions,
+  EvidenceCustodianVerifyResult,
+  EvidenceCustodianVerifyChecks,
+} from './liability/evidenceCustodianVerify.js';
+export {
+  verifyEvidenceCustodianBundle,
+  EVIDENCE_CUSTODIAN_VERIFY_SCHEMA,
+  EVIDENCE_CUSTODIAN_SKU,
+} from './liability/evidenceCustodianVerify.js';
+export type {
+  SetCompletenessMember,
+  SetCompletenessManifest,
+  SetCompletenessVerifyOptions,
+  SetCompletenessVerifyResult,
+  SetCompletenessVerifyChecks,
+} from './liability/setCompletenessVerify.js';
+export {
+  verifySetCompletenessBundle,
+  computeSetCompletenessRoot,
+  SET_COMPLETENESS_SCHEMA,
+  SET_COMPLETENESS_SKU,
+} from './liability/setCompletenessVerify.js';
+export type {
+  CommitGateVerifyOptions,
+  CommitGateVerifyResult,
+  CommitGateVerifyChecks,
+  CommitGateAttestationDocument,
+} from './liability/commitGateVerify.js';
+export {
+  verifyCommitGateBundle,
+  COMMIT_GATE_ATTESTATION_SCHEMA,
+  COMMIT_GATE_VERIFY_SCHEMA,
+  COMMIT_GATE_SKU,
+  PEP_INVARIANT_RECEIPT_BEFORE_ACTION,
+} from './liability/commitGateVerify.js';
+export type {
+  KillSwitchAttestationVerifyOptions,
+  KillSwitchAttestationVerifyResult,
+  KillSwitchAttestationVerifyChecks,
+  KillSwitchAttestationDocument,
+} from './liability/killSwitchAttestationVerify.js';
+export {
+  verifyKillSwitchAttestationBundle,
+  computeKillSwitchAttestationSignature,
+  KILL_SWITCH_ATTESTATION_SCHEMA,
+  KILL_SWITCH_ATTESTATION_SKU,
+  AEGIS_GOVERNANCE_STATUS_EVENT,
+  DEFAULT_KILL_SWITCH_POLICY_ID,
+} from './liability/killSwitchAttestationVerify.js';
+export type {
+  ScittAirVerifyOptions,
+  ScittAirVerifyResult,
+  ScittAirVerifyChecks,
+  ScittAirAlignmentBlock,
+} from './liability/scittAirVerify.js';
+export {
+  verifyScittAirBundle,
+  validateScittAirAlignment,
+  applyScittAirAlignment,
+  SCITT_AIR_PROFILE,
+  SCITT_AIR_VERIFY_SCHEMA,
+  SCITT_AIR_SKU,
+} from './liability/scittAirVerify.js';
+export type {
+  AutonomyTierAttestationVerifyOptions,
+  AutonomyTierAttestationVerifyResult,
+  AutonomyTierAttestationVerifyChecks,
+  AutonomyTierAttestationDocument,
+  EvidencePortfolioDocument,
+} from './liability/autonomyTierAttestationVerify.js';
+export {
+  verifyAutonomyTierAttestationBundle,
+  resolveCsaAutonomyTier,
+  AUTONOMY_TIER_ATTESTATION_SCHEMA,
+  AUTONOMY_TIER_ATTESTATION_SKU,
+  CSA_AUTONOMY_TIERS,
+  EVIDENCE_PORTFOLIO_SCHEMA,
+  AUTONOMY_TIER_SCHEMA,
+} from './liability/autonomyTierAttestationVerify.js';
+export type {
+  DelegationAccountabilityVerifyOptions,
+  DelegationAccountabilityVerifyResult,
+  DelegationAccountabilityVerifyChecks,
+  DelegationAccountabilityDocument,
+} from './liability/delegationAccountabilityVerify.js';
+export {
+  verifyDelegationAccountabilityBundle,
+  DELEGATION_ACCOUNTABILITY_SCHEMA,
+  DELEGATION_ACCOUNTABILITY_SKU,
+} from './liability/delegationAccountabilityVerify.js';
+export type {
+  OwaspAsiRuntimeVerifyOptions,
+  OwaspAsiRuntimeVerifyResult,
+  OwaspAsiRuntimeVerifyChecks,
+  OwaspAsiRuntimeAttestationDocument,
+} from './liability/owaspAsiRuntimeVerify.js';
+export {
+  verifyOwaspAsiRuntimeBundle,
+  OWASP_ASI_RUNTIME_SCHEMA,
+  OWASP_ASI_RUNTIME_SKU,
+} from './liability/owaspAsiRuntimeVerify.js';
+export {
+  validateScittRefusalAlignment,
+  SCITT_REFUSAL_PROFILE,
+  validateDeniedReceiptProfile,
+  isDeniedReceiptProfile,
+} from './liability/deniedReceiptProfile.js';
 export { verifyPolicyPromotionProof } from './offlinePromotionVerifier.js';
 export { canonicalizeJcs, serializeJcs, serializeJcsNumber } from './core/jcs.js';
 export {

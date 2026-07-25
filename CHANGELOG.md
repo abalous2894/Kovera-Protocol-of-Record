@@ -6,6 +6,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [2026-07-25]
+
+### Added
+
+- **`@aevesa/verify` Tier 1 offline profiles** — commit-gate (`verifyCommitGateBundle`), kill-switch attestation, SCITT AIR alignment (`verifyScittAirBundle`), NAIC examiner pack helpers.
+- **`@aevesa/verify` Tier 2 offline profiles** — autonomy tier attestation (CSA 4-tier), delegation accountability (OWASP ASI-03/07/08), OWASP ASI runtime integrity, IMDA agentic pack helpers.
+- **Gateway attest expansion** — Portkey, Microsoft Agent 365, and generic OTLP/webhook adapters; `gatewayDecisionEvent` normalization helpers.
+- **Wave 4 verify exports** — `verifyProveBundle`, `verifyEvidenceCustodianBundle`, `verifySetCompletenessBundle`.
+
+### Changed
+
+- **`packages/verify/PLATFORM_API.md`** — documents Tier 1/2 export surfaces and Wave 4 symbols.
+- **SCITT_AIR_PROFILE_ALIGNMENT.md** / **SCITT_REFUSAL_EVENT_ALIGNMENT.md** — Tier 1 conformance metadata, public demo routes, verify schema SKUs.
+
+---
+
 ## [2026-07-21]
 
 ### Added

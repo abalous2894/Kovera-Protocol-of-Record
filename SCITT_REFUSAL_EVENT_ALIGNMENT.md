@@ -40,7 +40,9 @@ Stored in `refusal_alignment` on DENIED receipts:
 
 ## Interop stance
 
-Aevesa **aligns** with SCITT refusal-event vocabulary for procurement reviews. Full SCITT transparence log profile submission remains Wave 3 (see Evidence Expansion Roadmap §3.1).
+Aevesa **aligns** with SCITT refusal-event vocabulary for procurement reviews. Gateway DENIED receipts register a SCRAPI refusal statement (`https://scitt.io/statement/refusal/v0`) in the Aevesa witness transparency log when `AEVESA_LEDGER_WITNESS_COSIGN=1`.
+
+Verify: `GET /api/v1/public/evidence/scitt-refusal/:receiptDigest` · `npm run test:scitt-refusal-witness-conformance`
 
 When draft-01 stabilizes, Aevesa will publish a conformance vector in `@aevesa/verify` matching the final field names.
 

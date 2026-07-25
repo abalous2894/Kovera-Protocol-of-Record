@@ -131,6 +131,25 @@ export const liabilityReceiptV1ZodSchema = z
         kovera_receipt_profile: z.string().optional(),
       })
       .optional(),
+    /** Tier 1 — SCITT Agent Interaction Record draft alignment metadata. */
+    air_alignment: z
+      .object({
+        profile: z.string().min(1),
+        agent_interaction_record: z
+          .object({
+            agent_id: z.string().nullable().optional(),
+            session_id: z.string().nullable().optional(),
+            correlation_id: z.string().nullable().optional(),
+            action_tool: z.string().nullable().optional(),
+            entry_hash: z.string().nullable().optional(),
+            issued_at: z.string().nullable().optional(),
+            policy_decision: z.string().nullable().optional(),
+          })
+          .optional(),
+        evidence_custodian_role: z.string().optional(),
+        compliance_mappings: z.array(z.string()).optional(),
+      })
+      .optional(),
     proof: z.object({
       ledger_spec: z.literal('aegis/1'),
       primary_anchor: z.object({

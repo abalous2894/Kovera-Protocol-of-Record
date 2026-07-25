@@ -97,6 +97,7 @@ export {
   SCITT_REFUSAL_PROFILE,
   isDeniedReceiptProfile,
   validateDeniedReceiptProfile,
+  validateScittRefusalAlignment,
   buildDeniedReceiptProofSteps,
 } from './liability/deniedReceiptProfile.js';
 

@@ -142,7 +142,6 @@ export async function verifyPolicyPromotionProof(jwsString, trustedRootPublicKey
 
     /** @type {jose.JWTPayload | null} */
     let verifiedPayload = null;
-    let usedLegacyPath = false;
 
     for (const keyMaterial of keys) {
       try {
@@ -178,50 +177,6 @@ export async function verifyPolicyPromotionProof(jwsString, trustedRootPublicKey
       } catch {
         // try next trusted root key on strict path
       }
-    }
-
-    for (const keyMaterial of keys) {
-      try {
-        const publicKey = await importTrustedPublicKey(keyMaterial);
-        const verified = await jose.compactVerify(compact, publicKey, { algorithms: ['RS256'] });
-        verifiedPayload = JSON.parse(new TextDecoder().decode(verified.payload));
-
-        const hasJti = typeof verifiedPayload?.jti === 'string' && verifiedPayload.jti.length > 0;
-        const hasExp = verifiedPayload?.exp != null;
-
-        if (hasJti && hasExp) {
-          continue;
-        }
-
-        if (!hasJti || !hasExp) {
-          usedLegacyPath = true;
-          emitMigrationWarn(verifiedPayload?.precedent_id);
-
-          const parsed = KoveraRgpPromotionPayloadSchema.safeParse(verifiedPayload);
-          if (!parsed.success) {
-            return { verified: false, error: 'Malformed legacy promotion payload: schema validation failed.' };
-          }
-
-          const normalized = normalizePromotionPayload(parsed.data);
-          if (!validateKoveraRgpStructures(normalized)) {
-            return {
-              verified: false,
-              error: 'Malformed policy dialect: Missing aevesa-rgp/v1 schema structures.',
-            };
-          }
-
-          return buildVerifiedResult(parsed, verifiedPayload, {
-            legacyEnvelope: true,
-            requiresBackgroundRenewal: true,
-          });
-        }
-      } catch {
-        // try next trusted root key on legacy path
-      }
-    }
-
-    if (usedLegacyPath) {
-      return { verified: false, error: 'Legacy envelope migration path exhausted trusted keys.' };
     }
 
     return { verified: false, error: 'APoR Signature Verification Failed: Untrusted promotion key or expired token.' };

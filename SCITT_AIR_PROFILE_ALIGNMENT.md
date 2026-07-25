@@ -1,13 +1,43 @@
-# SCITT AIR Profile Alignment — Liability Receipt (Wave 3.1)
+# SCITT AIR Profile Alignment — Liability Receipt (Tier 1)
 
-**Aevesa profile:** `air_alignment.profile` = `SCITT-AIR-draft-alignment-01` (documentation draft)  
+**Aevesa profile:** `air_alignment.profile` = `SCITT-AIR-draft-alignment-01`  
+**Verify schema:** `aevesa.scitt-air-verify/v1` · **SKU:** `aevesa-scitt-air-v1`  
+**Conformance:** `npm run test:scitt-air-conformance`  
+**Public demo:** `GET /api/v1/public/evidence/scitt-air-demo`  
 **Related:** [SCITT_REFUSAL_EVENT_ALIGNMENT.md](./SCITT_REFUSAL_EVENT_ALIGNMENT.md) (Wave 2.2 DENIED profile)
 
 ---
 
 ## Scope
 
-This document maps **`liability-receipt/v1`** fields to emerging **SCITT Agent Identity / Incident Response (AIR)** draft concepts for procurement and standards workshops. It is **not** an IETF submission — it prepares Aevesa implementers and partners for full transparency-log profile work in Governance Horizon Phase 4.
+Maps **`liability-receipt/v1`** fields to emerging **SCITT Agent Interaction Record (AIR)** draft concepts per `draft-emirdag-scitt-ai-agent-execution`. Positions Aevesa as **Evidence Custodian / Transparency Service** for EU Art. 12/19, DORA, and NIST examiner crosswalks.
+
+---
+
+## `air_alignment` block
+
+Applied via `applyScittAirAlignment(receipt)` in `@aevesa/verify`:
+
+| Field | Source on receipt |
+|-------|-------------------|
+| `agent_id` | `identity.primary_actor.agent_id` |
+| `session_id` | `session.session_id` |
+| `entry_hash` | `proof.primary_anchor.entry_hash` |
+| `action_tool` | `side_effects.action.tool_name` |
+| `policy_decision` | `policy.decision` |
+| `issued_at` | `issued_at` |
+| `evidence_custodian_role` | `transparency_service` |
+
+---
+
+## Verify API
+
+```js
+import { verifyScittAirBundle, applyScittAirAlignment } from '@aevesa/verify';
+
+const receipt = applyScittAirAlignment(liabilityReceipt);
+const result = verifyScittAirBundle(receipt, { entryHash, gatewayDecision, requireWitnessCosign: true });
+```
 
 ---
 
@@ -27,23 +57,12 @@ This document maps **`liability-receipt/v1`** fields to emerging **SCITT Agent I
 
 ---
 
-## Wave 3.1 deliverable vs Horizon 4
-
-| Layer | Wave 3.1 (this doc) | Horizon 4 |
-|-------|---------------------|-----------|
-| Field mapping | ✅ Published | — |
-| SCRAPI witness log | Preview shipped | Full SCITT transparency log |
-| Rekor / dual-write | — | P1 in Wave 3.2 |
-| IETF profile submission | Partner workshop ready | Formal submission track |
-
----
-
 ## Conformance reference
 
-- `npm run test:witness-cosign-conformance`  
-- `npm run test:conformance-lab`  
-- Witness GA: [GUARDIAN_WITNESS_GA_RUNBOOK.md](../operations/GUARDIAN_WITNESS_GA_RUNBOOK.md)
+- `npm run test:scitt-air-conformance`
+- `npm run test:witness-cosign-conformance`
+- `npm run test:evidence-custodian-conformance`
 
 ---
 
-*Wave 3.1 · Vector #7 · Full SCITT log: [AEVESA_GOVERNANCE_HORIZON_ROADMAP.md](../architecture/AEVESA_GOVERNANCE_HORIZON_ROADMAP.md) §4.1*
+*Tier 1 · IETF draft: draft-emirdag-scitt-ai-agent-execution*

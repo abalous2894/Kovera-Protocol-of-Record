@@ -57,9 +57,9 @@ const legacyJws = await new SignJWT({
   .sign(signer);
 
 const legacy = await verifyPolicyPromotionProof(legacyJws, [publicPem]);
-if (!legacy.verified || !legacy.legacyEnvelope || !legacy.requiresBackgroundRenewal) {
-  console.error('expected legacy migration-verified promotion proof', legacy);
+if (legacy.verified) {
+  console.error('expected legacy promotion without jti/exp to be rejected', legacy);
   process.exit(1);
 }
 
-console.log('legacy migration verifier OK', legacy.promotedPolicy?.precedentId);
+console.log('legacy promotion without jti/exp correctly rejected');

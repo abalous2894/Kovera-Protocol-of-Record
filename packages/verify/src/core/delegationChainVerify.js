@@ -78,7 +78,14 @@ export function verifyHdpHopChain(hops, signingSecret) {
  * @param {{ signingSecret?: string }} [options]
  */
 export function verifyDelegationChain(chain, options = {}) {
-  const signingSecret = options.signingSecret || DELEGATION_CHAIN_DEMO_SIGNING_SECRET;
+  const signingSecretRaw = options.signingSecret;
+  const signingSecret =
+    signingSecretRaw != null && String(signingSecretRaw).trim()
+      ? String(signingSecretRaw).trim()
+      : '';
+  if (!signingSecret) {
+    return { ok: false, code: 'MISSING_SIGNING_SECRET' };
+  }
 
   if (!chain || chain.schema !== DELEGATION_CHAIN_SCHEMA) {
     return { ok: false, code: 'INVALID_CHAIN_SCHEMA' };

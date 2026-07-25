@@ -78,6 +78,10 @@ export function verifyIntegritySignatures(
     }
     try {
       const signingInput = Buffer.from(`${parts[0]}.${parts[1]}`, 'utf8');
+      const headerJson = JSON.parse(decodeBase64Url(parts[0]).toString('utf8')) as { alg?: string };
+      if (headerJson.alg !== 'RS256') {
+        return { ok: false, error: 'JWS header alg must be RS256' };
+      }
       const sig = decodeBase64Url(parts[2]);
       const key =
         typeof issuerPublicKey === 'string'

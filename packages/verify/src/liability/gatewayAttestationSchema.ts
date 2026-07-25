@@ -9,6 +9,9 @@ export const gatewayAttestationSchema = z
     gateway_source: z.enum([
       'databricks_unity_ai',
       'portkey',
+      'microsoft_agent_365',
+      'zscaler_ai_protect',
+      'wiz_ai_spm',
       'azure_apim',
       'bedrock',
       'generic_otlp',

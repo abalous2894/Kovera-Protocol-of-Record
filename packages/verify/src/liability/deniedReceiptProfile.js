@@ -85,11 +85,52 @@ export function buildDeniedReceiptProofSteps(receipt) {
   ];
 }
 
+/**
+ * Validate SCITT refusal-event alignment block on DENIED receipts.
+ * @param {object} receipt
+ */
+export function validateScittRefusalAlignment(receipt) {
+  if (!isDeniedReceiptProfile(receipt)) {
+    return { ok: true, code: 'NOT_DENIED_PROFILE', skipped: true };
+  }
+
+  const alignment = receipt.refusal_alignment;
+  if (!alignment || typeof alignment !== 'object') {
+    return { ok: false, code: 'MISSING_REFUSAL_ALIGNMENT' };
+  }
+
+  const errors = [];
+  if (alignment.profile !== SCITT_REFUSAL_PROFILE) errors.push('refusal_alignment.profile');
+  if (alignment.scitt_event_type !== 'refusal') errors.push('refusal_alignment.scitt_event_type');
+  if (!alignment.evidence_hash || !/^[a-f0-9]{64}$/.test(String(alignment.evidence_hash))) {
+    errors.push('refusal_alignment.evidence_hash');
+  }
+  if (alignment.kovera_receipt_profile !== RECEIPT_PROFILE_DENIED) {
+    errors.push('refusal_alignment.kovera_receipt_profile');
+  }
+
+  const entryHash = receipt.proof?.primary_anchor?.entry_hash;
+  if (
+    entryHash &&
+    alignment.evidence_hash &&
+    String(alignment.evidence_hash).toLowerCase() !== String(entryHash).toLowerCase()
+  ) {
+    errors.push('refusal_alignment.evidence_hash vs primary_anchor.entry_hash');
+  }
+
+  if (errors.length) {
+    return { ok: false, code: 'SCITT_REFUSAL_ALIGNMENT_INVALID', errors };
+  }
+
+  return { ok: true, code: 'SCITT_REFUSAL_ALIGNMENT_VALID' };
+}
+
 export default {
   RECEIPT_PROFILE_DENIED,
   RECEIPT_PROFILE_PERMITTED,
   SCITT_REFUSAL_PROFILE,
   isDeniedReceiptProfile,
   validateDeniedReceiptProfile,
+  validateScittRefusalAlignment,
   buildDeniedReceiptProofSteps,
 };

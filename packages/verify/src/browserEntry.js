@@ -15,3 +15,9 @@ export {
   evaluateIntentAlignment,
   normalizeStructuralPayload,
 } from '../dist/core/intentAlignment.js';
+export {
+  verifySetCompletenessBundle,
+  computeSetCompletenessRoot,
+  SET_COMPLETENESS_SCHEMA,
+  SET_COMPLETENESS_SKU,
+} from '../dist/liability/setCompletenessVerify.js';
