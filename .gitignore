@@ -1,5 +1,6 @@
-# Sentinul-Governance-Protocol — public repo hygiene
-# https://github.com/abalous2894/Sentinul-Governance-Protocol
+# Kovera-Protocol-of-Record — public repo hygiene
+# https://github.com/abalous2894/Kovera-Protocol-of-Record
+# (redirects from legacy Sentinul-Governance-Protocol)
 
 # --- Dependencies (local installs / accidental npm in docs repo) ---
 node_modules/
@@ -14,6 +15,7 @@ jspm_packages/
 .env
 .env.*
 !.env.example
+!.env.*.example
 *.pem
 *.key
 *.p12
@@ -25,6 +27,10 @@ credentials.json
 gcp-oauth.keys.json
 .npmrc
 .npmrc.local
+.sentinulrc
+.sentinulrc.local
+.sentinul-mcp-config.json
+merge-attestation-*
 secrets/
 *.secret
 *.token
@@ -72,19 +78,18 @@ coverage/
 .nyc_output/
 *.tsbuildinfo
 
+# --- Python (optional scripts / examples) ---
+.venv/
+__pycache__/
+**/*.py[cod]
+
+# --- E2E / test artifacts ---
+test-results/
+playwright-report/
+blob-report/
+
 # --- Archives & dumps (accidental exports) ---
 *.tgz
 *.zip
 *.tar.gz
 dump.rdb
-
-
-!.env.*.example
-merge-attestation-*
-.sentinulrc
-.sentinulrc.local
-.sentinul-mcp-config.json
-.venv/
-__pycache__/
-test-results/
-playwright-report/
