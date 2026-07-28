@@ -77,3 +77,14 @@ coverage/
 *.zip
 *.tar.gz
 dump.rdb
+
+
+!.env.*.example
+merge-attestation-*
+.sentinulrc
+.sentinulrc.local
+.sentinul-mcp-config.json
+.venv/
+__pycache__/
+test-results/
+playwright-report/
