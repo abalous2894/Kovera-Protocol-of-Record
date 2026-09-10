@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aevesa.com/schemas/aevesa-declared-adaptation-envelope/v1-draft",
+  "title": "Aevesa Declared Adaptation Envelope (draft)",
+  "description": "Track AE — digest-bound pre-determined adaptation envelope for Art. 43(4) provider baselines and Art. 26 deployer monitoring. Draft until external relying-party review.",
+  "type": "object",
+  "required": [
+    "schema",
+    "organization_id",
+    "system_id",
+    "operator_role",
+    "regulatory_framings",
+    "declared_at",
+    "bounds",
+    "monitored_metrics",
+    "drift_thresholds",
+    "reversion_rules",
+    "envelope_digest",
+    "disclaimer"
+  ],
+  "properties": {
+    "schema": { "const": "aevesa.declared-adaptation-envelope/v1-draft" },
+    "organization_id": { "type": "string", "minLength": 1 },
+    "system_id": { "type": "string", "minLength": 1 },
+    "operator_role": { "enum": ["provider", "deployer"] },
+    "regulatory_framings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "enum": [
+          "eu_art_43_4_envelope",
+          "eu_art_26_monitoring",
+          "naic_exhibit_c_drift",
+          "owasp_level_3_governance"
+        ]
+      }
+    },
+    "declared_at": { "type": "string", "format": "date-time" },
+    "bounds": {
+      "type": "object",
+      "required": ["policy_hash", "tool_catalog_fingerprint"],
+      "properties": {
+        "policy_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "tool_catalog_fingerprint": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "memory_root_hash": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+        "mcp_manifest_fingerprint": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+        "tool_allowlist_digest": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" }
+      },
+      "additionalProperties": false
+    },
+    "monitored_metrics": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "drift_thresholds": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["metric_id", "breach_action"],
+        "properties": {
+          "metric_id": { "type": "string", "minLength": 1 },
+          "max_delta": { "type": ["number", "null"] },
+          "max_absolute": { "type": ["number", "null"] },
+          "breach_action": {
+            "enum": ["signal_substantial_modification", "alert_only", "auto_revert"]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "reversion_rules": {
+      "type": "object",
+      "required": ["auto_revert_on_breach"],
+      "properties": {
+        "auto_revert_on_breach": { "type": "boolean" },
+        "revert_to_baseline_entry_hash": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "human_review_gate_id": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "human_review_gates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["gate_id", "label"],
+        "properties": {
+          "gate_id": { "type": "string", "minLength": 1 },
+          "label": { "type": "string", "minLength": 1 },
+          "required_for_metrics": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "composed_member_digests": {
+      "type": ["object", "null"],
+      "properties": {
+        "behavioral_sbom_digest": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+        "memory_commitment_profile_digest": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+        "mcp_manifest_bind_digest": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" }
+      },
+      "additionalProperties": false
+    },
+    "conformity_baseline_id": { "type": ["string", "null"] },
+    "envelope_entry_hash": {
+      "type": ["string", "null"],
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "envelope_digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "disclaimer": { "type": "string", "minLength": 1 }
+  },
+  "additionalProperties": false
+}

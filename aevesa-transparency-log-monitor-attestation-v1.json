@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aevesa.com/schemas/aevesa-transparency-log-monitor-attestation/v1",
+  "title": "Aevesa Transparency Log Monitor Attestation",
+  "description": "Track P12 PR2 — digest-bound monitor attestation embedding consistency proof for guardian bundles.",
+  "type": "object",
+  "required": [
+    "schema",
+    "log_id",
+    "monitor_state",
+    "generated_at",
+    "consistency_proof",
+    "monitor_assertions",
+    "attestation_digest",
+    "disclaimer"
+  ],
+  "properties": {
+    "schema": { "const": "aevesa.transparency-log-monitor-attestation/v1" },
+    "organization_id": { "type": ["string", "null"] },
+    "log_id": { "type": "string", "minLength": 1 },
+    "monitor_state": { "enum": ["healthy", "degraded", "unavailable"] },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "consistency_proof": {
+      "type": "object",
+      "required": ["schema", "from_index", "to_index", "entry_count", "root_hash", "log_id"],
+      "properties": {
+        "schema": { "const": "aevesa.witness.consistency-proof/v1" },
+        "from_index": { "type": "integer", "minimum": 0 },
+        "to_index": { "type": "integer", "minimum": 0 },
+        "entry_count": { "type": "integer", "minimum": 1 },
+        "root_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "log_id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "monitor_assertions": {
+      "type": "object",
+      "required": ["consistency_proof_verified", "third_party_monitorable"],
+      "properties": {
+        "consistency_proof_verified": { "type": "boolean" },
+        "third_party_monitorable": { "type": "boolean" },
+        "log_enabled": { "type": "boolean" }
+      }
+    },
+    "attestation_digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "disclaimer": { "type": "string", "minLength": 1 }
+  }
+}

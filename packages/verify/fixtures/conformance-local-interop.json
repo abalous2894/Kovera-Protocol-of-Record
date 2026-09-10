@@ -1,0 +1,139 @@
+{
+  "schema": "aevesa.conformance-lab-local-fixture/v1",
+  "description": "Golden receipt for offline gateway-attest interop (no Aevesa API)",
+  "entry_hash": "db72be75e131600945a2d36e38460767205b870277b19b233d949ce6c6032aec",
+  "verify_portal_url": "https://verify.aevesa.com/?entryHash=db72be75e131600945a2d36e38460767205b870277b19b233d949ce6c6032aec",
+  "receipt": {
+    "schema": "liability-receipt/v1",
+    "receipt_id": "b6f8776e-9e0a-4276-b84c-2b7bea5eeb75",
+    "issued_at": "2026-06-18T12:00:00.000Z",
+    "issuer": {
+      "name": "Aevesa",
+      "product": "Verified Autonomous Sessions",
+      "verification_profile": "aegis/1+proof-of-intent",
+      "organization_display_name": "Gateway Attestation"
+    },
+    "session": {
+      "session_id": "wave22-denied-receipt-demo",
+      "correlation_id": "wave22-denied-receipt-demo",
+      "vertical": "enterprise_ops",
+      "outcome": "blocked",
+      "started_at": "2026-06-18T12:00:00.000Z",
+      "completed_at": "2026-06-18T12:00:00.000Z"
+    },
+    "identity": {
+      "primary_actor": {
+        "agent_id": "unity-agent-catalog-001",
+        "actor_class": "autonomous_agent"
+      },
+      "authority": {
+        "scoped_role": "SERVER",
+        "permission_id": "runtime-firewall"
+      }
+    },
+    "policy": {
+      "policy_pack_id": "runtime_firewall_v1",
+      "policy_version_hash": "b8c8950a87b7459f60f151ea7d6a1e1ddb326f5baf0e4a526c4317ec784e5850",
+      "decision": "deny"
+    },
+    "hitl": {
+      "required": false,
+      "status": "not_required",
+      "approval_request_id": null,
+      "required_role": null,
+      "release_consumed": false
+    },
+    "side_effects": {
+      "action": {
+        "tool_name": "sql.execute",
+        "verb": "invoke",
+        "target_path": "/warehouse/analytics",
+        "target_host": null
+      },
+      "effect_class": "data_access",
+      "summary": "Gateway databricks_unity_ai denied sql.execute",
+      "blocked_reason": "Gateway databricks_unity_ai denied sql.execute"
+    },
+    "proof": {
+      "ledger_spec": "aegis/1",
+      "primary_anchor": {
+        "entry_hash": "db72be75e131600945a2d36e38460767205b870277b19b233d949ce6c6032aec",
+        "event_type": "GATEWAY_DECISION_ATTESTATION",
+        "timestamp": "2026-06-18T12:00:00.000Z"
+      },
+      "verification": {
+        "status": "verified",
+        "methods": [
+          "aegis_preimage_recompute",
+          "intent_context_binding",
+          "runtime_firewall",
+          "gateway_attestation_binding",
+          "denied_receipt_profile",
+          "partial_path_binding"
+        ],
+        "verified_at": "2026-06-18T12:00:00.000Z",
+        "portal_urls": {
+          "auditor_portal": "https://app.aevesa.com/auditor-portal/b6f8776e-9e0a-4276-b84c-2b7bea5eeb75",
+          "truth_portal": "https://verify.aevesa.com/?entryHash=db72be75e131600945a2d36e38460767205b870277b19b233d949ce6c6032aec",
+          "open_evidence": "/api/v1/public/truth?entryHash=db72be75e131600945a2d36e38460767205b870277b19b233d949ce6c6032aec"
+        }
+      }
+    },
+    "diligence_summary": {
+      "who_acted": "Agent \"unity-agent-catalog-001\" attempted sql.execute.",
+      "what_policy_allowed": "Runtime firewall evaluated structural intent alignment before execution.",
+      "what_proof_says": "Primary anchor db72be75e131… under aegis/1. Gateway decision dbx-demo-deny-wave22-v1 (databricks_unity_ai) cosigned with Aevesa anchor db72be75e131…."
+    },
+    "_meta": {
+      "generated_by": "aevesa-liability-receipt-v1-service",
+      "source_entry_hash": "db72be75e131600945a2d36e38460767205b870277b19b233d949ce6c6032aec"
+    },
+    "gateway_attestation": {
+      "gateway_decision_id": "dbx-demo-deny-wave22-v1",
+      "gateway_source": "databricks_unity_ai",
+      "decision": "deny",
+      "gateway_event_hash": "d3131f0cea06d0ffb298372492502b3895637eadfddb49d18e48518e96ad238d",
+      "data_classification_tag": "PII-L3",
+      "policy_reference": "unity-ai-gateway/default",
+      "evaluated_at": "2026-06-18T12:00:00.000Z"
+    },
+    "receipt_profile": "DENIED",
+    "denial": {
+      "pre_execution": true,
+      "execution_occurred": false,
+      "denial_stage": "gateway",
+      "source": "databricks_unity_ai"
+    },
+    "refusal_alignment": {
+      "profile": "SCITT-refusal-event-draft-01",
+      "mapping_version": "1.0",
+      "reference": "draft-kamimura-scitt-refusal-events",
+      "scitt_event_type": "refusal",
+      "mapped_fields": [
+        "issuer",
+        "subject",
+        "decision",
+        "timestamp",
+        "evidence_hash"
+      ],
+      "evidence_hash": "db72be75e131600945a2d36e38460767205b870277b19b233d949ce6c6032aec",
+      "kovera_receipt_profile": "DENIED"
+    },
+    "partial_path": {
+      "schema": "aevesa.partial-path/v1",
+      "session_id": "wave22-denied-receipt-demo",
+      "proposed_action": "sql.execute",
+      "step_index": 0,
+      "read_count_prior": null,
+      "path_digest": null,
+      "partial_steps": [],
+      "partial_path_hash": "e5b4fcf5b002d51b91dc0b028c2e55285296b11a58982d3096cfb7a918002785"
+    },
+    "integrity": {
+      "receipt_digest": "1976558eec4cffa403c1a7d2a133696961d374756c1cc6d951742c23d4d99d7b",
+      "signature_alg": "none",
+      "signature": null,
+      "manifest_signature_jws": null
+    }
+  }
+}

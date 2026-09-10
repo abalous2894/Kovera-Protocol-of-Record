@@ -1,0 +1,175 @@
+{
+  "schema": "aevesa.policy-proof-bundle/v1",
+  "generated_at": "2026-08-26T12:00:00.000Z",
+  "policy_params": {
+    "max_reads_before_destructive": 3
+  },
+  "datalog_export": {
+    "schema": "aevesa.path-datalog-export/v1",
+    "session_id": "policy-proof-read-chain-export-deny",
+    "fact_count": 13,
+    "facts": [
+      "session(\"policy-proof-read-chain-export-deny\").",
+      "step_count(\"policy-proof-read-chain-export-deny\", 4).",
+      "step(\"policy-proof-read-chain-export-deny\", 0, \"read_file\", \"ALLOW\").",
+      "read_class(\"policy-proof-read-chain-export-deny\", 0, \"read_file\").",
+      "step(\"policy-proof-read-chain-export-deny\", 1, \"read_file\", \"ALLOW\").",
+      "read_class(\"policy-proof-read-chain-export-deny\", 1, \"read_file\").",
+      "step(\"policy-proof-read-chain-export-deny\", 2, \"read_file\", \"ALLOW\").",
+      "read_class(\"policy-proof-read-chain-export-deny\", 2, \"read_file\").",
+      "step(\"policy-proof-read-chain-export-deny\", 3, \"read_file\", \"ALLOW\").",
+      "read_class(\"policy-proof-read-chain-export-deny\", 3, \"read_file\").",
+      "read_count(\"policy-proof-read-chain-export-deny\", 4).",
+      "proposed(\"policy-proof-read-chain-export-deny\", \"export_data\").",
+      "export_class(\"export_data\")."
+    ],
+    "policy_evaluation": {
+      "allow": false,
+      "code": "PATH_READ_VELOCITY_DESTRUCTIVE",
+      "message": "Execution path blocked: 4 read-class tools without human witness before export export_data.",
+      "matched_policies": [
+        {
+          "id": "read-chain-export-deny",
+          "name": "Read chain then export — deny"
+        }
+      ],
+      "policy_pack_schema": "aevesa.kaptein-path-policies/v1"
+    }
+  },
+  "policy_pack": {
+    "schema": "aevesa.kaptein-path-policies/v1",
+    "version": "2026.09",
+    "policies": [
+      {
+        "id": "read-chain-export-deny",
+        "name": "Read chain then export — deny",
+        "engine_code": "PATH_READ_VELOCITY_DESTRUCTIVE",
+        "datalog_rule": "deny(S, export) :- session(S), read_count(S, N), N >= 3, proposed(S, export), export_class(export).",
+        "eu_ai_act_framing": "Art. 15 — unauthorized data egress from high-risk agent session"
+      }
+    ]
+  },
+  "receipt": {
+    "schema": "liability-receipt/v1",
+    "receipt_id": "139b038e-24d3-4ed7-8650-60cbded0b332",
+    "issued_at": "2026-08-26T12:00:00.000Z",
+    "issuer": {
+      "name": "Aevesa",
+      "product": "Verified Autonomous Sessions",
+      "verification_profile": "aegis/1+proof-of-intent",
+      "organization_display_name": "Kaptein Path Policy"
+    },
+    "session": {
+      "session_id": "policy-proof-read-chain-export-deny",
+      "correlation_id": "policy-proof-read-chain-export-deny",
+      "vertical": "enterprise_ops",
+      "outcome": "blocked",
+      "started_at": "2026-08-26T12:00:00.000Z",
+      "completed_at": "2026-08-26T12:00:00.000Z"
+    },
+    "identity": {
+      "primary_actor": {
+        "agent_id": "policy-proof-demo-agent",
+        "actor_class": "autonomous_agent"
+      },
+      "authority": {
+        "scoped_role": "SERVER",
+        "permission_id": "apor-path-policy"
+      }
+    },
+    "policy": {
+      "policy_pack_id": "kaptein_path_v1",
+      "policy_version_hash": "44b747767f5085bff3dfdc93bd64657a08e18c7d9e55ea257905f78f92ae3d17",
+      "decision": "deny"
+    },
+    "hitl": {
+      "required": false,
+      "status": "not_required"
+    },
+    "side_effects": {
+      "action": {
+        "tool_name": "export_data",
+        "verb": "invoke",
+        "target_path": "/warehouse/analytics"
+      },
+      "effect_class": "data_access",
+      "summary": "Execution path blocked: 4 read-class tools without human witness before export export_data.",
+      "blocked_reason": "Execution path blocked: 4 read-class tools without human witness before export export_data."
+    },
+    "proof": {
+      "ledger_spec": "aegis/1",
+      "primary_anchor": {
+        "entry_hash": "d5c0fdc3746ec56450cbc382a88ee22e165d8d333569a5dcdfe04943379d8505",
+        "event_type": "PATH_POLICY_BLOCKED",
+        "timestamp": "2026-08-26T12:00:00.000Z"
+      },
+      "verification": {
+        "status": "verified",
+        "methods": [
+          "path_aware_policy",
+          "kaptein_path_policies",
+          "partial_path_binding"
+        ],
+        "verified_at": "2026-08-26T12:00:00.000Z"
+      }
+    },
+    "diligence_summary": {
+      "who_acted": "Agent attempted export after read chain.",
+      "what_policy_allowed": "Kaptein read-chain-export-deny path policy.",
+      "what_proof_says": "Path blocked with PATH_READ_VELOCITY_DESTRUCTIVE."
+    },
+    "denial": {
+      "pre_execution": true,
+      "execution_occurred": false,
+      "denial_stage": "runtime_firewall",
+      "source": "apor_path_policy"
+    },
+    "partial_path": {
+      "schema": "aevesa.partial-path/v1",
+      "session_id": "policy-proof-read-chain-export-deny",
+      "proposed_action": "export_data",
+      "step_index": 4,
+      "read_count_prior": 4,
+      "path_digest": "549e8bbb73fd5fc80d7c3ac475e2434ae1d23001559d1dd5f255c59be85914df",
+      "partial_steps": [
+        {
+          "index": 0,
+          "tool_name": "read_file",
+          "verdict": "ALLOW",
+          "entry_hash": null
+        },
+        {
+          "index": 1,
+          "tool_name": "read_file",
+          "verdict": "ALLOW",
+          "entry_hash": null
+        },
+        {
+          "index": 2,
+          "tool_name": "read_file",
+          "verdict": "ALLOW",
+          "entry_hash": null
+        },
+        {
+          "index": 3,
+          "tool_name": "read_file",
+          "verdict": "ALLOW",
+          "entry_hash": null
+        }
+      ],
+      "partial_path_hash": "025b1cf8167e5a58f574fda4ad31823b7324952f8373d7fa52329ff73df287a2"
+    },
+    "_meta": {
+      "generated_by": "policy-proof-fixture-generator",
+      "source_entry_hash": "d5c0fdc3746ec56450cbc382a88ee22e165d8d333569a5dcdfe04943379d8505"
+    },
+    "integrity": {
+      "receipt_digest": "4e014530ba568f9fb8e4ee5945012276faac10c39648e45f55c57412134149ad",
+      "signature_alg": "none",
+      "signature": null,
+      "manifest_signature_jws": null
+    }
+  },
+  "verify_hint": "aevesa policy-proof <this-file.json>",
+  "proof_digest": "50ebe0e17a01c3128ec44d8c9fcc9a6e5e8023f705b1dc7b376e47392ddd55f4"
+}

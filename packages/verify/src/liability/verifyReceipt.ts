@@ -7,10 +7,14 @@ import { validateAccountabilityPillars } from './pillars.js';
 import { verifyCausalLineageLedgerBinding } from './causalLineageBinding.js';
 import { verifyIntentContextLedgerBinding } from './intentContextBinding.js';
 import { verifyPartialPathCommitment } from '../core/partialPath.js';
+import { verifyMemoryCommitment } from './memoryCommitmentVerify.js';
+import { verifyToolManifestFingerprint } from './toolManifestFingerprintVerify.js';
 
 export interface VerifyReceiptOptions {
   /** SPKI PEM or JWK JSON — required for Ed25519/RS256 when signature is present */
   issuerPublicKey?: string | Buffer;
+  /** When true and issuerPublicKey is absent, skip RS256/Ed25519 checks after digest validation */
+  skipIntegritySignatureWithoutKey?: boolean;
   /** When true, enforce policy_version_hash === sha256(policy_pack_id) */
   strictPolicyVersionHash?: boolean;
   /**
@@ -159,6 +163,34 @@ export function verifyReceipt(receiptData: unknown, options: VerifyReceiptOption
     }
   }
 
+  if (receiptV1.memory_commitment) {
+    const memoryCheck = verifyMemoryCommitment(receiptV1.memory_commitment);
+    if (!memoryCheck.ok) {
+      return {
+        isValid: false,
+        error: `memory_commitment verification failed: ${memoryCheck.code}`,
+        details: {
+          chainLength: 1 + (receiptV1.proof.secondary_anchors?.length ?? 0),
+          pillarsValidated: pillars.pillarsValidated,
+        },
+      };
+    }
+  }
+
+  if (receiptV1.tool_manifest_fingerprint) {
+    const manifestCheck = verifyToolManifestFingerprint(receiptV1.tool_manifest_fingerprint);
+    if (!manifestCheck.ok) {
+      return {
+        isValid: false,
+        error: `tool_manifest_fingerprint verification failed: ${manifestCheck.code}`,
+        details: {
+          chainLength: 1 + (receiptV1.proof.secondary_anchors?.length ?? 0),
+          pillarsValidated: pillars.pillarsValidated,
+        },
+      };
+    }
+  }
+
   const anchors = verifyAnchorHashChain(receiptV1);
   if (!anchors.ok) {
     return {
@@ -181,11 +213,17 @@ export function verifyReceipt(receiptData: unknown, options: VerifyReceiptOption
 
   const sig = verifyIntegritySignatures(receiptV1, options.issuerPublicKey);
   if (!sig.ok) {
-    return {
-      isValid: false,
-      error: sig.error,
-      details: { chainLength: anchors.chainLength, pillarsValidated: pillars.pillarsValidated },
-    };
+    const missingKey =
+      !options.issuerPublicKey &&
+      typeof sig.error === 'string' &&
+      sig.error.includes('requires issuer public key');
+    if (!(options.skipIntegritySignatureWithoutKey && missingKey)) {
+      return {
+        isValid: false,
+        error: sig.error,
+        details: { chainLength: anchors.chainLength, pillarsValidated: pillars.pillarsValidated },
+      };
+    }
   }
 
   return {

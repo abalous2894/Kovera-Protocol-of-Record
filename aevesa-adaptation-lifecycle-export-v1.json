@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aevesa.com/schemas/aevesa-adaptation-lifecycle-export/v1",
+  "title": "Aevesa Adaptation Lifecycle Export",
+  "description": "Track P6 — composed export of declared adaptation envelope, drift witness timeline, and optional substantial modification signal for litigation / Art. 12 shaped review.",
+  "type": "object",
+  "required": [
+    "schema",
+    "organization_id",
+    "system_id",
+    "operator_role",
+    "generated_at",
+    "lifecycle_window",
+    "drift_witness_timeline",
+    "drift_witness_timeline_digest",
+    "member_documents",
+    "composed_members",
+    "ordered_witness_entry_hashes",
+    "lifecycle_assertions",
+    "lifecycle_export_digest",
+    "disclaimer"
+  ],
+  "properties": {
+    "schema": { "const": "aevesa.adaptation-lifecycle-export/v1" },
+    "organization_id": { "type": "string", "minLength": 1 },
+    "system_id": { "type": "string", "minLength": 1 },
+    "operator_role": { "enum": ["provider", "deployer"] },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "lifecycle_window": {
+      "type": "object",
+      "required": ["started_at", "ended_at"],
+      "properties": {
+        "started_at": { "type": "string", "format": "date-time" },
+        "ended_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "drift_witness_timeline": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "sequence_index",
+          "observed_at",
+          "drift_status",
+          "drift_code",
+          "runtime_snapshot_digest"
+        ],
+        "properties": {
+          "sequence_index": { "type": "integer", "minimum": 0 },
+          "observed_at": { "type": "string", "format": "date-time" },
+          "drift_status": {
+            "enum": ["inside_envelope", "breach", "insufficient_snapshot"]
+          },
+          "drift_code": { "type": "string" },
+          "witness_entry_hash": {
+            "type": ["string", "null"],
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "runtime_snapshot_digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "breach_count": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "drift_witness_timeline_digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "member_documents": {
+      "type": "object",
+      "required": ["declared_adaptation_envelope"],
+      "properties": {
+        "declared_adaptation_envelope": { "type": "object" },
+        "substantial_modification_signal": { "type": "object" }
+      }
+    },
+    "composed_members": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["member_schema", "member_digest", "verify_ok", "label"],
+        "properties": {
+          "member_schema": { "type": "string" },
+          "member_digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "verify_ok": { "type": "boolean" },
+          "label": { "type": "string" },
+          "entry_count": { "type": ["integer", "null"] }
+        }
+      }
+    },
+    "ordered_witness_entry_hashes": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+    },
+    "lifecycle_assertions": {
+      "type": "object",
+      "required": [
+        "third_party_verifiable",
+        "envelope_member_verified",
+        "drift_timeline_present",
+        "breach_signal_present",
+        "breach_signal_verified",
+        "lifecycle_readiness"
+      ],
+      "properties": {
+        "third_party_verifiable": { "type": "boolean" },
+        "envelope_member_verified": { "type": "boolean" },
+        "drift_timeline_present": { "type": "boolean" },
+        "breach_signal_present": { "type": "boolean" },
+        "breach_signal_verified": { "type": "boolean" },
+        "lifecycle_readiness": {
+          "enum": ["export_ready", "partial", "incomplete"]
+        }
+      }
+    },
+    "lifecycle_export_digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "disclaimer": { "type": "string", "minLength": 1 }
+  }
+}

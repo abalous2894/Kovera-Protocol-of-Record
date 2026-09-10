@@ -1,0 +1,15 @@
+{
+  "schema": "aevesa.policy-proof-templates/v1",
+  "description": "Downloadable Kaptein path policy-as-proof templates — auditors re-run DENY logic offline",
+  "verify_command": "aevesa policy-proof verify <bundle.json>",
+  "templates": [
+    {
+      "id": "read-chain-export-deny",
+      "title": "Read chain then export — DENY",
+      "engine_code": "PATH_READ_VELOCITY_DESTRUCTIVE",
+      "eu_ai_act_framing": "Art. 15 — unauthorized data egress from high-risk agent session",
+      "bundle": "read-chain-export-deny/bundle.json",
+      "policy_pack": "kaptein-path-policies-v1.json"
+    }
+  ]
+}

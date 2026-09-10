@@ -1,0 +1,4 @@
+*.tgz
+scripts/
+fixtures/
+aevesa-verify-*.tgz

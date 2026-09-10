@@ -10,6 +10,11 @@ Published specifications for Verified Autonomous Sessions (VAS) and agent accoun
 | **DENIED receipt profile** | [DENIED_RECEIPT_PROFILE.md](./DENIED_RECEIPT_PROFILE.md) | fields on `liability-receipt/v1` |
 | **Art. 73 custody pack** | [INCIDENT_CUSTODY_PACK.md](./INCIDENT_CUSTODY_PACK.md) | [kovera-incident-custody-pack-1.json](./kovera-incident-custody-pack-1.json) |
 | **Cross-vendor integration v1** | [CROSS_VENDOR_INTEGRATION_PACK.md](./CROSS_VENDOR_INTEGRATION_PACK.md) | [kovera-cross-vendor-integration-1.json](./kovera-cross-vendor-integration-1.json) |
+| **Declared adaptation envelope (draft)** | [DECLARED_ADAPTATION_ENVELOPE_PROFILE.md](./DECLARED_ADAPTATION_ENVELOPE_PROFILE.md) | [aevesa-declared-adaptation-envelope-v1-draft.json](./aevesa-declared-adaptation-envelope-v1-draft.json) |
+| **Substantial modification signal v1** | [DECLARED_ADAPTATION_ENVELOPE_PROFILE.md](./DECLARED_ADAPTATION_ENVELOPE_PROFILE.md) (breach pack) | [aevesa-substantial-modification-signal-v1.json](./aevesa-substantial-modification-signal-v1.json) |
+| **Adaptation lifecycle export v1** | [DECLARED_ADAPTATION_ENVELOPE_PROFILE.md](./DECLARED_ADAPTATION_ENVELOPE_PROFILE.md) (P6 export) | [aevesa-adaptation-lifecycle-export-v1.json](./aevesa-adaptation-lifecycle-export-v1.json) |
+| **Independent guardian bundle v1** | [INDEPENDENT_GUARDIAN_BUNDLE_PROFILE.md](./INDEPENDENT_GUARDIAN_BUNDLE_PROFILE.md) | [aevesa-independent-guardian-bundle-v1.json](./aevesa-independent-guardian-bundle-v1.json) |
+| **Transparency log monitor attestation v1** | [TRANSPARENCY_LOG_MONITOR_PROFILE.md](./TRANSPARENCY_LOG_MONITOR_PROFILE.md) | [aevesa-transparency-log-monitor-attestation-v1.json](./aevesa-transparency-log-monitor-attestation-v1.json) |
 
 **Release history:** [CHANGELOG.md](./CHANGELOG.md)
 
@@ -30,6 +35,9 @@ Published specifications for Verified Autonomous Sessions (VAS) and agent accoun
 - [CRYPTOGRAPHIC_VS_DECLARATIVE_EVIDENCE.md](./CRYPTOGRAPHIC_VS_DECLARATIVE_EVIDENCE.md)
 - [SCITT_AIR_PROFILE_ALIGNMENT.md](./SCITT_AIR_PROFILE_ALIGNMENT.md)
 - [SCITT_REFUSAL_EVENT_ALIGNMENT.md](./SCITT_REFUSAL_EVENT_ALIGNMENT.md)
+- [DECLARED_ADAPTATION_ENVELOPE_SCITT_ALIGNMENT.md](./DECLARED_ADAPTATION_ENVELOPE_SCITT_ALIGNMENT.md)
+- [TRANSPARENCY_LOG_MONITOR_PROFILE.md](./TRANSPARENCY_LOG_MONITOR_PROFILE.md)
+- [INDEPENDENT_GUARDIAN_BUNDLE_PROFILE.md](./INDEPENDENT_GUARDIAN_BUNDLE_PROFILE.md)
 - [WITNESS_TRANSPARENCY_PROFILE.md](./WITNESS_TRANSPARENCY_PROFILE.md)
 - [PRE_EXECUTION_DENIED_EVIDENCE.md](./PRE_EXECUTION_DENIED_EVIDENCE.md)
 - [DELEGATION_CHAIN_STANDARDS_BLOG.md](./DELEGATION_CHAIN_STANDARDS_BLOG.md)

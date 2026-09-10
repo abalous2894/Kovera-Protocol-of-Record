@@ -1,0 +1,85 @@
+{
+  "manifest": {
+    "schema": "aevesa.proof-of-action-bundle/v1",
+    "bundle_id": "00000000-0000-4000-8000-000000000101",
+    "entry_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "proof_profile": "mcp_intent_witness",
+    "generated_at": "2026-08-26T12:00:00.000Z",
+    "proof_chain_summary": {
+      "ok": true,
+      "layers": [
+        { "id": "ledger_entry", "pass": true, "detail": "entryHash recompute match" },
+        { "id": "mcp_intent_witness", "pass": true, "detail": "witness OK" }
+      ]
+    },
+    "data_gaps": []
+  },
+  "artifacts": {
+    "ledger/anchor": {
+      "mongo_public_shape": {
+        "found": true,
+        "entry": {
+          "entryHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "eventType": "MCP_TOOL_GOVERNANCE_ALLOWED",
+          "timestamp": "2026-08-26T11:59:58.000Z",
+          "payload": {
+            "toolName": "read_file",
+            "verdict": "ALLOWED",
+            "sessionId": "replay-fixture-session"
+          }
+        }
+      },
+      "entry_hash_verification": {
+        "ok": true,
+        "entryHashMatch": true
+      }
+    },
+    "mcp/intent_receipt": {
+      "intent_id": "intent-replay-fixture-001",
+      "intent_receipt": {
+        "tool_name": "read_file",
+        "args_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "minted_at": "2026-08-26T11:59:57.000Z",
+        "entry_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      }
+    },
+    "mcp/approval_witness": {
+      "witness_verification": {
+        "pass": true,
+        "detail": "args_digest matches intent receipt"
+      }
+    },
+    "forensic/session_chain": {
+      "applicable": true,
+      "session_id": "replay-fixture-session",
+      "session_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "chain_ok": true,
+      "hops": [
+        {
+          "sequence": 0,
+          "session_id": "replay-fixture-session",
+          "entry_hash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "timestamp": "2026-08-26T11:59:55.000Z",
+          "tool_name": "list_dir",
+          "policy_version_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "link_ok": true,
+          "jws_ok": true
+        },
+        {
+          "sequence": 1,
+          "session_id": "replay-fixture-session",
+          "entry_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "timestamp": "2026-08-26T11:59:58.000Z",
+          "tool_name": "read_file",
+          "policy_version_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "link_ok": true,
+          "jws_ok": true
+        }
+      ]
+    },
+    "hitl/dual_signature": {
+      "applicable": false,
+      "correlated_ledger_row_count": 0
+    }
+  }
+}

@@ -18,10 +18,43 @@ export const partialPathSchema = z
           tool_name: z.string(),
           verdict: z.string().optional(),
           entry_hash: hex64.nullable().optional(),
+          path_hint: z.string().max(512).nullable().optional(),
+          args_digest: hex64.nullable().optional(),
+          binding_digest: hex64.nullable().optional(),
         }),
       )
       .optional(),
     partial_path_hash: hex64,
+    capability_budget: z
+      .object({
+        schema: z.literal('aevesa.capability-budget/v1'),
+        sinks: z.object({
+          external_network: z.boolean(),
+          email: z.boolean(),
+          database_write: z.boolean(),
+          file_export: z.boolean(),
+          shell_exec: z.boolean(),
+        }),
+        taint_class: z.enum(['confidential', 'internal']).nullable().optional(),
+        budget_state_hash: hex64,
+      })
+      .optional(),
+    permit_execution: z
+      .object({
+        schema: z.literal('aevesa.permit-execution-binding/v1'),
+        step_bindings: z
+          .array(
+            z.object({
+              index: z.number().int(),
+              tool_name: z.string(),
+              args_digest: hex64,
+              binding_digest: hex64,
+            }),
+          )
+          .optional(),
+        binding_state_hash: hex64,
+      })
+      .optional(),
   })
   .strict();
 

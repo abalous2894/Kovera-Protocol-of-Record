@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Fail CI when sentinul-app-site verify bundle is stale vs @aevesa/verify build.
+ * Fail CI when aevesa-app-site verify bundle is stale vs @aevesa/verify build.
  */
 import { spawnSync } from 'node:child_process';
 import { readFileSync, mkdtempSync, rmSync } from 'node:fs';
@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const verifyPkgDir = join(scriptDir, '..');
 const repoRoot = join(verifyPkgDir, '../..');
-const committedPath = join(repoRoot, 'sentinul-app-site/src/js/aevesa-verify.bundle.js');
+const committedPath = join(repoRoot, 'aevesa-app-site/src/js/aevesa-verify.bundle.js');
 
 const build = spawnSync('npm', ['run', 'build'], { cwd: verifyPkgDir, stdio: 'inherit' });
 if (build.status !== 0) {
@@ -37,7 +37,7 @@ try {
   if (committed.length !== fresh.length || !committed.equals(fresh)) {
     console.error('Error: aevesa-verify.bundle.js is out of sync with @aevesa/verify.');
     console.error('Run: npm run build:browser --workspace=@aevesa/verify');
-    console.error('Then commit sentinul-app-site/src/js/aevesa-verify.bundle.js');
+    console.error('Then commit aevesa-app-site/src/js/aevesa-verify.bundle.js');
     process.exit(1);
   }
 

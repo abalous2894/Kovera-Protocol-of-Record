@@ -1,7 +1,25 @@
 {
   "name": "@aevesa/verify",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Stateless cryptographic verification engine for Aevesa liability-receipt/v1 specifications",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abalous2894/sentinul-backend.git",
+    "directory": "packages/verify"
+  },
+  "homepage": "https://verify.aevesa.com",
+  "keywords": [
+    "aevesa",
+    "liability-receipt",
+    "agent-governance",
+    "offline-verification",
+    "cryptography",
+    "compliance"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -22,12 +40,14 @@
     }
   },
   "bin": {
-    "aevesa": "./src/cli.js",
-    "aevesa-verify": "./dist/aevesa-verify.js"
+    "aevesa": "src/cli.js",
+    "aevesa-verify": "dist/aevesa-verify.js",
+    "verify": "src/cli.js"
   },
   "scripts": {
     "build": "tsc && node scripts/copy-core-js.mjs",
     "build:browser": "npm run build && node scripts/build-browser-bundle.mjs",
+    "generate:browser-entry": "node scripts/generate-browser-entry.mjs",
     "test:liability-receipt": "npm run build && node scripts/smoke-liability-receipt.mjs",
     "test:intent-divergence": "npm run build && node scripts/intent-divergence-mock.mjs",
     "test:intent-alignment": "npm run build && node --input-type=module -e \"import { runSpecVectors } from './src/spec/runSpecVectors.js'; const r = runSpecVectors({ silent: true }); if (!r.ok) { console.error(r.results.filter(x=>!x.pass)); process.exit(1);} console.log('intent alignment vectors OK');\" && node scripts/intent-alignment-parity.mjs",
@@ -38,8 +58,24 @@
     "test:attest-mcp-manifest": "npm run build && node scripts/test-attest-mcp-manifest.mjs",
     "test:aevesa-verify-cli": "npm run build && node scripts/test-aevesa-verify-cli.mjs",
     "test:offline-promotion": "node scripts/test-offline-promotion-verifier.mjs",
-    "test:verify-ci": "npm run build && npm run test:liability-receipt && npm run test:intent-alignment && npm run test:digest-binding && npm run test:kvr-301 && npm run test:jcs-receipt-leaf && npm run test:attest-mcp-manifest && npm run test:aevesa-verify-cli && npm run test:offline-promotion && node scripts/test-stable-stringify-export.mjs && node scripts/test-isRecord-export.mjs && node scripts/verify-portal-intent-sample.mjs",
-    "check:browser-bundle-sync": "node scripts/check-browser-bundle-sync.mjs"
+    "test:npm-pack": "npm run build && node scripts/test-npm-pack.mjs",
+    "prepublishOnly": "npm run build && node scripts/normalize-publish-lf.mjs",
+    "test:verify-ci": "npm run build && npm run test:unit && npm run test:unit:coverage && npm run test:liability-receipt && npm run test:intent-alignment && npm run test:digest-binding && npm run test:kvr-301 && npm run test:jcs-receipt-leaf && npm run test:attest-mcp-manifest && npm run test:aevesa-verify-cli && npm run test:offline-promotion && npm run test:replay-bundle && npm run test:witness-inclusion && npm run test:conformance-lab-cli && npm run test:policy-proof && npm run test:unified-verify && npm run test:verify-action && npm run test:npm-pack && node scripts/test-stable-stringify-export.mjs && node scripts/test-isRecord-export.mjs && node scripts/verify-portal-intent-sample.mjs",
+    "test:replay-bundle": "node scripts/test-replay-bundle-cli.mjs",
+    "test:witness-inclusion": "node scripts/test-witness-inclusion-verify.mjs",
+    "test:conformance-lab-cli": "npm run build && node scripts/test-conformance-lab-cli.mjs",
+    "test:policy-proof": "npm run build && node scripts/generate-policy-proof-fixture.mjs && node scripts/test-policy-proof-cli.mjs",
+    "test:unified-verify": "npm run build && node scripts/test-unified-verify-cli.mjs",
+    "test:verify-action": "npm run build && node scripts/test-verify-action.mjs",
+    "test:cap-conformance": "npm run build && node scripts/test-cap-conformance.mjs",
+    "test:capability-budget-conformance": "npm run build && node scripts/test-capability-budget-conformance.mjs",
+    "test:permit-execution-conformance": "npm run build && node scripts/test-permit-execution-conformance.mjs",
+    "test:cap-member-receipts-conformance": "npm run build && node scripts/test-cap-member-receipts-conformance.mjs",
+    "generate:cap-fixture": "node scripts/generate-cap-fixture.mjs",
+    "test:policy-proof-template": "npm run build && node scripts/test-policy-proof-template.mjs",
+    "check:browser-bundle-sync": "node scripts/check-browser-bundle-sync.mjs",
+    "test:unit": "vitest run",
+    "test:unit:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "commander": "^12.1.0",
@@ -49,9 +85,33 @@
   "devDependencies": {
     "@noble/hashes": "^1.8.0",
     "@types/node": "^22.10.0",
+    "@vitest/coverage-v8": "^3.2.4",
     "buffer": "^6.0.3",
-    "esbuild": "^0.25.0",
-    "typescript": "^5.7.0"
+    "esbuild": "^0.25.12",
+    "typescript": "^5.7.0",
+    "vitest": "^3.2.4"
   },
-  "private": true
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "src/cli.js",
+    "src/exitCodes.js",
+    "src/ledgerExports.js",
+    "src/offlinePromotionVerifier.js",
+    "src/commands",
+    "src/verify",
+    "src/conformance",
+    "src/policy",
+    "src/replay",
+    "src/witness",
+    "src/compliance",
+    "src/core",
+    "src/spec",
+    "src/liability",
+    "src/offline",
+    "README.md",
+    "templates"
+  ]
 }

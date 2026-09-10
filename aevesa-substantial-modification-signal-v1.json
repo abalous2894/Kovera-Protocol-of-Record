@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aevesa.com/schemas/aevesa-substantial-modification-signal/v1",
+  "title": "Aevesa Substantial Modification Signal",
+  "description": "Track AE PR3 — replayable breach pack when declared adaptation envelope drift exceeds bounds. Provider and deployer regulatory framing blocks differ (Amendment A1).",
+  "type": "object",
+  "required": [
+    "schema",
+    "organization_id",
+    "system_id",
+    "operator_role",
+    "generated_at",
+    "envelope_digest",
+    "drift_status",
+    "breaches",
+    "runtime_snapshot_digest",
+    "contributing_entry_hashes",
+    "composed_members",
+    "regulatory_framing",
+    "signal_digest",
+    "disclaimer"
+  ],
+  "properties": {
+    "schema": { "const": "aevesa.substantial-modification-signal/v1" },
+    "organization_id": { "type": "string", "minLength": 1 },
+    "system_id": { "type": "string", "minLength": 1 },
+    "operator_role": { "enum": ["provider", "deployer"] },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "envelope_digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "envelope_entry_hash": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+    "drift_witness_entry_hash": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+    "drift_status": { "const": "breach" },
+    "breaches": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["kind"],
+        "properties": {
+          "kind": { "enum": ["bound_mismatch", "metric_threshold"] },
+          "field": { "type": "string" },
+          "metric_id": { "type": "string" },
+          "expected": {},
+          "observed": {},
+          "breach_action": {
+            "enum": ["signal_substantial_modification", "alert_only", "auto_revert"]
+          }
+        }
+      }
+    },
+    "runtime_snapshot_digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "contributing_entry_hashes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+    },
+    "composed_members": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["member_schema", "member_digest", "verify_ok", "label"],
+        "properties": {
+          "member_schema": { "type": "string" },
+          "member_digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "verify_ok": { "type": "boolean" },
+          "label": { "type": "string" },
+          "entry_count": { "type": ["integer", "null"] }
+        }
+      }
+    },
+    "regulatory_framing": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["pack_kind", "eu_art_43_4_signal"],
+          "properties": {
+            "pack_kind": { "const": "provider" },
+            "eu_art_43_4_signal": { "type": "object" },
+            "eu_art_25_provider_context": { "type": "object" },
+            "owasp_level_3_governance": { "type": "object" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["pack_kind", "eu_art_26_monitoring_signal"],
+          "properties": {
+            "pack_kind": { "const": "deployer" },
+            "eu_art_26_monitoring_signal": { "type": "object" },
+            "naic_exhibit_c_drift": { "type": "object" },
+            "owasp_level_3_governance": { "type": "object" }
+          }
+        }
+      ]
+    },
+    "signal_entry_hash": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+    "signal_digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "disclaimer": { "type": "string", "minLength": 16 }
+  }
+}

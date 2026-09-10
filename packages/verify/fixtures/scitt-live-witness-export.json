@@ -1,0 +1,340 @@
+{
+  "ok": true,
+  "schema": "aevesa.witness-offline-export/v1",
+  "receiptDigest": "06793b94a7347d30502c6aa6f1554dce5987124561e8700b0cb6305ddd5b826e",
+  "scrapiStatement": {
+    "schema": "https://scitt.io/statement/v1",
+    "statement_type": "https://scitt.io/statement/refusal/v0",
+    "digest": {
+      "alg": "sha256",
+      "value": "06793b94a7347d30502c6aa6f1554dce5987124561e8700b0cb6305ddd5b826e"
+    },
+    "metadata": {
+      "scitt_profile": "SCITT-refusal-event-draft-01",
+      "ledger_entry_hash": "ddacfc6f30f7ca6bc904c3f6c24ba58fa1c64367b38981b2883dcc4b8bcccc06",
+      "gateway_source": "databricks_unity_ai",
+      "refusal_alignment": {
+        "profile": "SCITT-refusal-event-draft-01",
+        "mapping_version": "1.0",
+        "reference": "draft-kamimura-scitt-refusal-events",
+        "scitt_event_type": "refusal",
+        "mapped_fields": [
+          "issuer",
+          "subject",
+          "decision",
+          "timestamp",
+          "evidence_hash"
+        ],
+        "evidence_hash": "ddacfc6f30f7ca6bc904c3f6c24ba58fa1c64367b38981b2883dcc4b8bcccc06",
+        "kovera_receipt_profile": "DENIED"
+      },
+      "kovera_receipt_profile": "DENIED",
+      "export_schema": "aevesa.scitt-refusal-export/v1"
+    },
+    "issued_at": "2026-08-26T18:11:22.977Z"
+  },
+  "inclusionProof": {
+    "schema": "aevesa.witness.inclusion-proof/v1",
+    "log_id": "aevesa-witness-log-1",
+    "entry_index": 1,
+    "entry_id": "da0a3a4f-bcec-4cf0-b5fc-2083ff7c4534",
+    "root_hash": "503724eb83a8a8330711e3d59412b69ed1e2c52d8132c6d29fb1f76363414fec",
+    "parent_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "org_id": "org-scitt-live-witness",
+    "issued_at": "2026-08-26T18:11:22.977Z"
+  },
+  "ledgerAppend": {
+    "entryHash": "503724eb83a8a8330711e3d59412b69ed1e2c52d8132c6d29fb1f76363414fec",
+    "sequence": 1,
+    "parentHash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "idempotencyHash": "574739adf4fb4c1ce24df913f58dbcd48a44272278ebd365dd15463205de38dd",
+    "orgId": "org-scitt-live-witness"
+  },
+  "verificationExport": {
+    "orgId": "org-scitt-live-witness",
+    "prevHash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "digest": "06793b94a7347d30502c6aa6f1554dce5987124561e8700b0cb6305ddd5b826e",
+    "eventTimestamp": "2026-08-26T18:11:22.977Z",
+    "nonce": "da0a3a4f-bcec-4cf0-b5fc-2083ff7c4534",
+    "payload": {
+      "entry_id": "da0a3a4f-bcec-4cf0-b5fc-2083ff7c4534",
+      "scrapi_statement": {
+        "schema": "https://scitt.io/statement/v1",
+        "statement_type": "https://scitt.io/statement/refusal/v0",
+        "digest": {
+          "alg": "sha256",
+          "value": "06793b94a7347d30502c6aa6f1554dce5987124561e8700b0cb6305ddd5b826e"
+        },
+        "metadata": {
+          "scitt_profile": "SCITT-refusal-event-draft-01",
+          "ledger_entry_hash": "ddacfc6f30f7ca6bc904c3f6c24ba58fa1c64367b38981b2883dcc4b8bcccc06",
+          "gateway_source": "databricks_unity_ai",
+          "refusal_alignment": {
+            "profile": "SCITT-refusal-event-draft-01",
+            "mapping_version": "1.0",
+            "reference": "draft-kamimura-scitt-refusal-events",
+            "scitt_event_type": "refusal",
+            "mapped_fields": [
+              "issuer",
+              "subject",
+              "decision",
+              "timestamp",
+              "evidence_hash"
+            ],
+            "evidence_hash": "ddacfc6f30f7ca6bc904c3f6c24ba58fa1c64367b38981b2883dcc4b8bcccc06",
+            "kovera_receipt_profile": "DENIED"
+          },
+          "kovera_receipt_profile": "DENIED",
+          "export_schema": "aevesa.scitt-refusal-export/v1"
+        },
+        "issued_at": "2026-08-26T18:11:22.977Z"
+      },
+      "witnesses": [
+        {
+          "type": "opentimestamps",
+          "ok": false,
+          "witnessUrl": "https://opentimestamps.org/",
+          "httpStatus": 404,
+          "error": "calendar_http_404"
+        },
+        {
+          "schema": "aevesa.witness.rekor-metadata/v1",
+          "type": "rekor",
+          "ok": true,
+          "httpStatus": 201,
+          "witnessUrl": "https://rekor.sigstore.dev",
+          "uuid": "scitt-live-witness-test-uuid-001",
+          "logIndex": 9001,
+          "logId": "sha256:scittlivewitness",
+          "integratedTime": null,
+          "verification_hint": "Rekor lookup: GET {witnessUrl}/api/v1/log/entries/scitt-live-witness-test-uuid-001",
+          "raw_keys": [
+            "uuid",
+            "logIndex",
+            "logID"
+          ],
+          "digest": "06793b94a7347d30502c6aa6f1554dce5987124561e8700b0cb6305ddd5b826e"
+        }
+      ]
+    }
+  },
+  "witnesses": [
+    {
+      "type": "opentimestamps",
+      "ok": false,
+      "witnessUrl": "https://opentimestamps.org/",
+      "httpStatus": 404,
+      "error": "calendar_http_404"
+    },
+    {
+      "schema": "aevesa.witness.rekor-metadata/v1",
+      "type": "rekor",
+      "ok": true,
+      "httpStatus": 201,
+      "witnessUrl": "https://rekor.sigstore.dev",
+      "uuid": "scitt-live-witness-test-uuid-001",
+      "logIndex": 9001,
+      "logId": "sha256:scittlivewitness",
+      "integratedTime": null,
+      "verification_hint": "Rekor lookup: GET {witnessUrl}/api/v1/log/entries/scitt-live-witness-test-uuid-001",
+      "raw_keys": [
+        "uuid",
+        "logIndex",
+        "logID"
+      ],
+      "digest": "06793b94a7347d30502c6aa6f1554dce5987124561e8700b0cb6305ddd5b826e"
+    }
+  ],
+  "externalTransparencyService": {
+    "type": "rekor",
+    "rekor": {
+      "schema": "aevesa.witness.rekor-metadata/v1",
+      "type": "rekor",
+      "ok": true,
+      "httpStatus": 201,
+      "witnessUrl": "https://rekor.sigstore.dev",
+      "uuid": "scitt-live-witness-test-uuid-001",
+      "logIndex": 9001,
+      "logId": "sha256:scittlivewitness",
+      "integratedTime": null,
+      "verification_hint": "Rekor lookup: GET {witnessUrl}/api/v1/log/entries/scitt-live-witness-test-uuid-001",
+      "raw_keys": [
+        "uuid",
+        "logIndex",
+        "logID"
+      ],
+      "digest": "06793b94a7347d30502c6aa6f1554dce5987124561e8700b0cb6305ddd5b826e"
+    },
+    "independent_verify_hint": "Rekor lookup: GET {witnessUrl}/api/v1/log/entries/scitt-live-witness-test-uuid-001"
+  },
+  "ledgerEntryHash": "ddacfc6f30f7ca6bc904c3f6c24ba58fa1c64367b38981b2883dcc4b8bcccc06",
+  "scitt_refusal_export": {
+    "ok": true,
+    "schema": "aevesa.scitt-refusal-export/v1",
+    "generatedAt": "2026-08-26T18:11:22.976Z",
+    "scittProfile": "SCITT-refusal-event-draft-01",
+    "receiptDigest": "06793b94a7347d30502c6aa6f1554dce5987124561e8700b0cb6305ddd5b826e",
+    "scrapiStatement": {
+      "schema": "https://scitt.io/statement/v1",
+      "statement_type": "https://scitt.io/statement/refusal/v0",
+      "digest": {
+        "alg": "sha256",
+        "value": "06793b94a7347d30502c6aa6f1554dce5987124561e8700b0cb6305ddd5b826e"
+      },
+      "issued_at": "2026-08-26T18:11:22.962Z",
+      "metadata": {
+        "scitt_profile": "SCITT-refusal-event-draft-01",
+        "evidence_hash": "ddacfc6f30f7ca6bc904c3f6c24ba58fa1c64367b38981b2883dcc4b8bcccc06",
+        "decision": "deny"
+      }
+    },
+    "liabilityReceipt": {
+      "schema": "liability-receipt/v1",
+      "receipt_id": "367a9d5c-b769-4bfc-b2f6-d53c7a32d412",
+      "issued_at": "2026-08-26T18:11:22.962Z",
+      "issuer": {
+        "name": "Aevesa",
+        "product": "Verified Autonomous Sessions",
+        "verification_profile": "aegis/1+proof-of-intent",
+        "organization_display_name": "Gateway Attestation"
+      },
+      "session": {
+        "session_id": "5cfa3e47-f30f-4f16-add7-d797c75c8fbc",
+        "correlation_id": "5cfa3e47-f30f-4f16-add7-d797c75c8fbc",
+        "vertical": "enterprise_ops",
+        "outcome": "blocked",
+        "started_at": "2026-08-26T18:11:22.962Z",
+        "completed_at": "2026-08-26T18:11:22.962Z"
+      },
+      "identity": {
+        "primary_actor": {
+          "agent_id": "unity-agent-catalog-001",
+          "actor_class": "autonomous_agent"
+        },
+        "authority": {
+          "scoped_role": "SERVER",
+          "permission_id": "runtime-firewall"
+        }
+      },
+      "policy": {
+        "policy_pack_id": "runtime_firewall_v1",
+        "policy_version_hash": "b8c8950a87b7459f60f151ea7d6a1e1ddb326f5baf0e4a526c4317ec784e5850",
+        "decision": "deny"
+      },
+      "hitl": {
+        "required": false,
+        "status": "not_required",
+        "approval_request_id": null,
+        "required_role": null,
+        "release_consumed": false
+      },
+      "side_effects": {
+        "action": {
+          "tool_name": "sql.execute",
+          "verb": "invoke",
+          "target_path": "/warehouse/analytics",
+          "target_host": null
+        },
+        "effect_class": "data_access",
+        "summary": "Gateway databricks_unity_ai denied sql.execute",
+        "blocked_reason": "Gateway databricks_unity_ai denied sql.execute"
+      },
+      "proof": {
+        "ledger_spec": "aegis/1",
+        "primary_anchor": {
+          "entry_hash": "ddacfc6f30f7ca6bc904c3f6c24ba58fa1c64367b38981b2883dcc4b8bcccc06",
+          "event_type": "GATEWAY_DECISION_ATTESTATION",
+          "timestamp": "2026-08-26T18:11:22.962Z"
+        },
+        "verification": {
+          "status": "verified",
+          "methods": [
+            "aegis_preimage_recompute",
+            "intent_context_binding",
+            "runtime_firewall",
+            "gateway_attestation_binding",
+            "denied_receipt_profile",
+            "partial_path_binding"
+          ],
+          "verified_at": "2026-08-26T18:11:22.962Z",
+          "portal_urls": {
+            "auditor_portal": "https://app.aevesa.com/auditor-portal/367a9d5c-b769-4bfc-b2f6-d53c7a32d412",
+            "truth_portal": "https://verify.aevesa.com/?entryHash=ddacfc6f30f7ca6bc904c3f6c24ba58fa1c64367b38981b2883dcc4b8bcccc06",
+            "open_evidence": "/api/v1/public/truth?entryHash=ddacfc6f30f7ca6bc904c3f6c24ba58fa1c64367b38981b2883dcc4b8bcccc06"
+          }
+        }
+      },
+      "diligence_summary": {
+        "who_acted": "Agent \"unity-agent-catalog-001\" attempted sql.execute.",
+        "what_policy_allowed": "Runtime firewall evaluated structural intent alignment before execution.",
+        "what_proof_says": "Primary anchor ddacfc6f30f7… under aegis/1. Gateway decision dbx-a4705414-f423-45ba-9372-489150a4382a (databricks_unity_ai) cosigned with Aevesa anchor ddacfc6f30f7…."
+      },
+      "_meta": {
+        "generated_by": "aevesa-liability-receipt-v1-service",
+        "source_entry_hash": "ddacfc6f30f7ca6bc904c3f6c24ba58fa1c64367b38981b2883dcc4b8bcccc06"
+      },
+      "gateway_attestation": {
+        "gateway_decision_id": "dbx-a4705414-f423-45ba-9372-489150a4382a",
+        "gateway_source": "databricks_unity_ai",
+        "decision": "deny",
+        "gateway_event_hash": "c0c75c276b9d5e941ef181fc41a0b91aad35b96857760a238ebec8a54b2bf58b",
+        "data_classification_tag": "PII-L3",
+        "policy_reference": "unity-ai-gateway/default",
+        "evaluated_at": "2026-08-26T18:11:22.962Z"
+      },
+      "receipt_profile": "DENIED",
+      "denial": {
+        "pre_execution": true,
+        "execution_occurred": false,
+        "denial_stage": "gateway",
+        "source": "databricks_unity_ai"
+      },
+      "refusal_alignment": {
+        "profile": "SCITT-refusal-event-draft-01",
+        "mapping_version": "1.0",
+        "reference": "draft-kamimura-scitt-refusal-events",
+        "scitt_event_type": "refusal",
+        "mapped_fields": [
+          "issuer",
+          "subject",
+          "decision",
+          "timestamp",
+          "evidence_hash"
+        ],
+        "evidence_hash": "ddacfc6f30f7ca6bc904c3f6c24ba58fa1c64367b38981b2883dcc4b8bcccc06",
+        "kovera_receipt_profile": "DENIED"
+      },
+      "partial_path": {
+        "schema": "aevesa.partial-path/v1",
+        "session_id": "5cfa3e47-f30f-4f16-add7-d797c75c8fbc",
+        "proposed_action": "sql.execute",
+        "step_index": 0,
+        "read_count_prior": null,
+        "path_digest": null,
+        "partial_steps": [],
+        "partial_path_hash": "d73e4a288971a6f0255295257358bbae9ac215ad867b0f4a533931b062885d05"
+      },
+      "integrity": {
+        "receipt_digest": "06793b94a7347d30502c6aa6f1554dce5987124561e8700b0cb6305ddd5b826e",
+        "signature_alg": "none",
+        "signature": null,
+        "manifest_signature_jws": null
+      }
+    },
+    "refusalAlignment": {
+      "profile": "SCITT-refusal-event-draft-01",
+      "mapping_version": "1.0",
+      "reference": "draft-kamimura-scitt-refusal-events",
+      "scitt_event_type": "refusal",
+      "mapped_fields": [
+        "issuer",
+        "subject",
+        "decision",
+        "timestamp",
+        "evidence_hash"
+      ],
+      "evidence_hash": "ddacfc6f30f7ca6bc904c3f6c24ba58fa1c64367b38981b2883dcc4b8bcccc06",
+      "kovera_receipt_profile": "DENIED"
+    }
+  }
+}

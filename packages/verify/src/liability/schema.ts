@@ -2,6 +2,8 @@ import { z } from 'zod';
 import { causalLineageSchema } from './causalLineageSchema.js';
 import { gatewayAttestationSchema } from './gatewayAttestationSchema.js';
 import { partialPathSchema } from './partialPathSchema.js';
+import { memoryCommitmentSchema } from './memoryCommitmentSchema.js';
+import { toolManifestFingerprintSchema } from './toolManifestFingerprintSchema.js';
 import { intentContextSchema } from './intentContext.js';
 import { intentAlignmentSchema } from './intentAlignmentSchema.js';
 
@@ -88,6 +90,8 @@ export const liabilityReceiptV1ZodSchema = z
         /** Structural alignment inputs (KVR-102) — bound into intent_alignment evaluation. */
         target_path: z.string().nullable().optional(),
         target_host: z.string().nullable().optional(),
+        /** CAP Phase 3 — canonical tool args digest for permit–execution alignment. */
+        args_digest: hex64.optional(),
         execution_scopes: z.array(z.string()).max(16).optional(),
       }),
       effect_class: z.enum([
@@ -110,6 +114,10 @@ export const liabilityReceiptV1ZodSchema = z
     gateway_attestation: gatewayAttestationSchema.optional(),
     /** Proof Moat Phase 3 — Kaptein path binding for multi-hop sessions. */
     partial_path: partialPathSchema.optional(),
+    /** Wave 9 Track Q — ASI06 memory state commitment at material-action intercept. */
+    memory_commitment: memoryCommitmentSchema.optional(),
+    /** Wave 9 Track R — ASI04 MCP manifest session bind at tool invoke. */
+    tool_manifest_fingerprint: toolManifestFingerprintSchema.optional(),
     /** Wave 2.2 — explicit refusal profile for pre-execution denials. */
     receipt_profile: z.enum(['PERMITTED', 'DENIED', 'HITL_PENDING', 'HITL_RELEASED']).optional(),
     denial: z

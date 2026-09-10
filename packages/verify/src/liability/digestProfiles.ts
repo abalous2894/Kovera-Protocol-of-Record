@@ -1,4 +1,5 @@
-import { createHash } from 'node:crypto';
+import { sha256HexUtf8 } from '../core/sha256.js';
+export { sha256HexUtf8 } from '../core/sha256.js';
 import { canonicalizeCausalLineageForDigest } from '../core/causalLineage.js';
 import { canonicalizeGatewayAttestationForDigest } from '../core/gatewayAttestation.js';
 import { canonicalizePartialPathForDigest } from '../core/partialPath.js';
@@ -76,9 +77,7 @@ export function receiptDigestKeysForProfile(profile: ReceiptDigestProfile): read
   }
 }
 
-export function sha256HexUtf8(input: string): string {
-  return createHash('sha256').update(input, 'utf8').digest('hex');
-}
+
 
 function digestValueForKey(receipt: Record<string, unknown>, key: string): unknown {
   if (receipt[key] === undefined) return undefined;

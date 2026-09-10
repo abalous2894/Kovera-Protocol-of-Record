@@ -1,0 +1,654 @@
+{
+  "version": 1,
+  "exports": [
+    {
+      "from": "../dist/liability/verifyReceipt.js",
+      "symbols": [
+        "verifyReceipt"
+      ]
+    },
+    {
+      "from": "../dist/liability/schema.js",
+      "symbols": [
+        "parseLiabilityReceiptStructure"
+      ]
+    },
+    {
+      "from": "../dist/liability/digest.js",
+      "symbols": [
+        "computeReceiptDigest",
+        "computeCanonicalReceiptDigest",
+        "receiptDigestPreimage",
+        "verifyReceiptDigestMatch",
+        "RECEIPT_DIGEST_PROFILE_ORDER"
+      ]
+    },
+    {
+      "from": "../dist/core/intentAlignment.js",
+      "symbols": [
+        "evaluateIntentAlignment",
+        "normalizeStructuralPayload"
+      ]
+    },
+    {
+      "from": "../dist/liability/setCompletenessVerify.js",
+      "symbols": [
+        "verifySetCompletenessBundle",
+        "computeSetCompletenessRoot",
+        "SET_COMPLETENESS_SCHEMA",
+        "SET_COMPLETENESS_SKU"
+      ]
+    },
+    {
+      "from": "../dist/liability/sessionProofVerify.js",
+      "symbols": [
+        "verifySessionProof",
+        "computeSessionProofDigest",
+        "SESSION_PROOF_SCHEMA",
+        "SESSION_PROOF_SKU",
+        "SESSION_PROOF_VERIFY_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/provableExecutionBoundaryVerify.js",
+      "symbols": [
+        "verifyProvableExecutionBoundaryBundle",
+        "PROVABLE_EXECUTION_BOUNDARY_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/provableExecutionBoundary.js",
+      "symbols": [
+        "PROVABLE_EXECUTION_BOUNDARY_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/conformityClosureVerify.js",
+      "symbols": [
+        "verifyConformityClosureBundle",
+        "CONFORMITY_CLOSURE_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/conformityClosure.js",
+      "symbols": [
+        "CONFORMITY_CLOSURE_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/declaredAdaptationEnvelopeVerify.js",
+      "symbols": [
+        "verifyDeclaredAdaptationEnvelopeBundle"
+      ]
+    },
+    {
+      "from": "../dist/core/declaredAdaptationEnvelope.js",
+      "symbols": [
+        "DECLARED_ADAPTATION_ENVELOPE_SCHEMA",
+        "DECLARED_ADAPTATION_ENVELOPE_SKU",
+        "buildDeclaredAdaptationEnvelopeDocument",
+        "evaluateAdaptationEnvelopeDrift"
+      ]
+    },
+    {
+      "from": "../dist/liability/substantialModificationSignalVerify.js",
+      "symbols": [
+        "verifySubstantialModificationSignalBundle"
+      ]
+    },
+    {
+      "from": "../dist/core/substantialModificationSignal.js",
+      "symbols": [
+        "SUBSTANTIAL_MODIFICATION_SIGNAL_SCHEMA",
+        "SUBSTANTIAL_MODIFICATION_SIGNAL_SKU",
+        "buildSubstantialModificationSignalDocument",
+        "buildSubstantialModificationSignalFraming"
+      ]
+    },
+    {
+      "from": "../dist/liability/quarterlyReviewExportVerify.js",
+      "symbols": [
+        "verifyQuarterlyReviewExport",
+        "QUARTERLY_REVIEW_EXPORT_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/quarterlyReviewExport.js",
+      "symbols": [
+        "QUARTERLY_REVIEW_EXPORT_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/insuranceSignalDigestVerify.js",
+      "symbols": [
+        "verifyInsuranceSignalDigest",
+        "INSURANCE_SIGNAL_DIGEST_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/insuranceSignalDigest.js",
+      "symbols": [
+        "INSURANCE_SIGNAL_DIGEST_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/independentGuardianBundleVerify.js",
+      "symbols": [
+        "verifyIndependentGuardianBundle",
+        "INDEPENDENT_GUARDIAN_BUNDLE_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/independentGuardianBundle.js",
+      "symbols": [
+        "INDEPENDENT_GUARDIAN_BUNDLE_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/ap2ConductReceiptVerify.js",
+      "symbols": [
+        "verifyAp2ConductReceipt",
+        "AP2_CONDUCT_RECEIPT_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/ap2ConductReceipt.js",
+      "symbols": [
+        "AP2_CONDUCT_RECEIPT_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/shutdownDrillBundleVerify.js",
+      "symbols": [
+        "verifyShutdownDrillBundle",
+        "SHUTDOWN_DRILL_BUNDLE_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/shutdownDrillBundle.js",
+      "symbols": [
+        "SHUTDOWN_DRILL_BUNDLE_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/flightRecorderExportVerify.js",
+      "symbols": [
+        "verifyFlightRecorderExport",
+        "FLIGHT_RECORDER_EXPORT_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/flightRecorderExport.js",
+      "symbols": [
+        "FLIGHT_RECORDER_EXPORT_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/rogueContainmentPackVerify.js",
+      "symbols": [
+        "verifyRogueContainmentPack",
+        "ROGUE_CONTAINMENT_PACK_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/rogueContainmentPack.js",
+      "symbols": [
+        "ROGUE_CONTAINMENT_PACK_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/reasoningBaselineReceiptVerify.js",
+      "symbols": [
+        "verifyReasoningBaselineReceipt",
+        "REASONING_BASELINE_RECEIPT_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/reasoningBaselineReceipt.js",
+      "symbols": [
+        "REASONING_BASELINE_RECEIPT_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/clusterCustodyGraphVerify.js",
+      "symbols": [
+        "verifyClusterCustodyGraph",
+        "CLUSTER_CUSTODY_GRAPH_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/clusterCustodyGraph.js",
+      "symbols": [
+        "CLUSTER_CUSTODY_GRAPH_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/memoryCommitmentVerify.js",
+      "symbols": [
+        "verifyMemoryCommitment",
+        "buildMemoryCommitmentProofSteps"
+      ]
+    },
+    {
+      "from": "../dist/core/memoryCommitment.js",
+      "symbols": [
+        "MEMORY_COMMITMENT_SCHEMA",
+        "MEMORY_COMMITMENT_SKU",
+        "computeMemoryRootFromContentHashes",
+        "buildMemoryCommitmentDocument"
+      ]
+    },
+    {
+      "from": "../dist/liability/toolManifestFingerprintVerify.js",
+      "symbols": [
+        "verifyToolManifestFingerprint",
+        "buildToolManifestFingerprintProofSteps"
+      ]
+    },
+    {
+      "from": "../dist/core/toolManifestFingerprint.js",
+      "symbols": [
+        "TOOL_MANIFEST_FINGERPRINT_SCHEMA",
+        "TOOL_MANIFEST_FINGERPRINT_SKU",
+        "buildToolManifestFingerprintDocument"
+      ]
+    },
+    {
+      "from": "../dist/core/delegationChainVerify.js",
+      "symbols": [
+        "verifyDelegationChain"
+      ]
+    },
+    {
+      "from": "../dist/liability/verifiableDenialEvidencePackVerify.js",
+      "symbols": [
+        "verifyVerifiableDenialEvidencePack",
+        "VERIFIABLE_DENIAL_EVIDENCE_PACK_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/verifiableDenialEvidencePack.js",
+      "symbols": [
+        "VERIFIABLE_DENIAL_EVIDENCE_PACK_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/licenseSurvivableCustodyPackVerify.js",
+      "symbols": [
+        "verifyLicenseSurvivableCustodyPack",
+        "LICENSE_SURVIVABLE_CUSTODY_PACK_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/licenseSurvivableCustodyPack.js",
+      "symbols": [
+        "LICENSE_SURVIVABLE_CUSTODY_PACK_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/carrierMgaAcceptanceKitVerify.js",
+      "symbols": [
+        "verifyCarrierMgaAcceptanceKit",
+        "CARRIER_MGA_ACCEPTANCE_KIT_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/carrierMgaAcceptanceKit.js",
+      "symbols": [
+        "CARRIER_MGA_ACCEPTANCE_KIT_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/independenceWitnessPackVerify.js",
+      "symbols": [
+        "verifyIndependenceWitnessPack",
+        "INDEPENDENCE_WITNESS_PACK_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/independenceWitnessPack.js",
+      "symbols": [
+        "INDEPENDENCE_WITNESS_PACK_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/agtConductReceiptVerify.js",
+      "symbols": [
+        "verifyAgtConductReceipt",
+        "AGT_CONDUCT_RECEIPT_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/agtConductReceipt.js",
+      "symbols": [
+        "AGT_CONDUCT_RECEIPT_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/crossPlatformConductPackVerify.js",
+      "symbols": [
+        "verifyCrossPlatformConductPack",
+        "CROSS_PLATFORM_CONDUCT_PACK_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/crossPlatformConductPack.js",
+      "symbols": [
+        "CROSS_PLATFORM_CONDUCT_PACK_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/declaredAgentRosterVerify.js",
+      "symbols": [
+        "verifyDeclaredAgentRoster",
+        "DECLARED_AGENT_ROSTER_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/declaredAgentRoster.js",
+      "symbols": [
+        "DECLARED_AGENT_ROSTER_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/observedAgentConductSetVerify.js",
+      "symbols": [
+        "verifyObservedAgentConductSet",
+        "OBSERVED_AGENT_CONDUCT_SET_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/observedAgentConductSet.js",
+      "symbols": [
+        "OBSERVED_AGENT_CONDUCT_SET_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/agentCensusCompletenessPackVerify.js",
+      "symbols": [
+        "verifyAgentCensusCompletenessPack",
+        "AGENT_CENSUS_COMPLETENESS_PACK_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/agentCensusCompletenessPack.js",
+      "symbols": [
+        "AGENT_CENSUS_COMPLETENESS_PACK_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/attestedEvidenceSetVerify.js",
+      "symbols": [
+        "verifyAttestedEvidenceSet",
+        "ATTESTED_EVIDENCE_SET_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/attestedEvidenceSet.js",
+      "symbols": [
+        "ATTESTED_EVIDENCE_SET_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/executiveAttestationBindingPackVerify.js",
+      "symbols": [
+        "verifyExecutiveAttestationBindingPack",
+        "EXECUTIVE_ATTESTATION_BINDING_PACK_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/executiveAttestationBindingPack.js",
+      "symbols": [
+        "EXECUTIVE_ATTESTATION_BINDING_PACK_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/incidentNotificationTimelineVerify.js",
+      "symbols": [
+        "verifyIncidentNotificationTimeline",
+        "INCIDENT_NOTIFICATION_TIMELINE_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/incidentNotificationTimeline.js",
+      "symbols": [
+        "INCIDENT_NOTIFICATION_TIMELINE_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/incidentNotificationTimelinePackVerify.js",
+      "symbols": [
+        "verifyIncidentNotificationTimelinePack",
+        "INCIDENT_NOTIFICATION_TIMELINE_PACK_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/incidentNotificationTimelinePack.js",
+      "symbols": [
+        "INCIDENT_NOTIFICATION_TIMELINE_PACK_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/postMarketMonitoringSnapshotVerify.js",
+      "symbols": [
+        "verifyPostMarketMonitoringSnapshot",
+        "POST_MARKET_MONITORING_SNAPSHOT_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/postMarketMonitoringSnapshot.js",
+      "symbols": [
+        "POST_MARKET_MONITORING_SNAPSHOT_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/postMarketMonitoringExportPackVerify.js",
+      "symbols": [
+        "verifyPostMarketMonitoringExportPack",
+        "POST_MARKET_MONITORING_EXPORT_PACK_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/postMarketMonitoringExportPack.js",
+      "symbols": [
+        "POST_MARKET_MONITORING_EXPORT_PACK_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/vendorModelChangeVerify.js",
+      "symbols": [
+        "verifyVendorModelChange",
+        "VENDOR_MODEL_CHANGE_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/vendorModelChange.js",
+      "symbols": [
+        "VENDOR_MODEL_CHANGE_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/policyAtChangeSnapshotVerify.js",
+      "symbols": [
+        "verifyPolicyAtChangeSnapshot",
+        "POLICY_AT_CHANGE_SNAPSHOT_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/vendorModelChange.js",
+      "symbols": [
+        "POLICY_AT_CHANGE_SNAPSHOT_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/modelChangeNotificationPackVerify.js",
+      "symbols": [
+        "verifyModelChangeNotificationPack",
+        "MODEL_CHANGE_NOTIFICATION_PACK_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/modelChangeNotificationPack.js",
+      "symbols": [
+        "MODEL_CHANGE_NOTIFICATION_PACK_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/delegationStepReceiptVerify.js",
+      "symbols": [
+        "verifyDelegationStepReceipt",
+        "DELEGATION_STEP_RECEIPT_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/delegationStepReceipt.js",
+      "symbols": [
+        "DELEGATION_STEP_RECEIPT_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/crossOrgDelegationChainPackVerify.js",
+      "symbols": [
+        "verifyCrossOrgDelegationChainPack",
+        "CROSS_ORG_DELEGATION_CHAIN_PACK_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/crossOrgDelegationChainPack.js",
+      "symbols": [
+        "CROSS_ORG_DELEGATION_CHAIN_PACK_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/mcpSepAttestationBindVerify.js",
+      "symbols": [
+        "verifyMcpSepAttestationBind",
+        "MCP_SEP_ATTESTATION_BIND_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/mcpSepAttestationBind.js",
+      "symbols": [
+        "MCP_SEP_ATTESTATION_BIND_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/interceptDecisionAttestationVerify.js",
+      "symbols": [
+        "verifyInterceptDecisionAttestation",
+        "INTERCEPT_DECISION_ATTESTATION_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/interceptDecisionAttestation.js",
+      "symbols": [
+        "INTERCEPT_DECISION_ATTESTATION_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/addonVettingProvenanceVerify.js",
+      "symbols": [
+        "verifyAddonVettingProvenance",
+        "ADDON_VETTING_PROVENANCE_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/addonVettingProvenance.js",
+      "symbols": [
+        "ADDON_VETTING_PROVENANCE_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/hostConformanceBindVerify.js",
+      "symbols": [
+        "verifyHostConformanceBind",
+        "HOST_CONFORMANCE_BIND_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/hostConformanceBind.js",
+      "symbols": [
+        "HOST_CONFORMANCE_BIND_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/evidencePortabilityDrillVerify.js",
+      "symbols": [
+        "verifyEvidencePortabilityDrill",
+        "EVIDENCE_PORTABILITY_DRILL_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/evidencePortabilityDrill.js",
+      "symbols": [
+        "EVIDENCE_PORTABILITY_DRILL_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/witnessDiversityVerify.js",
+      "symbols": [
+        "verifyWitnessDiversityBlock",
+        "WITNESS_DIVERSITY_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/witnessDiversity.js",
+      "symbols": [
+        "WITNESS_DIVERSITY_BLOCK_SCHEMA",
+        "buildWitnessDiversityBlock"
+      ]
+    },
+    {
+      "from": "../dist/liability/hitlApprovalReceiptVerify.js",
+      "symbols": [
+        "verifyHitlApprovalReceipt",
+        "HITL_APPROVAL_RECEIPT_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/hitlApprovalReceipt.js",
+      "symbols": [
+        "HITL_APPROVAL_RECEIPT_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/traceableConductPackageVerify.js",
+      "symbols": [
+        "verifyTraceableConductPackage",
+        "TRACEABLE_CONDUCT_PACKAGE_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/traceableConductPackage.js",
+      "symbols": [
+        "TRACEABLE_CONDUCT_PACKAGE_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/quarterlyRetestReceiptVerify.js",
+      "symbols": [
+        "verifyQuarterlyRetestReceipt",
+        "QUARTERLY_RETEST_RECEIPT_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/quarterlyRetestReceipt.js",
+      "symbols": [
+        "QUARTERLY_RETEST_RECEIPT_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/adversarialTestEvidencePackVerify.js",
+      "symbols": [
+        "verifyAdversarialTestEvidencePack",
+        "ADVERSARIAL_TEST_EVIDENCE_PACK_SKU"
+      ]
+    },
+    {
+      "from": "../dist/core/adversarialTestEvidencePack.js",
+      "symbols": [
+        "ADVERSARIAL_TEST_EVIDENCE_PACK_SCHEMA"
+      ]
+    }
+  ]
+}

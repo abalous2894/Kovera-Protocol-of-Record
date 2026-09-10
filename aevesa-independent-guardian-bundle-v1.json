@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aevesa.com/schemas/aevesa-independent-guardian-bundle/v1",
+  "title": "Aevesa Independent Guardian Bundle",
+  "description": "Wave 8 Track F — composes evidence custodian (PERMITTED + witness) and DENIED refusal receipts for metagovernance diligence.",
+  "type": "object",
+  "required": [
+    "schema",
+    "bundle_id",
+    "organization_id",
+    "bundle_mode",
+    "exported_at",
+    "members",
+    "verify_manifest",
+    "bundle_digest"
+  ],
+  "properties": {
+    "schema": { "const": "aevesa.independent-guardian-bundle/v1" },
+    "bundle_id": { "type": "string", "minLength": 1 },
+    "organization_id": { "type": "string", "minLength": 1 },
+    "bundle_mode": {
+      "type": "string",
+      "enum": ["dual_profile", "custodian_only", "denied_only"]
+    },
+    "exported_at": { "type": "string", "format": "date-time" },
+    "bundle_digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "members": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["member_id", "entry_hash", "receipt_profile"],
+        "properties": {
+          "member_id": { "type": "string", "minLength": 1 },
+          "entry_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "receipt_profile": { "type": "string", "enum": ["PERMITTED", "DENIED"] },
+          "receipt": { "type": ["object", "null"] }
+        },
+        "additionalProperties": false
+      }
+    },
+    "verify_manifest": {
+      "type": "object",
+      "required": [
+        "offline_cli",
+        "portal_base",
+        "receipt_schema",
+        "custodian_verify_schema",
+        "bundle_schema"
+      ],
+      "properties": {
+        "offline_cli": { "type": "string" },
+        "portal_base": { "type": "string", "format": "uri" },
+        "receipt_schema": { "type": "string" },
+        "custodian_verify_schema": { "type": "string" },
+        "bundle_schema": { "const": "aevesa.independent-guardian-bundle/v1" }
+      },
+      "additionalProperties": false
+    },
+    "non_goals": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "witness_diversity": {
+      "type": "object",
+      "properties": {
+        "schema": { "const": "aevesa.witness-diversity/v1" },
+        "log_count": { "type": "integer", "minimum": 0 },
+        "operator_count": { "type": "integer", "minimum": 0 },
+        "diversity_met": { "type": "boolean" },
+        "inclusion_proofs": {
+          "type": "array",
+          "items": { "type": "object" }
+        }
+      }
+    },
+    "transparency_log_monitor_attestation": {
+      "type": "object",
+      "properties": {
+        "schema": { "const": "aevesa.transparency-log-monitor-attestation/v1" },
+        "log_id": { "type": "string" },
+        "monitor_state": { "enum": ["healthy", "degraded", "unavailable"] },
+        "attestation_digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "consistency_proof": { "type": "object" },
+        "monitor_assertions": { "type": "object" }
+      }
+    }
+  },
+  "additionalProperties": false
+}

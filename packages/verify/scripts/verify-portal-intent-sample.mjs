@@ -14,7 +14,7 @@ import {
 const root = path.dirname(fileURLToPath(import.meta.url));
 const portalPath = path.resolve(
   root,
-  '../../../sentinul-app-site/src/js/liabilityReceiptPortal.js',
+  '../../../aevesa-app-site/src/js/liabilityReceiptPortal.js',
 );
 const src = readFileSync(portalPath, 'utf8');
 const match = src.match(/export const AEVESA_INTENT_DIVERGENCE_SAMPLE = (\{[\s\S]*?\n\});/);

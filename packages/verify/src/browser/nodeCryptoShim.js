@@ -2,6 +2,7 @@
  * Browser shim for node:crypto — sync SHA-256 via @noble/hashes; signature verify stubbed (Tier A uses alg none).
  */
 import { sha256 } from '@noble/hashes/sha256';
+import { hmac } from '@noble/hashes/hmac';
 import { utf8ToBytes } from '@noble/hashes/utils';
 
 function toBytes(data, encoding) {
@@ -43,6 +44,36 @@ export function createHash(algorithm) {
         return btoa(s);
       }
       return Buffer.from(hex, 'hex');
+    },
+  };
+}
+
+export function createHmac(algorithm, key) {
+  if (algorithm !== 'sha256') {
+    throw new Error(`Browser crypto shim: unsupported HMAC algorithm ${algorithm}`);
+  }
+  const keyBytes = toBytes(String(key ?? ''), 'utf8');
+  const chunks = [];
+  return {
+    update(data, encoding) {
+      chunks.push(toBytes(data, encoding));
+      return this;
+    },
+    digest(encoding) {
+      let len = 0;
+      for (const c of chunks) len += c.length;
+      const merged = new Uint8Array(len);
+      let off = 0;
+      for (const c of chunks) {
+        merged.set(c, off);
+        off += c.length;
+      }
+      const out = hmac(sha256, keyBytes, merged);
+      const hex = Array.from(out)
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('');
+      if (encoding === 'hex' || encoding == null) return hex;
+      return hex;
     },
   };
 }

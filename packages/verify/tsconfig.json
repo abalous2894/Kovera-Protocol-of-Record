@@ -13,5 +13,5 @@
     "types": ["node"]
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts"],
-  "exclude": ["src/**/*.js"]
+  "exclude": ["src/**/*.js", "src/**/*.vitest.ts"]
 }

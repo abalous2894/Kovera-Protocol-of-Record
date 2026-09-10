@@ -35,6 +35,19 @@ Consumers may depend on **only** the export surfaces listed below. Deep imports 
 | `aevesa` | `src/cli.js` | Spec vectors, pack verify, developer tooling |
 | `aevesa-verify` | `dist/aevesa-verify.js` | Built standalone verify binary |
 
+### Browser bundle (not an npm export)
+
+| Artifact | Source | Checked-in consumer | CI gate |
+|----------|--------|---------------------|---------|
+| `aevesa-verify.bundle.js` | `src/browserEntry.js` → esbuild | `aevesa-app-site/src/js/aevesa-verify.bundle.js` | `npm run check:browser-bundle-sync --workspace=@aevesa/verify` |
+
+**Rules:**
+
+- Add new browser-facing verify SKUs to **`browser-manifest.json`**, then run `npm run generate:browser-entry --workspace=@aevesa/verify` (updates `src/browserEntry.js`).
+- Run `npm run build:browser --workspace=@aevesa/verify` and commit the synced bundle under `aevesa-app-site/`.
+- Do **not** import `@aevesa/verify` root from Vite/browser code — use the checked-in bundle or same-origin verify portal APIs.
+- Wave 13 playbook: registry-driven demos still extend `browserEntry.js` when a SKU needs client-side verify offline.
+
 ---
 
 ## Root export (`@aevesa/verify`) — stable symbols
@@ -56,8 +69,18 @@ Consumers may depend on **only** the export surfaces listed below. Deep imports 
 | `verifyReceipt` | Full liability-receipt/v1 verification |
 | `verifyProveBundle` | Gateway receipt + binding + witness/receiver/SCITT refusal metadata (P0–P2) |
 | `verifyEvidenceCustodianBundle` | Metagovernance custodian profile — guardian attest + required witness cosign (Wave 4) |
+| `verifyIndependentGuardianBundle`, `buildIndependentGuardianBundleDocument` | Wave 8 Track F — custodian + DENIED member bundle (Independent Guardian) |
+| `INDEPENDENT_GUARDIAN_BUNDLE_SCHEMA`, `INDEPENDENT_GUARDIAN_BUNDLE_SKU` | Independent Guardian bundle identifiers |
 | `EVIDENCE_CUSTODIAN_VERIFY_SCHEMA`, `EVIDENCE_CUSTODIAN_SKU` | Custodian profile identifiers |
 | `verifySetCompletenessBundle`, `computeSetCompletenessRoot` | Session set-completeness — anti tail-truncation (Wave 4 Track D) |
+| `verifyProvableExecutionBoundaryBundle`, `buildProvableExecutionBoundaryDocument`, `evaluateProvableExecutionBoundary` | Wave 7 PEB — channel + surface boundary composition (Track A) |
+| `PROVABLE_EXECUTION_BOUNDARY_SCHEMA`, `PROVABLE_EXECUTION_BOUNDARY_SKU` | PEB profile identifiers |
+| `verifyBehavioralSbomBundle`, `buildBehavioralSbomDocument`, `evaluateBehavioralSbom`, `classifyBehavioralAgentGap` | Wave 7 behavioral SBOM — receipt-driven inventory + gap scoring (Track B) |
+| `BEHAVIORAL_SBOM_SCHEMA`, `BEHAVIORAL_SBOM_SKU`, `BEHAVIORAL_GAP_CLASSES` | Behavioral SBOM profile identifiers |
+| `evaluateCompletenessOracle`, `parseOrchestratorClaim`, `capWitnessFromAttachRef` | Orchestrator vs CAP witness — proof laundering oracle (Track B) |
+| `evaluateHitlCryptoBinding`, `verifyHitlApprovalWitnessJws`, `evaluateSessionHitlBindings`, `computeTargetIntentHash` | HITL crypto binding — approver scope vs tool + args (Tier 1 #3) |
+| `verifySessionProof`, `computeSessionProofDigest` | CAP session proof — compositional accountability (Phase 0) |
+| `SESSION_PROOF_SCHEMA`, `SESSION_PROOF_SKU`, `SESSION_PROOF_VERIFY_SCHEMA` | CAP identifiers |
 | `SET_COMPLETENESS_SCHEMA`, `SET_COMPLETENESS_SKU` | Set-completeness profile identifiers |
 | `verifyCommitGateBundle` | Commit-gate / escalation-failure evidence — receipt-before-action + DENIED path (Tier 1) |
 | `COMMIT_GATE_VERIFY_SCHEMA`, `COMMIT_GATE_SKU`, `PEP_INVARIANT_RECEIPT_BEFORE_ACTION` | Commit-gate profile identifiers |
@@ -161,7 +184,7 @@ Do **not** use `@aevesa/verify` for:
 | Governance policy decisions (ALLOW/BLOCK/HITL) | `private-backend` gate services, `@aevesa/shared` policy evaluators |
 | Persisting ledger rows or witness logs | `private-backend` witness port (`governanceWitnessService`) |
 | HTTP API route handlers | `private-backend/src/routes/` |
-| React UI components | `sentinul-dashboard/` |
+| React UI components | `aevesa-dashboard/` |
 | Prisma / Mongo / Redis access | `private-backend/src/db/` |
 | Duplicating `stableStringify` / `sha256` locally | Import from `@aevesa/verify` (fitness-enforced) |
 

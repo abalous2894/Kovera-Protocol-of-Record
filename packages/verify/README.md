@@ -17,6 +17,30 @@ Stateless cryptographic verification for **Aevesa `liability-receipt/v1`** (Veri
 cd packages/verify && npm install && npm run build
 ```
 
+## Install (npm — evaluators & CI)
+
+```bash
+npm install @aevesa/verify
+# or one-shot:
+npx @aevesa/verify verify evidence.json --summary
+```
+
+Requires Node.js 20+. No Aevesa account or API key for offline verification.
+
+**Publish (maintainers):** from repo root after `npm login` with `@aevesa` scope access and **npm 2FA enabled** (or a granular publish token with bypass-2FA):
+
+```bash
+npm run publish:verify
+```
+
+Runs tarball smoke test (`test:npm-pack`) then publishes `@aevesa/verify` only (not the monorepo root).
+
+If first publish is private (scoped default), make it public:
+
+```bash
+npm access set status=public @aevesa/verify
+```
+
 ## API
 
 ```typescript
@@ -62,12 +86,47 @@ Client-side `liability-receipt/v1` verification for the static verify portal:
 
 ```bash
 npm run build:browser
-# → sentinul-app-site/src/js/aevesa-verify.bundle.js
+# → aevesa-app-site/src/js/aevesa-verify.bundle.js
 ```
 
 From the monorepo root: `npm run test:verify` (builds the bundle and runs `test:verify-ci`).
 
-**Deploy policy (Strategy A):** The bundle is **committed** to `sentinul-app-site/src/js/aevesa-verify.bundle.js` (not gitignored). After changing verify code run `npm run build:browser --workspace=@aevesa/verify` and commit the regenerated bundle before deploy. CI enforces sync via `npm run check:browser-bundle-sync --workspace=@aevesa/verify`.
+**Deploy policy (Strategy A):** The bundle is **committed** to `aevesa-app-site/src/js/aevesa-verify.bundle.js` (not gitignored). After changing verify code run `npm run build:browser --workspace=@aevesa/verify` and commit the regenerated bundle before deploy. CI enforces sync via `npm run check:browser-bundle-sync --workspace=@aevesa/verify`.
+
+## Unified verify (Phase A — one front door)
+
+```bash
+# Auto-detect evidence type; human summary
+npx @aevesa/verify verify ./evidence.json --summary
+
+# Machine-readable aevesa.verification-report/v1
+npx @aevesa/verify verify ./evidence.json --json
+
+# Entry hash only (fetches public receipt when online)
+npx @aevesa/verify verify --entry-hash <64-hex> --summary
+```
+
+Monorepo dev (same commands via local CLI):
+
+```bash
+node packages/verify/src/cli.js verify ./evidence.json --summary
+```
+
+## CAP session proof (Phase 0 — compositional accountability)
+
+Offline verification of multi-hop agent session proof bundles:
+
+```bash
+npx @aevesa/verify verify-session ./session-proof.json --summary
+```
+
+Schema: `aevesa.compositional-accountability/v1` — composes set-completeness manifest + terminal `liability-receipt/v1` + `partial_path` alignment. See [docs/standards/CAP_V1.md](../../docs/standards/CAP_V1.md).
+
+```bash
+npm run test:cap-conformance --workspace=@aevesa/verify
+```
+
+Evaluators: see [EVALUATORS.md](../../EVALUATORS.md) at repo root.
 
 ## Smoke test
 

@@ -1,0 +1,47 @@
+{
+  "schema": "aevesa.kaptein-path-policies/v1",
+  "version": "2026.09",
+  "source": "Kaptein et al., Policies on Paths (arxiv:2603.16586)",
+  "policies": [
+    {
+      "id": "read-chain-export-deny",
+      "name": "Read chain then export — deny",
+      "description": "After N read-class tools, block data-export or bulk-write without HITL witness.",
+      "datalog_rule": "deny(S, export) :- session(S), read_count(S, N), N >= 3, proposed(S, export), export_class(export).",
+      "engine_code": "PATH_READ_VELOCITY_DESTRUCTIVE",
+      "eu_ai_act_framing": "Art. 15 — unauthorized data egress from high-risk agent session"
+    },
+    {
+      "id": "destructive-burst-cooldown",
+      "name": "Destructive burst cooldown",
+      "description": "Long sessions with repeated destructive tools require cooldown or HITL.",
+      "datalog_rule": "deny(S, T) :- session(S), step_count(S, C), C >= 80, destructive_burst(S, 5), proposed(S, T), destructive(T).",
+      "engine_code": "PATH_DESTRUCTIVE_BURST",
+      "eu_ai_act_framing": "Art. 9 — systemic risk from unbounded destructive autonomy"
+    },
+    {
+      "id": "memory-write-after-untrusted-read",
+      "name": "Memory write after untrusted read",
+      "description": "Block memory/vector writes when prior read steps lack trusted provenance.",
+      "datalog_rule": "deny(S, memory_write) :- session(S), prior_untrusted_read(S), proposed(S, memory_write).",
+      "engine_code": "PATH_MEMORY_WRITE_AFTER_UNTRUSTED",
+      "eu_ai_act_framing": "Art. 15 + ASI06 — poisoned context propagation"
+    },
+    {
+      "id": "fleet-risk-budget-exhaust",
+      "name": "Fleet risk budget exhaustion",
+      "description": "Org-level cumulative risk score breach triggers HITL or hard block.",
+      "datalog_rule": "deny(T, A) :- tenant(T), fleet_risk(T, R), cap(T, C), R >= C, proposed_action(T, A).",
+      "engine_code": "FLEET_RISK_BUDGET_EXCEEDED",
+      "eu_ai_act_framing": "Art. 9 — governance objective risk budget (Kaptein)"
+    },
+    {
+      "id": "delegation-depth-scope",
+      "name": "Delegation depth with monotonic scope",
+      "description": "Child delegation hop must not expand tool scope beyond parent ROA envelope.",
+      "datalog_rule": "deny(H, child) :- hop(H, P), parent_scope(P, S), child_scope(child, C), not subset(C, S).",
+      "engine_code": "ROA_SCOPE_EXPANSION",
+      "eu_ai_act_framing": "ASI07 — privilege escalation via delegation"
+    }
+  ]
+}

@@ -9,7 +9,7 @@ const outfile = process.env.AEVESA_VERIFY_BUNDLE_OUTFILE
   ? path.resolve(process.env.AEVESA_VERIFY_BUNDLE_OUTFILE)
   : path.resolve(
       root,
-      '../../../sentinul-app-site/src/js/aevesa-verify.bundle.js',
+      '../../../aevesa-app-site/src/js/aevesa-verify.bundle.js',
     );
 
 const cryptoShim = path.join(root, '../src/browser/nodeCryptoShim.js');

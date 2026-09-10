@@ -51,7 +51,31 @@ Deterministic scenario: **Alice (human) → Strategy orchestrator → Remote res
 - Portal: https://verify.kovera.tech?demo=delegation  
 - Demo signing secret (public sample only): documented in sample pack README — **not for production**
 
-Production chains use `KOVERA_HDP_SIGNING_SECRET`.
+Production chains use `KOVERA_HDP_SIGNING_SECRET` / `AEVESA_HDP_SIGNING_SECRET`.
+
+---
+
+## Live session export (Wave 8 Track G)
+
+Production sessions with `A2A_DELEGATION` ledger edges export **`kovera-delegation-chain/1`** from swarm tree + execution path store — not the deterministic demo JSON.
+
+| Surface | Path |
+|---------|------|
+| Authenticated export | `GET /api/v1/apor/path/:sessionId/delegation-chain` |
+| Swarm tree (complementary) | `GET /api/v1/apor/delegation/tree/:rootSessionId` |
+| Dashboard | Delegation runtime panel → **Download live chain JSON** |
+
+**Behavior:**
+
+- Requires at least one parent→child `A2A_DELEGATION` edge — empty hop sessions return `404 NO_DELEGATION_HOPS` (no synthetic hops)
+- Human `origin_sub` from first ledger row / passport witness
+- Scope + tool monotonic narrowing enforced at export (same rules as offline verify)
+- Tenant org scope: cross-org session returns `403 SESSION_ORG_SCOPE_DENIED` when ledger org stamps disagree
+- Signed with `AEVESA_HDP_SIGNING_SECRET` (not public demo secret)
+
+**Procurement FAQ:** Live export proves **your** session hops; public demo proves **offline verify profile**. Both verify via `verifyDelegationChain()`.
+
+Conformance: `npm run test:delegation-chain-live-export`
 
 ---
 
