@@ -1,8 +1,23 @@
 import { sha256HexUtf8 } from '../core/sha256.js';
 import { buildVendorNotificationDigest, MODEL_CHANGE_NOTIFICATION_PACK_SCHEMA, buildModelChangeNotificationPackPreimage } from '../core/modelChangeNotificationPack.js';
-import { computeLeadTimeHours, MIN_VENDOR_NOTIFICATION_LEAD_HOURS } from '../core/vendorModelChange.js';
+import {
+  computeLeadTimeHours,
+  MIN_VENDOR_NOTIFICATION_LEAD_HOURS,
+  VENDOR_MODEL_CHANGE_SCHEMA,
+  POLICY_AT_CHANGE_SNAPSHOT_SCHEMA,
+} from '../core/vendorModelChange.js';
+import { TRACEABLE_CONDUCT_MANIFEST_SCHEMA } from '../core/traceableConductManifest.js';
 import { stableStringify } from '../core/stableStringify.js';
 import type { NotificationReadiness } from '../core/modelChangeNotificationPack.js';
+import { verifyVendorModelChange } from './vendorModelChangeVerify.js';
+import { verifyPolicyAtChangeSnapshot } from './policyAtChangeSnapshotVerify.js';
+import { verifyTraceableConductManifest } from './traceableConductManifestVerify.js';
+import {
+  extractComposedPackProofLayers,
+  hashOnlyComposedPackSurface,
+  pc09MemberProofNote,
+  resolveComposedMemberVerifyState,
+} from './composedPackMemberVerify.js';
 
 export const MODEL_CHANGE_NOTIFICATION_PACK_SKU =
   'aevesa-model-change-notification-pack-v1' as const;
@@ -33,6 +48,36 @@ function hasForbiddenKeys(value: unknown, depth = 0): boolean {
   for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
     if (FORBIDDEN_KEYS.test(key)) return true;
     if (hasForbiddenKeys(child, depth + 1)) return true;
+  }
+  return false;
+}
+
+function memberDocumentForSchema(
+  memberDocs: Record<string, unknown>,
+  schema: string,
+): unknown {
+  if (schema === VENDOR_MODEL_CHANGE_SCHEMA) {
+    return memberDocs.vendor_model_change ?? memberDocs[schema] ?? null;
+  }
+  if (schema === POLICY_AT_CHANGE_SNAPSHOT_SCHEMA) {
+    return memberDocs.policy_at_change_snapshot ?? memberDocs[schema] ?? null;
+  }
+  if (schema === TRACEABLE_CONDUCT_MANIFEST_SCHEMA) {
+    return memberDocs.conduct_manifest ?? memberDocs.traceable_conduct_manifest ?? memberDocs[schema] ?? null;
+  }
+  return memberDocs[schema] ?? null;
+}
+
+function recomputeMemberVerifyOk(schema: string, embedded: unknown): boolean {
+  if (embedded == null) return false;
+  if (schema === VENDOR_MODEL_CHANGE_SCHEMA) {
+    return verifyVendorModelChange(embedded).ok === true;
+  }
+  if (schema === POLICY_AT_CHANGE_SNAPSHOT_SCHEMA) {
+    return verifyPolicyAtChangeSnapshot(embedded).ok === true;
+  }
+  if (schema === TRACEABLE_CONDUCT_MANIFEST_SCHEMA) {
+    return verifyTraceableConductManifest(embedded).ok === true;
   }
   return false;
 }
@@ -123,9 +168,36 @@ export function verifyModelChangeNotificationPack(
     assertions.notification_readiness || '',
   ) as NotificationReadiness;
 
-  const changeOk = changeMember?.verify_ok === true;
-  const policyOk = policyMember?.verify_ok === true;
-  const conductOk = conductMember?.verify_ok === true;
+  const { memberDocs, memberAttestations } = extractComposedPackProofLayers(doc);
+
+  const memberResolution = resolveComposedMemberVerifyState({
+    members: members.map((m) => ({
+      member_schema: String(m?.member_schema || ''),
+      member_digest: String(m?.member_digest || ''),
+      verify_ok: m?.verify_ok === true,
+      label: String(m?.label || ''),
+      entry_count: m?.entry_count ?? null,
+    })),
+    member_documents: memberDocs,
+    member_verify_attestations: memberAttestations,
+    resolveMemberDocument: memberDocumentForSchema,
+    recomputeMemberVerifyOk,
+  });
+
+  const changeOk =
+    memberResolution.members.find((m) => m.member_schema === VENDOR_MODEL_CHANGE_SCHEMA)
+      ?.verify_ok === true;
+  const policyOk =
+    memberResolution.members.find((m) => m.member_schema === POLICY_AT_CHANGE_SNAPSHOT_SCHEMA)
+      ?.verify_ok === true;
+  const conductOk =
+    memberResolution.members.find((m) => m.member_schema === TRACEABLE_CONDUCT_MANIFEST_SCHEMA)
+      ?.verify_ok === true;
+
+  const memberArtifactsBundled = memberResolution.memberArtifactsBundled;
+  const memberAttestationsPresent = memberResolution.memberAttestationsPresent;
+  const memberProofPresent = memberResolution.memberProofPresent;
+  const selfAssertedVerifyIgnored = memberResolution.selfAssertedVerifyIgnored;
 
   let notificationAssertionsConsistent =
     assertions.third_party_verifiable === true && changeIdPresent;
@@ -211,7 +283,7 @@ export function verifyModelChangeNotificationPack(
     packDigestMatches = String(doc.pack_digest || '').toLowerCase() === expected;
   }
 
-  const hashOnlySurface = !hasForbiddenKeys(doc);
+  const hashOnlySurface = hashOnlyComposedPackSurface(docInput, hasForbiddenKeys);
 
   const profileComplete =
     schemaValid &&
@@ -225,11 +297,17 @@ export function verifyModelChangeNotificationPack(
     notificationAssertionsConsistent &&
     packDigestMatches &&
     hashOnlySurface &&
+    memberProofPresent &&
+    changeOk &&
+    policyOk &&
+    conductOk &&
     readinessConsistent;
 
   let note: string | null = null;
   if (!schemaValid) note = `schema must be ${MODEL_CHANGE_NOTIFICATION_PACK_SCHEMA}`;
-  else if (!notificationDigestMatches) note = 'vendor notification_digest does not match ceremony preimage';
+  else if (!memberProofPresent || selfAssertedVerifyIgnored) {
+    note = pc09MemberProofNote(memberResolution);
+  } else if (!notificationDigestMatches) note = 'vendor notification_digest does not match ceremony preimage';
   else if (!bindingMatchesMembers) note = 'change_session_binding digests must match composed members';
   else if (!packDigestMatches) note = 'pack_digest does not match canonical preimage';
   else if (!notificationAssertionsConsistent) note = 'notification_assertions inconsistent with members or binding';
@@ -252,6 +330,10 @@ export function verifyModelChangeNotificationPack(
       notificationAssertionsConsistent,
       packDigestMatches,
       hashOnlySurface,
+      memberArtifactsBundled,
+      memberAttestationsPresent,
+      memberProofPresent,
+      memberVerifyRecomputed: changeOk && policyOk && conductOk,
       readinessConsistent,
       profileComplete,
     },

@@ -9,6 +9,8 @@ import { verifyIntentContextLedgerBinding } from './intentContextBinding.js';
 import { verifyPartialPathCommitment } from '../core/partialPath.js';
 import { verifyMemoryCommitment } from './memoryCommitmentVerify.js';
 import { verifyToolManifestFingerprint } from './toolManifestFingerprintVerify.js';
+import { verifyProofStrengthDisclosureReceiptBinding } from './proofStrengthDisclosureBinding.js';
+import { resolveEmbeddedIssuerPublicKey } from './embeddedIssuerKey.js';
 
 export interface VerifyReceiptOptions {
   /** SPKI PEM or JWK JSON — required for Ed25519/RS256 when signature is present */
@@ -191,6 +193,20 @@ export function verifyReceipt(receiptData: unknown, options: VerifyReceiptOption
     }
   }
 
+  const disclosureBinding = verifyProofStrengthDisclosureReceiptBinding(
+    receiptData as Record<string, unknown>,
+  );
+  if (!disclosureBinding.ok) {
+    return {
+      isValid: false,
+      error: disclosureBinding.error || 'proof_strength_disclosure digest binding failed',
+      details: {
+        chainLength: 1 + (receiptV1.proof.secondary_anchors?.length ?? 0),
+        pillarsValidated: pillars.pillarsValidated,
+      },
+    };
+  }
+
   const anchors = verifyAnchorHashChain(receiptV1);
   if (!anchors.ok) {
     return {
@@ -211,10 +227,12 @@ export function verifyReceipt(receiptData: unknown, options: VerifyReceiptOption
     }
   }
 
-  const sig = verifyIntegritySignatures(receiptV1, options.issuerPublicKey);
+  const issuerPublicKey =
+    options.issuerPublicKey ?? resolveEmbeddedIssuerPublicKey(receiptV1.integrity);
+  const sig = verifyIntegritySignatures(receiptV1, issuerPublicKey);
   if (!sig.ok) {
     const missingKey =
-      !options.issuerPublicKey &&
+      !issuerPublicKey &&
       typeof sig.error === 'string' &&
       sig.error.includes('requires issuer public key');
     if (!(options.skipIntegritySignatureWithoutKey && missingKey)) {

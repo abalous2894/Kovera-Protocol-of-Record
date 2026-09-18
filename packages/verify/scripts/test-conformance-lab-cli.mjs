@@ -90,7 +90,11 @@ try {
 
   const full = await runConformanceLab({ apiBase: mockBase, fixturePath: fixture });
   assert.equal(full.ok, true);
-  assert.equal(full.programs.length, 4);
+  assert.equal(full.programs.length, 5);
+  assert.equal(
+    full.programs.some((p) => p.id === 'chain-enforcement-rollup/v1' && p.ok === true),
+    true,
+  );
   assert.equal(verifyConformanceAttestation(full).ok, true);
 } finally {
   globalThis.fetch = originalFetch;
@@ -107,6 +111,7 @@ const localRun = spawnSync(
 assert.equal(localRun.status, 0, localRun.stderr || localRun.stdout);
 assert.match(localRun.stdout, /aevesa conformance lab attestation/);
 assert.match(localRun.stdout, /\[PASS\] local-interop/);
+assert.match(localRun.stdout, /\[PASS\] chain-enforcement-rollup/);
 
 const written = JSON.parse(readFileSync(outPath, 'utf8'));
 assert.equal(written.ok, true);

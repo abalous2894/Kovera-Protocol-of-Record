@@ -11,6 +11,12 @@ import { LICENSE_SURVIVABLE_CUSTODY_PACK_SCHEMA } from '../core/licenseSurvivabl
 import { SHUTDOWN_DRILL_BUNDLE_SCHEMA } from '../core/shutdownDrillBundle.js';
 import { verifyLicenseSurvivableCustodyPack } from './licenseSurvivableCustodyPackVerify.js';
 import { verifyShutdownDrillBundle } from './shutdownDrillBundleVerify.js';
+import {
+  extractComposedPackProofLayers,
+  hashOnlyComposedPackSurface,
+  pc09MemberProofNote,
+  resolveComposedMemberVerifyState,
+} from './composedPackMemberVerify.js';
 
 export const EVIDENCE_PORTABILITY_DRILL_SKU = 'aevesa-evidence-portability-drill-v1' as const;
 
@@ -88,8 +94,22 @@ export function verifyEvidencePortabilityDrill(
 
   const drillDigestValid = HEX64.test(String(doc?.drill_digest || '').toLowerCase());
 
-  const memberDocs = asRecord(doc?.member_documents) || {};
   const members = Array.isArray(doc?.composed_members) ? doc.composed_members : [];
+  const { memberDocs, memberAttestations } = extractComposedPackProofLayers(doc);
+
+  const memberResolution = resolveComposedMemberVerifyState({
+    members: members.map((m) => ({
+      member_schema: String(m?.member_schema || ''),
+      member_digest: String(m?.member_digest || ''),
+      verify_ok: m?.verify_ok === true,
+      label: String(m?.label || ''),
+      entry_count: null,
+    })),
+    member_documents: memberDocs,
+    member_verify_attestations: memberAttestations,
+    resolveMemberDocument: (docs, schema) => memberDocumentForSchema(docs, schema),
+    recomputeMemberVerifyOk: (schema, embedded) => verifyEmbeddedMember(schema, embedded),
+  });
 
   const member_results: Record<string, boolean> = {};
   let custodyPresent = false;
@@ -99,19 +119,24 @@ export function verifyEvidencePortabilityDrill(
 
   for (const schema of [LICENSE_SURVIVABLE_CUSTODY_PACK_SCHEMA, SHUTDOWN_DRILL_BUNDLE_SCHEMA]) {
     const embedded = memberDocumentForSchema(memberDocs, schema);
-    const present = embedded != null;
+    const resolved = memberResolution.members.find((m) => m.member_schema === schema);
+    const present = embedded != null || resolved?.verify_source === 'witness_attestation';
     member_results[`${schema}_present`] = present;
-    if (schema === LICENSE_SURVIVABLE_CUSTODY_PACK_SCHEMA) custodyPresent = present;
-    if (schema === SHUTDOWN_DRILL_BUNDLE_SCHEMA) shutdownPresent = present;
-    if (!present) {
-      member_results[`${schema}_verify_ok`] = false;
-      continue;
+    member_results[`${schema}_verify_ok`] = resolved?.verify_ok === true;
+    if (schema === LICENSE_SURVIVABLE_CUSTODY_PACK_SCHEMA) {
+      custodyPresent = present;
+      custodyVerifyOk = resolved?.verify_ok === true;
     }
-    const verifyOk = verifyEmbeddedMember(schema, embedded);
-    member_results[`${schema}_verify_ok`] = verifyOk;
-    if (schema === LICENSE_SURVIVABLE_CUSTODY_PACK_SCHEMA) custodyVerifyOk = verifyOk;
-    if (schema === SHUTDOWN_DRILL_BUNDLE_SCHEMA) shutdownVerifyOk = verifyOk;
+    if (schema === SHUTDOWN_DRILL_BUNDLE_SCHEMA) {
+      shutdownPresent = present;
+      shutdownVerifyOk = resolved?.verify_ok === true;
+    }
   }
+
+  const memberArtifactsBundled = memberResolution.memberArtifactsBundled;
+  const memberAttestationsPresent = memberResolution.memberAttestationsPresent;
+  const memberProofPresent = memberResolution.memberProofPresent;
+  const selfAssertedVerifyIgnored = memberResolution.selfAssertedVerifyIgnored;
 
   let composedMembersMatchDocuments = true;
   for (const ref of members) {
@@ -124,11 +149,8 @@ export function verifyEvidencePortabilityDrill(
     ) {
       composedMembersMatchDocuments = false;
     }
-    if (
-      ref?.verify_ok === true
-      && embedded != null
-      && !verifyEmbeddedMember(schema, embedded)
-    ) {
+    const resolved = memberResolution.members.find((m) => m.member_schema === schema);
+    if (ref?.verify_ok === true && resolved && !resolved.verify_ok) {
       composedMembersMatchDocuments = false;
     }
   }
@@ -216,12 +238,7 @@ export function verifyEvidencePortabilityDrill(
       sha256HexUtf8(stableStringify(preimage)) === String(doc.drill_digest || '').toLowerCase();
   }
 
-  const hashOnlySurface =
-    doc != null
-    && !hasForbiddenKeys({
-      ...doc,
-      member_documents: undefined,
-    });
+  const hashOnlySurface = hashOnlyComposedPackSurface(docInput, hasForbiddenKeys);
 
   const requireReady = options.requireDrillReady === true;
 
@@ -241,6 +258,7 @@ export function verifyEvidencePortabilityDrill(
     && composedMembersMatchDocuments
     && manifestPresent
     && hashOnlySurface
+    && memberProofPresent
     && portabilityAssertionsConsistent
     && readinessConsistent
     && readinessMatchesDerived
@@ -250,7 +268,9 @@ export function verifyEvidencePortabilityDrill(
   const ok = profileComplete;
 
   let note: string | null = null;
-  if (!custodyVerifyOk) note = 'license_survivable_custody_pack verification failed';
+  if (!memberProofPresent || selfAssertedVerifyIgnored) {
+    note = pc09MemberProofNote(memberResolution);
+  } else if (!custodyVerifyOk) note = 'license_survivable_custody_pack verification failed';
   else if (!shutdownVerifyOk) note = 'shutdown_drill_bundle verification failed';
   else if (!drillDigestMatches) note = 'drill_digest mismatch';
   else if (!assertions.api_credentials_absent) note = 'api_credentials_absent must be true';
@@ -272,6 +292,9 @@ export function verifyEvidencePortabilityDrill(
       composedMembersMatchDocuments: composedMembersMatchDocuments === true,
       manifestPresent: manifestPresent === true,
       hashOnlySurface: hashOnlySurface === true,
+      memberArtifactsBundled: memberArtifactsBundled === true,
+      memberAttestationsPresent: memberAttestationsPresent === true,
+      memberProofPresent: memberProofPresent === true,
       portabilityAssertionsConsistent: portabilityAssertionsConsistent === true,
       readinessConsistent: readinessConsistent === true,
       readinessMatchesDerived: readinessMatchesDerived === true,

@@ -1,7 +1,24 @@
 import { sha256HexUtf8 } from '../core/sha256.js';
-import { AGENT_CENSUS_COMPLETENESS_PACK_SCHEMA, buildAgentCensusCompletenessPackPreimage, buildDeltaDigest, deriveCensusReadiness } from '../core/agentCensusCompletenessPack.js';
+import {
+  AGENT_CENSUS_COMPLETENESS_PACK_SCHEMA,
+  buildAgentCensusCompletenessPackPreimage,
+  buildDeltaDigest,
+  deriveCensusReadiness,
+} from '../core/agentCensusCompletenessPack.js';
+import { DECLARED_AGENT_ROSTER_SCHEMA } from '../core/declaredAgentRoster.js';
+import { OBSERVED_AGENT_CONDUCT_SET_SCHEMA } from '../core/observedAgentConductSet.js';
+import { TRACEABLE_CONDUCT_MANIFEST_SCHEMA } from '../core/traceableConductManifest.js';
 import { stableStringify } from '../core/stableStringify.js';
 import type { CensusReadiness } from '../core/agentCensusCompletenessPack.js';
+import { verifyDeclaredAgentRoster } from './declaredAgentRosterVerify.js';
+import { verifyObservedAgentConductSet } from './observedAgentConductSetVerify.js';
+import { verifyTraceableConductManifest } from './traceableConductManifestVerify.js';
+import {
+  extractComposedPackProofLayers,
+  hashOnlyComposedPackSurface,
+  pc09MemberProofNote,
+  resolveComposedMemberVerifyState,
+} from './composedPackMemberVerify.js';
 
 export const AGENT_CENSUS_COMPLETENESS_PACK_SKU = 'aevesa-agent-census-completeness-pack-v1' as const;
 
@@ -31,6 +48,36 @@ function hasForbiddenKeys(value: unknown, depth = 0): boolean {
   for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
     if (FORBIDDEN_KEYS.test(key)) return true;
     if (hasForbiddenKeys(child, depth + 1)) return true;
+  }
+  return false;
+}
+
+function memberDocumentForSchema(
+  memberDocs: Record<string, unknown>,
+  schema: string,
+): unknown {
+  if (schema === DECLARED_AGENT_ROSTER_SCHEMA) {
+    return memberDocs.declared_agent_roster ?? memberDocs[schema] ?? null;
+  }
+  if (schema === OBSERVED_AGENT_CONDUCT_SET_SCHEMA) {
+    return memberDocs.observed_agent_conduct_set ?? memberDocs[schema] ?? null;
+  }
+  if (schema === TRACEABLE_CONDUCT_MANIFEST_SCHEMA) {
+    return memberDocs.conduct_manifest ?? memberDocs.traceable_conduct_manifest ?? memberDocs[schema] ?? null;
+  }
+  return memberDocs[schema] ?? null;
+}
+
+function recomputeMemberVerifyOk(schema: string, embedded: unknown): boolean {
+  if (embedded == null) return false;
+  if (schema === DECLARED_AGENT_ROSTER_SCHEMA) {
+    return verifyDeclaredAgentRoster(embedded).ok === true;
+  }
+  if (schema === OBSERVED_AGENT_CONDUCT_SET_SCHEMA) {
+    return verifyObservedAgentConductSet(embedded).ok === true;
+  }
+  if (schema === TRACEABLE_CONDUCT_MANIFEST_SCHEMA) {
+    return verifyTraceableConductManifest(embedded).ok === true;
   }
   return false;
 }
@@ -94,20 +141,46 @@ export function verifyAgentCensusCompletenessPack(
   const deltaDigestMatches =
     String(delta.delta_digest || '').toLowerCase() === expectedDeltaDigest.toLowerCase();
 
-  const derivedReadiness = deriveCensusReadiness(
-    deltaCore,
-    members.map((m) => ({
+  const { memberDocs, memberAttestations } = extractComposedPackProofLayers(doc);
+  const anyVerifyOkAsserted = members.some((m) => m?.verify_ok === true);
+
+  const memberResolution = resolveComposedMemberVerifyState({
+    members: members.map((m) => ({
       member_schema: String(m?.member_schema || ''),
       member_digest: String(m?.member_digest || ''),
       verify_ok: m?.verify_ok === true,
       label: String(m?.label || ''),
       entry_count: m?.entry_count ?? null,
     })),
-  );
+    member_documents: memberDocs,
+    member_verify_attestations: memberAttestations,
+    resolveMemberDocument: memberDocumentForSchema,
+    recomputeMemberVerifyOk,
+  });
+
+  const membersForReadiness = memberResolution.members.map((m) => ({
+    member_schema: m.member_schema,
+    member_digest: m.member_digest,
+    verify_ok: m.verify_ok,
+    label: m.label,
+    entry_count: m.entry_count,
+  }));
+
+  const memberArtifactsBundled = memberResolution.memberArtifactsBundled;
+  const memberAttestationsPresent = memberResolution.memberAttestationsPresent;
+  const memberProofPresent = memberResolution.memberProofPresent;
+  const memberVerifyRecomputed = memberResolution.memberVerifyRecomputed;
+  const selfAssertedVerifyIgnored = memberResolution.selfAssertedVerifyIgnored;
+
+  const derivedReadiness = deriveCensusReadiness(deltaCore, membersForReadiness);
 
   const assertions = asRecord(doc?.census_assertions) || {};
-  const rosterOk = rosterMember?.verify_ok === true;
-  const observedOk = observedMember?.verify_ok === true;
+  const rosterOk = membersForReadiness.some(
+    (m) => m.member_schema === DECLARED_AGENT_ROSTER_SCHEMA && m.verify_ok === true,
+  );
+  const observedOk = membersForReadiness.some(
+    (m) => m.member_schema === OBSERVED_AGENT_CONDUCT_SET_SCHEMA && m.verify_ok === true,
+  );
   const hasShadow = deltaCore.shadow_count > 0;
 
   let censusAssertionsConsistent =
@@ -183,7 +256,7 @@ export function verifyAgentCensusCompletenessPack(
     packDigestMatches = String(doc.pack_digest || '').toLowerCase() === expected;
   }
 
-  const hashOnlySurface = !hasForbiddenKeys(doc);
+  const hashOnlySurface = hashOnlyComposedPackSurface(docInput, hasForbiddenKeys);
 
   const profileComplete =
     schemaValid &&
@@ -198,11 +271,14 @@ export function verifyAgentCensusCompletenessPack(
     censusAssertionsConsistent &&
     packDigestMatches &&
     hashOnlySurface &&
+    (!anyVerifyOkAsserted || (memberProofPresent && memberVerifyRecomputed)) &&
     readinessConsistent;
 
   let note: string | null = null;
   if (!schemaValid) note = `schema must be ${AGENT_CENSUS_COMPLETENESS_PACK_SCHEMA}`;
-  else if (!bindingMatchesMembers) note = 'census_session_binding digests must match composed members';
+  else if (anyVerifyOkAsserted && (!memberProofPresent || selfAssertedVerifyIgnored)) {
+    note = pc09MemberProofNote(memberResolution);
+  } else if (!bindingMatchesMembers) note = 'census_session_binding digests must match composed members';
   else if (!deltaDigestMatches) note = 'census_delta.delta_digest does not match shadow/dormant/matched sets';
   else if (!packDigestMatches) note = 'pack_digest does not match canonical preimage';
   else if (!censusAssertionsConsistent) note = 'census_assertions inconsistent with delta or members';
@@ -224,6 +300,10 @@ export function verifyAgentCensusCompletenessPack(
       censusAssertionsConsistent,
       packDigestMatches,
       hashOnlySurface,
+      memberArtifactsBundled,
+      memberAttestationsPresent,
+      memberProofPresent,
+      memberVerifyRecomputed: !anyVerifyOkAsserted || memberVerifyRecomputed,
       readinessConsistent,
       profileComplete,
       conductMemberPresent: Boolean(conductMember),

@@ -112,6 +112,9 @@ const cli = spawnSync(
 );
 ok('CLI verify-session exit 0', cli.status === 0);
 ok('CLI summary mentions session_proof_complete', cli.stdout.includes('session_proof_complete'));
+ok('CLI summary mentions closure_verdict', cli.stdout.includes('closure_verdict'));
+ok('CLI summary mentions closure_ship_gate.blocked', cli.stdout.includes('closure_ship_gate.blocked'));
+ok('CLI summary mentions rollup_carrier_inference_allowed', cli.stdout.includes('rollup_carrier_inference_allowed'));
 
 const specPath = join(repoRoot, 'spec/aevesa-cap-v1.json');
 ok('open spec exists', readFileSync(specPath, 'utf8').includes('aevesa.compositional-accountability/v1'));

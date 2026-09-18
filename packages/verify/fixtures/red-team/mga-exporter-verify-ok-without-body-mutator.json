@@ -1,0 +1,43 @@
+{
+  "schema": "aevesa.carrier-mga-acceptance-kit/v1",
+  "organization_id": "org-red-team-lane4",
+  "generated_at": "2026-09-14T18:00:00.000Z",
+  "composed_members": [
+    {
+      "member_schema": "aevesa.carrier-underwriting-evidence-pack/v1",
+      "member_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "verify_ok": true,
+      "label": "carrier (exporter claimed)"
+    },
+    {
+      "member_schema": "aevesa.shutdown-drill-bundle/v1",
+      "member_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "verify_ok": true,
+      "label": "drill (exporter claimed)"
+    }
+  ],
+  "submission_cadence": {
+    "cadence": "quarterly",
+    "period_label": "2026-Q3",
+    "next_resubmission_due": "2026-12-01T00:00:00.000Z",
+    "kill_switch_drill_max_age_days": 90,
+    "kill_switch_drill_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "carrier_pack_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "drill_fresh_for_submission": true
+  },
+  "mga_acceptance_assertions": {
+    "six_controls_ready": true,
+    "kill_switch_drill_fresh": true,
+    "executive_attestation_bound": true,
+    "broker_submission_ready": true,
+    "mga_acceptance_readiness": "ready"
+  },
+  "pack_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "_mutator_meta": {
+    "id": "mga-exporter-verify-ok-without-body",
+    "invariant": "INV-03",
+    "profile": "mga_handoff_closed_world",
+    "expected_verdict": "unknown",
+    "attack": "composed_members verify_ok true without member_documents or member_verify_attestations (PC-09)"
+  }
+}

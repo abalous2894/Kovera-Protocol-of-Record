@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ENFORCEMENT_MODES } from '../core/proofStrengthDisclosure.js';
 
 const hex64 = z.string().regex(/^[a-f0-9]{64}$/);
 
@@ -21,6 +22,8 @@ export const partialPathSchema = z
           path_hint: z.string().max(512).nullable().optional(),
           args_digest: hex64.nullable().optional(),
           binding_digest: hex64.nullable().optional(),
+          /** Wave 15+ — per-hop enforcement disclosure (additive; optional on legacy receipts) */
+          enforcement_mode: z.enum(ENFORCEMENT_MODES).optional(),
         }),
       )
       .optional(),

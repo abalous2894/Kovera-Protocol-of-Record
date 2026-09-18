@@ -29,12 +29,29 @@ export {
 } from '../dist/liability/setCompletenessVerify.js';
 
 export {
+  rollupChainEnforcement,
+  CHAIN_ENFORCEMENT_ROLLUP_SCHEMA,
+  CHAIN_ENFORCEMENT_ROLLUP_SKU,
+} from '../dist/liability/chainEnforcementRollup.js';
+
+export {
   verifySessionProof,
   computeSessionProofDigest,
   SESSION_PROOF_SCHEMA,
   SESSION_PROOF_SKU,
   SESSION_PROOF_VERIFY_SCHEMA,
 } from '../dist/liability/sessionProofVerify.js';
+
+export {
+  buildSessionCompositionClosure,
+  buildReceiptPresence,
+  deriveClosureVerdict,
+  verifySessionCompositionClosure,
+  SESSION_COMPOSITION_CLOSURE_SCHEMA,
+  SESSION_COMPOSITION_CLOSURE_SKU,
+  CLOSURE_VERDICTS,
+  RECEIPT_PRESENCE_KINDS,
+} from '../dist/liability/sessionCompositionClosure.js';
 
 export {
   verifyProvableExecutionBoundaryBundle,
@@ -61,19 +78,41 @@ export {
 
 export { verifySubstantialModificationSignalBundle } from '../dist/liability/substantialModificationSignalVerify.js';
 
-export { verifyAdaptationLifecycleExportBundle } from '../dist/liability/adaptationLifecycleExportVerify.js';
-
-export {
-  ADAPTATION_LIFECYCLE_EXPORT_SCHEMA,
-  buildAdaptationLifecycleExportDocument,
-} from '../dist/core/adaptationLifecycleExport.js';
-
 export {
   SUBSTANTIAL_MODIFICATION_SIGNAL_SCHEMA,
   SUBSTANTIAL_MODIFICATION_SIGNAL_SKU,
   buildSubstantialModificationSignalDocument,
   buildSubstantialModificationSignalFraming,
 } from '../dist/core/substantialModificationSignal.js';
+
+export { verifyAdaptationLifecycleExportBundle } from '../dist/liability/adaptationLifecycleExportVerify.js';
+
+export {
+  ADAPTATION_LIFECYCLE_EXPORT_SCHEMA,
+  ADAPTATION_LIFECYCLE_EXPORT_SKU,
+} from '../dist/core/adaptationLifecycleExport.js';
+
+export { verifyProofStrengthDisclosure } from '../dist/liability/proofStrengthDisclosureVerify.js';
+
+export { verifyEgressAttestationBundle } from '../dist/liability/egressAttestationVerify.js';
+export { verifyEgressProxyAttributionBundle } from '../dist/liability/egressProxyAttributionVerify.js';
+
+export {
+  EGRESS_ATTESTATION_SCHEMA,
+  buildEgressAttestationDocument,
+} from '../dist/core/egressAttestation.js';
+
+export { buildSessionProofExportHints } from '../dist/liability/sessionProofExportHints.js';
+
+export {
+  buildSessionCompositionGuidance,
+  buildCarrierChainCompositionDisclosure,
+} from '../dist/liability/sessionCompositionGuidance.js';
+
+export {
+  PROOF_STRENGTH_DISCLOSURE_SCHEMA,
+  buildProofStrengthDisclosureDocument,
+} from '../dist/core/proofStrengthDisclosure.js';
 
 export {
   verifyQuarterlyReviewExport,

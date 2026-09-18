@@ -2,6 +2,15 @@ import { sha256HexUtf8 } from '../core/sha256.js';
 import { CROSS_PLATFORM_CONDUCT_PACK_SCHEMA, buildCrossPlatformConductPackPreimage, deriveCrossPlatformReadiness } from '../core/crossPlatformConductPack.js';
 import { stableStringify } from '../core/stableStringify.js';
 import type { CrossPlatformReadiness } from '../core/crossPlatformConductPack.js';
+import { verifyAgtConductReceipt } from './agtConductReceiptVerify.js';
+import { verifyAp2ConductReceipt } from './ap2ConductReceiptVerify.js';
+import { verifyTraceableConductManifest } from './traceableConductManifestVerify.js';
+import {
+  extractComposedPackProofLayers,
+  hashOnlyComposedPackSurface,
+  pc09MemberProofNote,
+  resolveComposedMemberVerifyState,
+} from './composedPackMemberVerify.js';
 
 export const CROSS_PLATFORM_CONDUCT_PACK_SKU = 'aevesa-cross-platform-conduct-pack-v1' as const;
 
@@ -22,6 +31,36 @@ function asRecord(value: unknown): Record<string, unknown> | null {
   return value != null && typeof value === 'object' && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : null;
+}
+
+function memberDocumentForSchema(
+  memberDocs: Record<string, unknown>,
+  schema: string,
+): unknown {
+  if (schema === 'aevesa.agt-conduct-receipt/v1') {
+    return memberDocs.agt_conduct_receipt ?? memberDocs[schema] ?? null;
+  }
+  if (schema === 'aevesa.ap2-conduct-receipt/v1') {
+    return memberDocs.ap2_conduct_receipt ?? memberDocs[schema] ?? null;
+  }
+  if (schema === 'aevesa.traceable-conduct-manifest/v1') {
+    return memberDocs.conduct_manifest ?? memberDocs.traceable_conduct_manifest ?? memberDocs[schema] ?? null;
+  }
+  return memberDocs[schema] ?? null;
+}
+
+function recomputeMemberVerifyOk(schema: string, embedded: unknown): boolean {
+  if (embedded == null) return false;
+  if (schema === 'aevesa.agt-conduct-receipt/v1') {
+    return verifyAgtConductReceipt(embedded).ok === true;
+  }
+  if (schema === 'aevesa.ap2-conduct-receipt/v1') {
+    return verifyAp2ConductReceipt(embedded).ok === true;
+  }
+  if (schema === 'aevesa.traceable-conduct-manifest/v1') {
+    return verifyTraceableConductManifest(embedded).ok === true;
+  }
+  return false;
 }
 
 function hasForbiddenKeys(value: unknown, depth = 0): boolean {
@@ -72,22 +111,50 @@ export function verifyCrossPlatformConductPack(
       String(binding.conduct_manifest_digest || '').toLowerCase() ===
         String(manifestMember.member_digest || '').toLowerCase());
 
-  const derivedReadiness = deriveCrossPlatformReadiness(
-    members.map((m) => ({
+  const { memberDocs, memberAttestations } = extractComposedPackProofLayers(doc);
+  const memberResolution = resolveComposedMemberVerifyState({
+    members: members.map((m) => ({
       member_schema: String(m?.member_schema || ''),
       member_digest: String(m?.member_digest || ''),
       verify_ok: m?.verify_ok === true,
       label: String(m?.label || ''),
-      vendor_plane: String(m?.vendor_plane || ''),
-      entry_count: m?.entry_count ?? null,
+      entry_count: typeof m?.entry_count === 'number' ? m.entry_count : null,
     })),
-    normalizationBound,
-  );
+    member_documents: memberDocs,
+    member_verify_attestations: memberAttestations,
+    resolveMemberDocument: memberDocumentForSchema,
+    recomputeMemberVerifyOk,
+  });
+
+  const membersForReadiness = memberResolution.members.map((m) => {
+    const src = members.find((row) => row?.member_schema === m.member_schema);
+    return {
+      member_schema: m.member_schema,
+      member_digest: m.member_digest,
+      verify_ok: m.verify_ok,
+      label: m.label,
+      vendor_plane: String(src?.vendor_plane || ''),
+      entry_count: m.entry_count,
+    };
+  });
+
+  const derivedReadiness = deriveCrossPlatformReadiness(membersForReadiness, normalizationBound);
 
   const assertions = asRecord(doc?.cross_platform_assertions) || {};
-  const agtOk = agtMember?.verify_ok === true;
-  const ap2Ok = ap2Member?.verify_ok === true;
-  const manifestOk = manifestMember?.verify_ok === true;
+  const agtOk =
+    memberResolution.members.find((m) => m.member_schema === 'aevesa.agt-conduct-receipt/v1')
+      ?.verify_ok === true;
+  const ap2Ok =
+    memberResolution.members.find((m) => m.member_schema === 'aevesa.ap2-conduct-receipt/v1')
+      ?.verify_ok === true;
+  const manifestOk =
+    memberResolution.members.find((m) => m.member_schema === 'aevesa.traceable-conduct-manifest/v1')
+      ?.verify_ok === true;
+
+  const selfAssertedVerifyIgnored = memberResolution.selfAssertedVerifyIgnored;
+  const memberArtifactsBundled = memberResolution.memberArtifactsBundled;
+  const memberAttestationsPresent = memberResolution.memberAttestationsPresent;
+  const memberProofPresent = memberResolution.memberProofPresent;
 
   let crossPlatformAssertionsConsistent =
     assertions.third_party_verifiable === true &&
@@ -144,7 +211,7 @@ export function verifyCrossPlatformConductPack(
     packDigestMatches = String(doc.pack_digest || '').toLowerCase() === expected;
   }
 
-  const hashOnlySurface = !hasForbiddenKeys(doc);
+  const hashOnlySurface = hashOnlyComposedPackSurface(docInput, hasForbiddenKeys);
 
   const profileComplete =
     schemaValid &&
@@ -156,11 +223,17 @@ export function verifyCrossPlatformConductPack(
     crossPlatformAssertionsConsistent &&
     packDigestMatches &&
     hashOnlySurface &&
-    readinessConsistent;
+    readinessConsistent &&
+    memberProofPresent &&
+    agtOk &&
+    ap2Ok &&
+    manifestOk;
 
   let note: string | null = null;
   if (!schemaValid) note = `schema must be ${CROSS_PLATFORM_CONDUCT_PACK_SCHEMA}`;
-  else if (!bindingMatchesMembers) note = 'vendor_session_binding digests must match composed members';
+  else if (!memberProofPresent || selfAssertedVerifyIgnored) {
+    note = pc09MemberProofNote(memberResolution);
+  } else if (!bindingMatchesMembers) note = 'vendor_session_binding digests must match composed members';
   else if (!packDigestMatches) note = 'pack_digest does not match canonical preimage';
   else if (!crossPlatformAssertionsConsistent) {
     note = 'cross_platform_assertions inconsistent with composed members';
@@ -181,6 +254,10 @@ export function verifyCrossPlatformConductPack(
       packDigestMatches,
       hashOnlySurface,
       readinessConsistent,
+      memberArtifactsBundled,
+      memberAttestationsPresent,
+      memberProofPresent,
+      memberVerifyRecomputed: agtOk && ap2Ok && manifestOk,
       profileComplete,
     },
     cross_platform_readiness: derivedReadiness,

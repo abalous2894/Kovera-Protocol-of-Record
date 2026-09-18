@@ -2,6 +2,12 @@ import { sha256HexUtf8 } from '../core/sha256.js';
 import { DEPLOYER_LOG_CUSTODY_PACK_SCHEMA, DEPLOYER_RETENTION_MONTHS, buildWitnessCustodyPathDigest } from '../core/deployerLogCustodyPack.js';
 import { stableStringify } from '../core/stableStringify.js';
 import type { CustodyReadiness } from '../core/deployerLogCustodyPack.js';
+import { verifyFlightRecorderExport } from './flightRecorderExportVerify.js';
+import { verifyTraceableConductManifest } from './traceableConductManifestVerify.js';
+import {
+  pc09MemberProofNote,
+  resolveComposedMemberVerifyState,
+} from './composedPackMemberVerify.js';
 
 export const DEPLOYER_LOG_CUSTODY_PACK_SKU = 'aevesa-deployer-log-custody-pack-v1' as const;
 
@@ -37,6 +43,10 @@ export interface DeployerLogCustodyPackVerifyChecks {
   witnessPathDigestValid: boolean;
   packDigestMatches: boolean;
   hashOnlySurface: boolean;
+  memberArtifactsBundled: boolean;
+  memberAttestationsPresent: boolean;
+  memberProofPresent: boolean;
+  memberVerifyRecomputed: boolean;
   readinessConsistent: boolean;
   profileComplete: boolean;
 }
@@ -66,6 +76,47 @@ function hasForbiddenKeys(value: unknown, depth = 0): boolean {
   for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
     if (FORBIDDEN_KEYS.test(key)) return true;
     if (hasForbiddenKeys(child, depth + 1)) return true;
+  }
+  return false;
+}
+
+function memberDocumentForSchema(
+  memberDocs: Record<string, unknown>,
+  schema: string,
+): unknown {
+  if (schema === 'aevesa.flight-recorder-export/v1') {
+    return memberDocs.flight_recorder_export ?? memberDocs[schema] ?? null;
+  }
+  if (schema === 'aevesa.traceable-conduct-manifest/v1') {
+    return memberDocs.conduct_manifest ?? memberDocs.traceable_conduct_manifest ?? memberDocs[schema] ?? null;
+  }
+  if (schema === 'aevesa.witness-custody-path/v1') {
+    return memberDocs.witness_custody_path ?? memberDocs[schema] ?? null;
+  }
+  return memberDocs[schema] ?? null;
+}
+
+function recomputeMemberVerifyOk(schema: string, embedded: unknown): boolean {
+  if (embedded == null) return false;
+  if (schema === 'aevesa.flight-recorder-export/v1') {
+    return verifyFlightRecorderExport(embedded).ok === true;
+  }
+  if (schema === 'aevesa.traceable-conduct-manifest/v1') {
+    return verifyTraceableConductManifest(embedded).ok === true;
+  }
+  if (schema === 'aevesa.witness-custody-path/v1') {
+    const path = asRecord(embedded);
+    if (!path) return false;
+    const expected = buildWitnessCustodyPathDigest({
+      witness_cosign_enabled: path.witness_cosign_enabled === true,
+      samples_ok: Number(path.samples_ok) || 0,
+      independent_verify_base: String(path.independent_verify_base || ''),
+      sample_entry_hashes: Array.isArray(path.sample_entry_hashes)
+        ? (path.sample_entry_hashes as string[])
+        : [],
+    });
+    const digestValid = expected === path.witness_custody_path_digest;
+    return digestValid && (path.witness_cosign_enabled === true || Number(path.samples_ok) > 0);
   }
   return false;
 }
@@ -116,28 +167,62 @@ export function verifyDeployerLogCustodyPack(docInput: unknown): DeployerLogCust
 
   let packDigestMatches = false;
   if (doc && typeof doc.pack_digest === 'string' && HEX64.test(doc.pack_digest)) {
-    const { pack_digest, disclaimer: _d, ...rest } = doc;
+    const {
+      pack_digest,
+      disclaimer: _d,
+      member_documents: _md,
+      member_verify_attestations: _mva,
+      ...rest
+    } = doc;
     const recomputed = sha256HexUtf8(stableStringify(rest));
     packDigestMatches = recomputed === pack_digest;
   }
 
-  const hashOnlySurface = !hasForbiddenKeys(docInput);
+  const hashOnlyInput = asRecord(docInput);
+  const {
+    member_documents: _hashMemberDocs,
+    member_verify_attestations: _hashMemberAttestations,
+    ...hashOnlyDoc
+  } = hashOnlyInput || {};
+  const hashOnlySurface = !hasForbiddenKeys(hashOnlyDoc);
+  const memberDocs = asRecord(doc?.member_documents) || {};
+  const memberAttestations = asRecord(doc?.member_verify_attestations) || {};
+
+  const composedRefs = members.map((m) => {
+    const row = asRecord(m) || {};
+    return {
+      member_schema: String(row.member_schema || ''),
+      member_digest: String(row.member_digest || ''),
+      verify_ok: row.verify_ok === true,
+      label: String(row.label || ''),
+      entry_count: typeof row.entry_count === 'number' ? row.entry_count : null,
+    };
+  });
+
+  const memberResolution = resolveComposedMemberVerifyState({
+    members: composedRefs,
+    member_documents: memberDocs,
+    member_verify_attestations: memberAttestations,
+    resolveMemberDocument: memberDocumentForSchema,
+    recomputeMemberVerifyOk,
+  });
+
+  const flightOk =
+    memberResolution.members.find((m) => m.member_schema === 'aevesa.flight-recorder-export/v1')
+      ?.verify_ok === true;
+  const conductOk =
+    memberResolution.members.find((m) => m.member_schema === 'aevesa.traceable-conduct-manifest/v1')
+      ?.verify_ok === true;
+  const witnessOk =
+    memberResolution.members.find((m) => m.member_schema === 'aevesa.witness-custody-path/v1')
+      ?.verify_ok === true;
+
+  const memberArtifactsBundled = memberResolution.memberArtifactsBundled;
+  const memberAttestationsPresent = memberResolution.memberAttestationsPresent;
+  const memberProofPresent = memberResolution.memberProofPresent;
+  const selfAssertedVerifyIgnored = memberResolution.selfAssertedVerifyIgnored;
+
   const readiness = (doc?.custody_readiness as CustodyReadiness) ?? null;
-  const flightOk = members.some(
-    (m) =>
-      asRecord(m)?.member_schema === 'aevesa.flight-recorder-export/v1' &&
-      asRecord(m)?.verify_ok === true,
-  );
-  const conductOk = members.some(
-    (m) =>
-      asRecord(m)?.member_schema === 'aevesa.traceable-conduct-manifest/v1' &&
-      asRecord(m)?.verify_ok === true,
-  );
-  const witnessOk = members.some(
-    (m) =>
-      asRecord(m)?.member_schema === 'aevesa.witness-custody-path/v1' &&
-      asRecord(m)?.verify_ok === true,
-  );
   const readinessConsistent =
     readiness === 'ready'
       ? flightOk && conductOk && witnessOk
@@ -159,7 +244,20 @@ export function verifyDeployerLogCustodyPack(docInput: unknown): DeployerLogCust
     witnessPathDigestValid &&
     packDigestMatches &&
     hashOnlySurface &&
+    memberProofPresent &&
+    flightOk &&
+    conductOk &&
+    witnessOk &&
     readinessConsistent;
+
+  let note: string | null = null;
+  if (profileComplete) {
+    note = 'Deployer log custody pack verified offline.';
+  } else if (!memberProofPresent || selfAssertedVerifyIgnored) {
+    note = pc09MemberProofNote(memberResolution);
+  } else {
+    note = 'Deployer log custody pack incomplete — see checks.';
+  }
 
   return {
     schema: DEPLOYER_LOG_CUSTODY_PACK_SCHEMA,
@@ -177,15 +275,17 @@ export function verifyDeployerLogCustodyPack(docInput: unknown): DeployerLogCust
       witnessPathDigestValid,
       packDigestMatches,
       hashOnlySurface,
+      memberArtifactsBundled,
+      memberAttestationsPresent,
+      memberProofPresent,
+      memberVerifyRecomputed: flightOk && conductOk && witnessOk,
       readinessConsistent,
       profileComplete,
     },
     custody_readiness: readiness,
     gtmLine:
       'Your AI vendor logs are not under your control. Aevesa gives deployers independent, tamper-evident custody that survives vendor switch.',
-    note: profileComplete
-      ? 'Deployer log custody pack verified offline.'
-      : 'Deployer log custody pack incomplete — see checks.',
+    note,
   };
 }
 

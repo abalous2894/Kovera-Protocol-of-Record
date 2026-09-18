@@ -13,8 +13,23 @@ Stateless cryptographic verification for **Aevesa `liability-receipt/v1`** (Veri
 
 ## Install (monorepo workspace)
 
+Canonical install uses **pnpm** (see root `packageManager` and `pnpm-lock.yaml`):
+
 ```bash
-cd packages/verify && npm install && npm run build
+# from repo root
+corepack enable && pnpm install --frozen-lockfile
+pnpm --filter @aevesa/verify run build
+pnpm --filter @aevesa/verify run test:verify-ci
+```
+
+Root shortcut: `pnpm run test:verify` (browser bundle + full verify-ci + sync check).
+
+**Do not** rely on `npm install` at the monorepo root — npm workspaces + pnpm lockfile can fail with arborist errors. After `pnpm install`, unit tests resolve vitest via `scripts/run-vitest.mjs` (no global `vitest` binary required).
+
+Package-only npm (evaluators hacking on verify in isolation):
+
+```bash
+cd packages/verify && npm ci --workspaces=false && npm run build
 ```
 
 ## Install (npm — evaluators & CI)
@@ -132,5 +147,6 @@ Evaluators: see [EVALUATORS.md](../../EVALUATORS.md) at repo root.
 
 ```bash
 npm run test:liability-receipt
-npm run test:verify-ci
+npm run test:verify-ci          # full suite (vitest + script conformance)
+npm run test:verify-ci:scripts-only   # no vitest — diligence / minimal env escape hatch
 ```

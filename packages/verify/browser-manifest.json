@@ -40,6 +40,14 @@
       ]
     },
     {
+      "from": "../dist/liability/chainEnforcementRollup.js",
+      "symbols": [
+        "rollupChainEnforcement",
+        "CHAIN_ENFORCEMENT_ROLLUP_SCHEMA",
+        "CHAIN_ENFORCEMENT_ROLLUP_SKU"
+      ]
+    },
+    {
       "from": "../dist/liability/sessionProofVerify.js",
       "symbols": [
         "verifySessionProof",
@@ -47,6 +55,19 @@
         "SESSION_PROOF_SCHEMA",
         "SESSION_PROOF_SKU",
         "SESSION_PROOF_VERIFY_SCHEMA"
+      ]
+    },
+    {
+      "from": "../dist/liability/sessionCompositionClosure.js",
+      "symbols": [
+        "buildSessionCompositionClosure",
+        "buildReceiptPresence",
+        "deriveClosureVerdict",
+        "verifySessionCompositionClosure",
+        "SESSION_COMPOSITION_CLOSURE_SCHEMA",
+        "SESSION_COMPOSITION_CLOSURE_SKU",
+        "CLOSURE_VERDICTS",
+        "RECEIPT_PRESENCE_KINDS"
       ]
     },
     {
@@ -103,6 +124,71 @@
         "SUBSTANTIAL_MODIFICATION_SIGNAL_SKU",
         "buildSubstantialModificationSignalDocument",
         "buildSubstantialModificationSignalFraming"
+      ]
+    },
+    {
+      "from": "../dist/liability/adaptationLifecycleExportVerify.js",
+      "symbols": [
+        "verifyAdaptationLifecycleExportBundle"
+      ]
+    },
+    {
+      "from": "../dist/core/adaptationLifecycleExport.js",
+      "symbols": [
+        "ADAPTATION_LIFECYCLE_EXPORT_SCHEMA",
+        "ADAPTATION_LIFECYCLE_EXPORT_SKU"
+      ]
+    },
+    {
+      "from": "../dist/liability/proofStrengthDisclosureVerify.js",
+      "symbols": [
+        "verifyProofStrengthDisclosure"
+      ]
+    },
+    {
+      "from": "../dist/liability/egressAttestationVerify.js",
+      "symbols": [
+        "verifyEgressAttestationBundle"
+      ]
+    },
+    {
+      "from": "../dist/core/egressAttestation.js",
+      "symbols": [
+        "EGRESS_ATTESTATION_SCHEMA",
+        "buildEgressAttestationDocument"
+      ]
+    },
+    {
+      "from": "../dist/liability/egressProxyAttributionVerify.js",
+      "symbols": [
+        "verifyEgressProxyAttributionBundle"
+      ]
+    },
+    {
+      "from": "../dist/core/egressProxyAttribution.js",
+      "symbols": [
+        "EGRESS_PROXY_ATTRIBUTION_SCHEMA",
+        "buildEgressProxyAttributionDocument"
+      ]
+    },
+    {
+      "from": "../dist/liability/sessionProofExportHints.js",
+      "symbols": [
+        "buildSessionProofExportHints"
+      ]
+    },
+    {
+      "from": "../dist/liability/sessionCompositionGuidance.js",
+      "symbols": [
+        "buildSessionCompositionGuidance",
+        "buildCarrierChainCompositionDisclosure"
+      ]
+    },
+    {
+      "from": "../dist/core/proofStrengthDisclosure.js",
+      "symbols": [
+        "PROOF_STRENGTH_DISCLOSURE_SCHEMA",
+        "buildProofStrengthDisclosureDocument"
       ]
     },
     {

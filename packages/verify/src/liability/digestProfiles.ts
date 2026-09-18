@@ -23,6 +23,7 @@ export const RECEIPT_DIGEST_KEYS = [
   'causal_lineage',
   'gateway_attestation',
   'partial_path',
+  'proof_strength_disclosure_digest',
   'proof',
   'diligence_summary',
 ] as const;

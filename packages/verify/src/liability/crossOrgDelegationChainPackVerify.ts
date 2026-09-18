@@ -1,7 +1,18 @@
 import { sha256HexUtf8 } from '../core/sha256.js';
 import { buildCrossOrgDelegationChainPackPreimage, CROSS_ORG_DELEGATION_CHAIN_PACK_SCHEMA, type ChainReadiness } from '../core/crossOrgDelegationChainPack.js';
 import { buildContextBindingDigest, DELEGATION_STEP_RECEIPT_SCHEMA } from '../core/delegationStepReceipt.js';
+import { HITL_PREIMAGE_BINDING_SCHEMA } from '../core/hitlPreimageBinding.js';
+import { TRACEABLE_CONDUCT_MANIFEST_SCHEMA } from '../core/traceableConductManifest.js';
 import { stableStringify } from '../core/stableStringify.js';
+import { verifyDelegationStepReceipt } from './delegationStepReceiptVerify.js';
+import { verifyHitlPreimageBindingBundle } from './hitlPreimageBindingVerify.js';
+import { verifyTraceableConductManifest } from './traceableConductManifestVerify.js';
+import {
+  extractComposedPackProofLayers,
+  hashOnlyComposedPackSurface,
+  pc09MemberProofNote,
+  resolveComposedMemberVerifyState,
+} from './composedPackMemberVerify.js';
 
 export const CROSS_ORG_DELEGATION_CHAIN_PACK_SKU =
   'aevesa-cross-org-delegation-chain-pack-v1' as const;
@@ -32,6 +43,46 @@ function hasForbiddenKeys(value: unknown, depth = 0): boolean {
   for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
     if (FORBIDDEN_KEYS.test(key)) return true;
     if (hasForbiddenKeys(child, depth + 1)) return true;
+  }
+  return false;
+}
+
+function memberDocumentForSchema(
+  memberDocs: Record<string, unknown>,
+  schema: string,
+  memberDigest?: string,
+): unknown {
+  if (schema === DELEGATION_STEP_RECEIPT_SCHEMA) {
+    const receipts = memberDocs.delegation_step_receipts;
+    if (Array.isArray(receipts)) {
+      const digest = String(memberDigest || '').toLowerCase();
+      return (
+        receipts.find(
+          (r) => String((r as Record<string, unknown>)?.receipt_digest || '').toLowerCase() === digest,
+        ) ?? null
+      );
+    }
+    return memberDocs[schema] ?? null;
+  }
+  if (schema === HITL_PREIMAGE_BINDING_SCHEMA) {
+    return memberDocs.hitl_preimage_binding ?? memberDocs[schema] ?? null;
+  }
+  if (schema === TRACEABLE_CONDUCT_MANIFEST_SCHEMA) {
+    return memberDocs.conduct_manifest ?? memberDocs.traceable_conduct_manifest ?? memberDocs[schema] ?? null;
+  }
+  return memberDocs[schema] ?? null;
+}
+
+function recomputeMemberVerifyOk(schema: string, embedded: unknown): boolean {
+  if (embedded == null) return false;
+  if (schema === DELEGATION_STEP_RECEIPT_SCHEMA) {
+    return verifyDelegationStepReceipt(embedded).ok === true;
+  }
+  if (schema === HITL_PREIMAGE_BINDING_SCHEMA) {
+    return verifyHitlPreimageBindingBundle(embedded).ok === true;
+  }
+  if (schema === TRACEABLE_CONDUCT_MANIFEST_SCHEMA) {
+    return verifyTraceableConductManifest(embedded).ok === true;
   }
   return false;
 }
@@ -130,6 +181,32 @@ export function verifyCrossOrgDelegationChainPack(
           String(step?.receipt_digest || '').toLowerCase(),
       ),
     );
+
+  const { memberDocs, memberAttestations } = extractComposedPackProofLayers(doc);
+  const anyVerifyOkAsserted = members.some((m) => m?.verify_ok === true);
+
+  const memberResolution = resolveComposedMemberVerifyState({
+    members: members.map((m) => ({
+      member_schema: String(m?.member_schema || ''),
+      member_digest: String(m?.member_digest || ''),
+      verify_ok: m?.verify_ok === true,
+      label: String(m?.label || ''),
+      entry_count: m?.entry_count ?? null,
+    })),
+    member_documents: memberDocs,
+    member_verify_attestations: memberAttestations,
+    resolveMemberDocument: (docs, schema) => {
+      const ref = members.find((m) => m?.member_schema === schema);
+      return memberDocumentForSchema(docs, schema, String(ref?.member_digest || ''));
+    },
+    recomputeMemberVerifyOk,
+  });
+
+  const memberArtifactsBundled = memberResolution.memberArtifactsBundled;
+  const memberAttestationsPresent = memberResolution.memberAttestationsPresent;
+  const memberProofPresent = memberResolution.memberProofPresent;
+  const memberVerifyRecomputed = memberResolution.memberVerifyRecomputed;
+  const selfAssertedVerifyIgnored = memberResolution.selfAssertedVerifyIgnored;
 
   const assertions = asRecord(doc?.chain_assertions) || {};
   const derivedReadiness = String(assertions.chain_readiness || '') as ChainReadiness;
@@ -234,7 +311,7 @@ export function verifyCrossOrgDelegationChainPack(
     }
   }
 
-  const hashOnlySurface = !hasForbiddenKeys(doc);
+  const hashOnlySurface = hashOnlyComposedPackSurface(docInput, hasForbiddenKeys);
 
   const profileComplete =
     schemaValid &&
@@ -253,11 +330,14 @@ export function verifyCrossOrgDelegationChainPack(
     chainAssertionsConsistent &&
     packDigestMatches &&
     hashOnlySurface &&
+    (!anyVerifyOkAsserted || (memberProofPresent && memberVerifyRecomputed)) &&
     readinessConsistent;
 
   let note: string | null = null;
   if (!schemaValid) note = `schema must be ${CROSS_ORG_DELEGATION_CHAIN_PACK_SCHEMA}`;
-  else if (!contextBindingsConsistent) note = 'context binding splice detected — hop parent mismatch';
+  else if (anyVerifyOkAsserted && (!memberProofPresent || selfAssertedVerifyIgnored)) {
+    note = pc09MemberProofNote(memberResolution);
+  } else if (!contextBindingsConsistent) note = 'context binding splice detected — hop parent mismatch';
   else if (!bindingMatchesMembers) note = 'chain_session_binding digests must match delegation_steps';
   else if (!crossOrgBoundary) note = 'cross-org chain requires at least two distinct issuer_org_id values';
   else if (!packDigestMatches) note = 'pack_digest does not match canonical preimage';
@@ -284,6 +364,10 @@ export function verifyCrossOrgDelegationChainPack(
       chainAssertionsConsistent,
       packDigestMatches,
       hashOnlySurface,
+      memberArtifactsBundled,
+      memberAttestationsPresent,
+      memberProofPresent,
+      memberVerifyRecomputed,
       readinessConsistent,
       profileComplete,
     },

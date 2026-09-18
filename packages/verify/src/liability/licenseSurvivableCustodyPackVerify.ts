@@ -1,7 +1,17 @@
 import { sha256HexUtf8 } from '../core/sha256.js';
 import { LICENSE_SURVIVABLE_CUSTODY_PACK_SCHEMA, buildLicenseSurvivableCustodyPackPreimage, derivePostTerminationReadiness } from '../core/licenseSurvivableCustodyPack.js';
+import { LICENSE_SURVIVABLE_BUNDLE_SCHEMA } from '../core/licenseSurvivableBundle.js';
+import { DEPLOYER_LOG_CUSTODY_PACK_SCHEMA } from '../core/deployerLogCustodyPack.js';
 import { stableStringify } from '../core/stableStringify.js';
 import type { PostTerminationReadiness } from '../core/licenseSurvivableCustodyPack.js';
+import { verifyDeployerLogCustodyPack } from './deployerLogCustodyPackVerify.js';
+import { verifyLicenseSurvivableBundle } from './licenseSurvivableBundleVerify.js';
+import {
+  extractComposedPackProofLayers,
+  hashOnlyComposedPackSurface,
+  pc09MemberProofNote,
+  resolveComposedMemberVerifyState,
+} from './composedPackMemberVerify.js';
 
 export const LICENSE_SURVIVABLE_CUSTODY_PACK_SKU =
   'aevesa-license-survivable-custody-pack-v1' as const;
@@ -52,6 +62,10 @@ export interface LicenseSurvivableCustodyPackVerifyChecks {
   custodyAssertionsConsistent: boolean;
   packDigestMatches: boolean;
   hashOnlySurface: boolean;
+  memberArtifactsBundled: boolean;
+  memberAttestationsPresent: boolean;
+  memberProofPresent: boolean;
+  memberVerifyRecomputed: boolean;
   readinessConsistent: boolean;
   profileComplete: boolean;
 }
@@ -85,6 +99,30 @@ function hasForbiddenKeys(value: unknown, depth = 0): boolean {
   return false;
 }
 
+function memberDocumentForSchema(
+  memberDocs: Record<string, unknown>,
+  schema: string,
+): unknown {
+  if (schema === DEPLOYER_LOG_CUSTODY_PACK_SCHEMA) {
+    return memberDocs.deployer_log_custody_pack ?? memberDocs[schema] ?? null;
+  }
+  if (schema === LICENSE_SURVIVABLE_BUNDLE_SCHEMA) {
+    return memberDocs.license_survivable_bundle ?? memberDocs[schema] ?? null;
+  }
+  return memberDocs[schema] ?? null;
+}
+
+function recomputeMemberVerifyOk(schema: string, embedded: unknown): boolean {
+  if (embedded == null) return false;
+  if (schema === DEPLOYER_LOG_CUSTODY_PACK_SCHEMA) {
+    return verifyDeployerLogCustodyPack(embedded).ok === true;
+  }
+  if (schema === LICENSE_SURVIVABLE_BUNDLE_SCHEMA) {
+    return verifyLicenseSurvivableBundle(embedded).ok === true;
+  }
+  return false;
+}
+
 export function verifyLicenseSurvivableCustodyPack(
   docInput: unknown,
 ): LicenseSurvivableCustodyPackVerifyResult {
@@ -103,23 +141,44 @@ export function verifyLicenseSurvivableCustodyPack(
     members.length === 0 ||
     members.every((m) => HEX64.test(String(m?.member_digest || '').toLowerCase()));
 
-  const derivedReadiness = derivePostTerminationReadiness(
-    members.map((m) => ({
+  const { memberDocs, memberAttestations } = extractComposedPackProofLayers(doc);
+
+  const memberResolution = resolveComposedMemberVerifyState({
+    members: members.map((m) => ({
       member_schema: String(m?.member_schema || ''),
       member_digest: String(m?.member_digest || ''),
       verify_ok: m?.verify_ok === true,
       label: String(m?.label || ''),
       entry_count: m?.entry_count ?? null,
     })),
-  );
+    member_documents: memberDocs,
+    member_verify_attestations: memberAttestations,
+    resolveMemberDocument: memberDocumentForSchema,
+    recomputeMemberVerifyOk,
+  });
+
+  const membersForReadiness = memberResolution.members.map((m) => ({
+    member_schema: m.member_schema,
+    member_digest: m.member_digest,
+    verify_ok: m.verify_ok,
+    label: m.label,
+    entry_count: m.entry_count,
+  }));
+
+  const derivedReadiness = derivePostTerminationReadiness(membersForReadiness);
 
   const assertions = doc?.custody_survival_assertions || {};
-  const deployerMemberOk = members.some(
-    (m) => m?.member_schema === 'aevesa.deployer-log-custody-pack/v1' && m?.verify_ok === true,
+  const deployerMemberOk = membersForReadiness.some(
+    (m) => m.member_schema === DEPLOYER_LOG_CUSTODY_PACK_SCHEMA && m.verify_ok === true,
   );
-  const survivableMemberOk = members.some(
-    (m) => m?.member_schema === 'aevesa.license-survivable-bundle/v1' && m?.verify_ok === true,
+  const survivableMemberOk = membersForReadiness.some(
+    (m) => m.member_schema === LICENSE_SURVIVABLE_BUNDLE_SCHEMA && m.verify_ok === true,
   );
+
+  const memberArtifactsBundled = memberResolution.memberArtifactsBundled;
+  const memberAttestationsPresent = memberResolution.memberAttestationsPresent;
+  const memberProofPresent = memberResolution.memberProofPresent;
+  const selfAssertedVerifyIgnored = memberResolution.selfAssertedVerifyIgnored;
 
   const manifest = doc?.post_termination_verify || {};
   const postTerminationManifestPresent =
@@ -184,7 +243,9 @@ export function verifyLicenseSurvivableCustodyPack(
     packDigestMatches = String(doc.pack_digest || '').toLowerCase() === expected;
   }
 
-  const hashOnlySurface = !hasForbiddenKeys(doc);
+  const hashOnlySurface = hashOnlyComposedPackSurface(docInput, hasForbiddenKeys);
+
+  const memberVerifyRecomputed = deployerMemberOk && survivableMemberOk;
 
   const profileComplete =
     schemaValid &&
@@ -196,13 +257,17 @@ export function verifyLicenseSurvivableCustodyPack(
     custodyAssertionsConsistent &&
     packDigestMatches &&
     hashOnlySurface &&
+    memberProofPresent &&
+    memberVerifyRecomputed &&
     readinessConsistent;
 
   const ok = profileComplete;
 
   let note: string | null = null;
   if (!schemaValid) note = `schema must be ${LICENSE_SURVIVABLE_CUSTODY_PACK_SCHEMA}`;
-  else if (!postTerminationManifestPresent) note = 'post_termination_verify manifest incomplete';
+  else if (!memberProofPresent || selfAssertedVerifyIgnored) {
+    note = pc09MemberProofNote(memberResolution);
+  } else if (!postTerminationManifestPresent) note = 'post_termination_verify manifest incomplete';
   else if (!packDigestMatches) note = 'pack_digest does not match canonical preimage';
   else if (!custodyAssertionsConsistent) {
     note = 'custody_survival_assertions inconsistent with composed members';
@@ -223,6 +288,10 @@ export function verifyLicenseSurvivableCustodyPack(
       custodyAssertionsConsistent,
       packDigestMatches,
       hashOnlySurface,
+      memberArtifactsBundled,
+      memberAttestationsPresent,
+      memberProofPresent,
+      memberVerifyRecomputed,
       readinessConsistent,
       profileComplete,
     },

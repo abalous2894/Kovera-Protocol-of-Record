@@ -1,7 +1,19 @@
 import { sha256HexUtf8 } from '../core/sha256.js';
 import { POST_MARKET_MONITORING_EXPORT_PACK_SCHEMA, buildPostMarketMonitoringExportPackPreimage } from '../core/postMarketMonitoringExportPack.js';
+import { POST_MARKET_MONITORING_SNAPSHOT_SCHEMA } from '../core/postMarketMonitoringSnapshot.js';
+import { AGENT_CENSUS_COMPLETENESS_PACK_SCHEMA } from '../core/agentCensusCompletenessPack.js';
+import { TRACEABLE_CONDUCT_MANIFEST_SCHEMA } from '../core/traceableConductManifest.js';
 import { stableStringify } from '../core/stableStringify.js';
 import type { MonitoringReadiness } from '../core/postMarketMonitoringSnapshot.js';
+import { verifyPostMarketMonitoringSnapshot } from './postMarketMonitoringSnapshotVerify.js';
+import { verifyAgentCensusCompletenessPack } from './agentCensusCompletenessPackVerify.js';
+import { verifyTraceableConductManifest } from './traceableConductManifestVerify.js';
+import {
+  extractComposedPackProofLayers,
+  hashOnlyComposedPackSurface,
+  pc09MemberProofNote,
+  resolveComposedMemberVerifyState,
+} from './composedPackMemberVerify.js';
 
 export const POST_MARKET_MONITORING_EXPORT_PACK_SKU =
   'aevesa-post-market-monitoring-export-pack-v1' as const;
@@ -32,6 +44,36 @@ function hasForbiddenKeys(value: unknown, depth = 0): boolean {
   for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
     if (FORBIDDEN_KEYS.test(key)) return true;
     if (hasForbiddenKeys(child, depth + 1)) return true;
+  }
+  return false;
+}
+
+function memberDocumentForSchema(
+  memberDocs: Record<string, unknown>,
+  schema: string,
+): unknown {
+  if (schema === POST_MARKET_MONITORING_SNAPSHOT_SCHEMA) {
+    return memberDocs.post_market_monitoring_snapshot ?? memberDocs[schema] ?? null;
+  }
+  if (schema === AGENT_CENSUS_COMPLETENESS_PACK_SCHEMA) {
+    return memberDocs.agent_census_completeness_pack ?? memberDocs[schema] ?? null;
+  }
+  if (schema === TRACEABLE_CONDUCT_MANIFEST_SCHEMA) {
+    return memberDocs.conduct_manifest ?? memberDocs.traceable_conduct_manifest ?? memberDocs[schema] ?? null;
+  }
+  return memberDocs[schema] ?? null;
+}
+
+function recomputeMemberVerifyOk(schema: string, embedded: unknown): boolean {
+  if (embedded == null) return false;
+  if (schema === POST_MARKET_MONITORING_SNAPSHOT_SCHEMA) {
+    return verifyPostMarketMonitoringSnapshot(embedded).ok === true;
+  }
+  if (schema === AGENT_CENSUS_COMPLETENESS_PACK_SCHEMA) {
+    return verifyAgentCensusCompletenessPack(embedded).ok === true;
+  }
+  if (schema === TRACEABLE_CONDUCT_MANIFEST_SCHEMA) {
+    return verifyTraceableConductManifest(embedded).ok === true;
   }
   return false;
 }
@@ -88,9 +130,36 @@ export function verifyPostMarketMonitoringExportPack(
   const assertions = asRecord(doc?.monitoring_assertions) || {};
   const derivedReadiness = String(assertions.monitoring_readiness || '') as MonitoringReadiness;
 
-  const snapshotOk = snapshotMember?.verify_ok === true;
-  const censusOk = censusMember?.verify_ok === true;
-  const conductOk = conductMember?.verify_ok === true;
+  const { memberDocs, memberAttestations } = extractComposedPackProofLayers(doc);
+
+  const memberResolution = resolveComposedMemberVerifyState({
+    members: members.map((m) => ({
+      member_schema: String(m?.member_schema || ''),
+      member_digest: String(m?.member_digest || ''),
+      verify_ok: m?.verify_ok === true,
+      label: String(m?.label || ''),
+      entry_count: m?.entry_count ?? null,
+    })),
+    member_documents: memberDocs,
+    member_verify_attestations: memberAttestations,
+    resolveMemberDocument: memberDocumentForSchema,
+    recomputeMemberVerifyOk,
+  });
+
+  const snapshotOk =
+    memberResolution.members.find((m) => m.member_schema === POST_MARKET_MONITORING_SNAPSHOT_SCHEMA)
+      ?.verify_ok === true;
+  const censusOk =
+    memberResolution.members.find((m) => m.member_schema === AGENT_CENSUS_COMPLETENESS_PACK_SCHEMA)
+      ?.verify_ok === true;
+  const conductOk =
+    memberResolution.members.find((m) => m.member_schema === TRACEABLE_CONDUCT_MANIFEST_SCHEMA)
+      ?.verify_ok === true;
+
+  const memberArtifactsBundled = memberResolution.memberArtifactsBundled;
+  const memberAttestationsPresent = memberResolution.memberAttestationsPresent;
+  const memberProofPresent = memberResolution.memberProofPresent;
+  const selfAssertedVerifyIgnored = memberResolution.selfAssertedVerifyIgnored;
   const gapCount = Number(assertions.obligation_gap_count) || 0;
 
   let monitoringAssertionsConsistent =
@@ -162,7 +231,9 @@ export function verifyPostMarketMonitoringExportPack(
     packDigestMatches = String(doc.pack_digest || '').toLowerCase() === expected;
   }
 
-  const hashOnlySurface = !hasForbiddenKeys(doc);
+  const hashOnlySurface = hashOnlyComposedPackSurface(docInput, hasForbiddenKeys);
+
+  const memberVerifyRecomputed = snapshotOk && censusOk && conductOk;
 
   const profileComplete =
     schemaValid &&
@@ -176,11 +247,15 @@ export function verifyPostMarketMonitoringExportPack(
     monitoringAssertionsConsistent &&
     packDigestMatches &&
     hashOnlySurface &&
+    memberProofPresent &&
+    memberVerifyRecomputed &&
     readinessConsistent;
 
   let note: string | null = null;
   if (!schemaValid) note = `schema must be ${POST_MARKET_MONITORING_EXPORT_PACK_SCHEMA}`;
-  else if (!bindingMatchesMembers) note = 'monitoring_session_binding digests must match composed members';
+  else if (!memberProofPresent || selfAssertedVerifyIgnored) {
+    note = pc09MemberProofNote(memberResolution);
+  } else if (!bindingMatchesMembers) note = 'monitoring_session_binding digests must match composed members';
   else if (!packDigestMatches) note = 'pack_digest does not match canonical preimage';
   else if (!monitoringAssertionsConsistent) note = 'monitoring_assertions inconsistent with members or binding';
   else if (!readinessConsistent) note = 'monitoring_readiness inconsistent with obligation state';
@@ -201,6 +276,10 @@ export function verifyPostMarketMonitoringExportPack(
       monitoringAssertionsConsistent,
       packDigestMatches,
       hashOnlySurface,
+      memberArtifactsBundled,
+      memberAttestationsPresent,
+      memberProofPresent,
+      memberVerifyRecomputed,
       readinessConsistent,
       profileComplete,
     },

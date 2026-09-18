@@ -11,6 +11,8 @@ export interface SetCompletenessMember {
   step_index: number;
   receipt_digest: string;
   entry_hash?: string | null;
+  /** PC-08 — optional bind to member receipt proof_strength_disclosure_digest */
+  proof_strength_disclosure_digest?: string | null;
 }
 
 export interface SetCompletenessManifest {
@@ -83,6 +85,8 @@ export function computeSetCompletenessRoot(input: {
       };
       const eh = normalizeHex64(m.entry_hash);
       if (eh) row.entry_hash = eh;
+      const psd = normalizeHex64(m.proof_strength_disclosure_digest);
+      if (psd) row.proof_strength_disclosure_digest = psd;
       return row;
     }),
   });
@@ -104,10 +108,12 @@ function parseManifest(data: unknown): SetCompletenessManifest | null {
     const receipt_digest = normalizeHex64(raw.receipt_digest);
     if (!Number.isInteger(step_index) || step_index < 0 || !receipt_digest) return null;
     const entry_hash = normalizeHex64(raw.entry_hash);
+    const proof_strength_disclosure_digest = normalizeHex64(raw.proof_strength_disclosure_digest);
     members.push({
       step_index,
       receipt_digest,
       ...(entry_hash ? { entry_hash } : {}),
+      ...(proof_strength_disclosure_digest ? { proof_strength_disclosure_digest } : {}),
     });
   }
 

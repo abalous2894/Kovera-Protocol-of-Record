@@ -1,4 +1,4 @@
-# Security — Kovera Protocol of Record
+# Security — Aevesa Protocol of Record
 
 ## Reporting vulnerabilities
 

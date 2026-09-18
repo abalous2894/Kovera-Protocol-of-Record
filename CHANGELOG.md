@@ -1,8 +1,16 @@
-# Changelog — Kovera Protocol of Record
+# Changelog — Aevesa Protocol of Record
 
 All notable changes to open specifications and `@aevesa/verify` in this repository.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+---
+
+## [2026-09-18]
+
+### Changed
+
+- Public README headline rebranded from **KOVERA** to **AEVESA** (canonical product naming); SECURITY and CHANGELOG titles aligned. Protocol/schema identifiers (e.g. `kovera-delegation-chain-1`) unchanged for BC-PRT compatibility.
 
 ---
 

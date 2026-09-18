@@ -36,6 +36,16 @@ export interface ShutdownDrillVerifyManifest {
   bundle_schema: string;
 }
 
+export interface ShutdownDrillEnforcementDecayInput {
+  schema: string;
+  session_id: string | null;
+  pre_drill_chain_enforcement_mode: string;
+  pre_drill_weakest_link_index: number | null;
+  post_kill_switch_effective_mode: string;
+  decay_note: string;
+  chain_enforcement_rollup_schema: string;
+}
+
 export interface ShutdownDrillBundleInput {
   drill_id: string;
   organization_id: string;
@@ -48,6 +58,8 @@ export interface ShutdownDrillBundleInput {
   witness?: ShutdownDrillWitness;
   verify_manifest: ShutdownDrillVerifyManifest;
   non_goals?: string[];
+  /** Phase 4 — optional pre/post kill-switch enforcement decay disclosure */
+  enforcement_decay?: ShutdownDrillEnforcementDecayInput | null;
 }
 
 
@@ -104,6 +116,31 @@ export function buildShutdownDrillBundlePreimage(input: ShutdownDrillBundleInput
     },
     verify_manifest: input.verify_manifest,
     non_goals: input.non_goals ?? [],
+    ...(input.enforcement_decay
+      ? {
+          enforcement_decay: {
+            schema: String(input.enforcement_decay.schema || '').trim(),
+            session_id:
+              input.enforcement_decay.session_id != null
+                ? String(input.enforcement_decay.session_id).trim() || null
+                : null,
+            pre_drill_chain_enforcement_mode: String(
+              input.enforcement_decay.pre_drill_chain_enforcement_mode || '',
+            ).trim(),
+            pre_drill_weakest_link_index:
+              input.enforcement_decay.pre_drill_weakest_link_index != null
+                ? Number(input.enforcement_decay.pre_drill_weakest_link_index)
+                : null,
+            post_kill_switch_effective_mode: String(
+              input.enforcement_decay.post_kill_switch_effective_mode || '',
+            ).trim(),
+            decay_note: String(input.enforcement_decay.decay_note || '').trim(),
+            chain_enforcement_rollup_schema: String(
+              input.enforcement_decay.chain_enforcement_rollup_schema || '',
+            ).trim(),
+          },
+        }
+      : {}),
   };
 }
 

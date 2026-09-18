@@ -5,6 +5,11 @@
 
 import { sha256Utf8 } from '../core/sha256.js';
 import { stableStringify } from '../core/stableStringify.js';
+import {
+  REKOR_INCLUSION_DIGEST_MISMATCH,
+  REKOR_INCLUSION_PROOF_REQUIRED,
+  verifyRekorCryptoInclusionProof,
+} from './rekorInclusionVerify.js';
 
 export const WITNESS_INCLUSION_PROOF_SCHEMA = 'aevesa.witness.inclusion-proof/v1';
 export const WITNESS_GENESIS_HASH = '0'.repeat(64);
@@ -140,11 +145,111 @@ export function verifyExternalRekorWitness(rekorMeta, digestHex) {
     verification_hint: rekorMeta.verification_hint ?? null,
     witnessUrl: rekorMeta.witnessUrl ?? null,
     errors,
+    codes: [],
     note:
       errors.length === 0
         ? 'Rekor metadata valid offline — verify independently via GET {witnessUrl}/api/v1/log/entries/{uuid}'
         : null,
   };
+}
+
+/**
+ * @param {unknown} proof
+ */
+function bundledRekorInclusionProof(proof) {
+  return Boolean(proof && typeof proof === 'object');
+}
+
+/**
+ * Metadata + optional RFC 6962 inclusion proof (fail-closed when requireInclusionProof).
+ * @param {unknown} rekorMeta
+ * @param {string} digestHex
+ * @param {unknown} [inclusionProof]
+ * @param {{ requireInclusionProof?: boolean; expectedLogId?: string | null }} [options]
+ */
+export function verifyExternalRekorWitnessWithInclusion(rekorMeta, digestHex, inclusionProof, options = {}) {
+  const metadata = verifyExternalRekorWitness(rekorMeta, digestHex);
+  const requireInclusionProof = options.requireInclusionProof === true;
+  const bundledProof =
+    inclusionProof ??
+    (rekorMeta && typeof rekorMeta === 'object'
+      ? rekorMeta.rekor_inclusion_proof ?? rekorMeta.inclusion_proof ?? rekorMeta.inclusionProof ?? null
+      : null);
+
+  if (!bundledRekorInclusionProof(bundledProof)) {
+    if (requireInclusionProof && metadata.ok) {
+      return {
+        ...metadata,
+        ok: false,
+        inclusion_crypto: null,
+        codes: [REKOR_INCLUSION_PROOF_REQUIRED],
+        errors: [
+          ...(metadata.errors || []),
+          'Rekor metadata present but cryptographic inclusion proof is required',
+        ],
+        note: 'Rekor witness incomplete — bundle inclusion proof artifacts for offline crypto verify',
+      };
+    }
+    return {
+      ...metadata,
+      inclusion_crypto: null,
+      codes: [],
+      note:
+        metadata.note ??
+        (metadata.ok
+          ? 'Rekor metadata valid offline — inclusion crypto not bundled (metadata-only witness)'
+          : null),
+    };
+  }
+
+  const expectedLogIndex =
+    rekorMeta && typeof rekorMeta === 'object'
+      ? Number(rekorMeta.log_index ?? rekorMeta.logIndex ?? -1)
+      : -1;
+
+  const statementDigest = String(digestHex || '').trim().toLowerCase();
+  const crypto = verifyRekorCryptoInclusionProof(bundledProof, {
+    expectedLogIndex: expectedLogIndex >= 0 ? expectedLogIndex : null,
+    expectedLogId: options.expectedLogId ?? null,
+    expectedStatementDigest: /^[a-f0-9]{64}$/.test(statementDigest) ? statementDigest : null,
+  });
+
+  return {
+    ...metadata,
+    ok: metadata.ok && crypto.ok,
+    inclusion_crypto: crypto,
+    codes: crypto.codes?.length ? crypto.codes : metadata.ok ? [] : [],
+    errors: [...(metadata.errors || []), ...(crypto.errors || [])],
+    note: metadata.ok && crypto.ok ? crypto.note : metadata.note,
+  };
+}
+
+/**
+ * Fail-closed when export claims Rekor inclusion was verified (Wave 15 Track B).
+ * @param {Record<string, unknown>} input
+ */
+export function resolveRequireRekorInclusionProof(input) {
+  if (input.requireRekorInclusionProof === true || input.require_rekor_inclusion_proof === true) {
+    return true;
+  }
+  const proofStrength =
+    input.proofStrengthDisclosure ??
+    input.proof_strength_disclosure ??
+    input.proofStrength ??
+    input.proof_strength ??
+    null;
+  if (proofStrength && typeof proofStrength === 'object') {
+    const externalTransparency =
+      proofStrength.external_transparency ?? proofStrength.externalTransparency ?? null;
+    if (externalTransparency === 'rekor_inclusion_verified') return true;
+  }
+  const externalService =
+    input.externalTransparencyService ?? input.external_transparency_service ?? null;
+  if (externalService && typeof externalService === 'object') {
+    if (externalService.require_inclusion_proof === true) return true;
+    if (externalService.external_transparency === 'rekor_inclusion_verified') return true;
+  }
+  return false;
 }
 
 /**
@@ -163,6 +268,7 @@ export function verifyScittRefusalWitnessBundle(bundle) {
       statementTypeRefusal: false,
       inclusionProofValid: false,
       externalRekorValid: null,
+      externalRekorInclusionCrypto: null,
       digestMatchesStatement: false,
     },
     receiptDigest: input.receiptDigest ?? input.receipt_digest ?? null,
@@ -202,10 +308,25 @@ export function verifyScittRefusalWitnessBundle(bundle) {
     ? witnesses.find((w) => w?.type === 'rekor' || w?.schema === REKOR_WITNESS_METADATA_SCHEMA)
     : result.externalTransparencyService?.rekor ?? null;
 
+  const bundledRekorProof =
+    input.rekorInclusionProof ??
+    input.rekor_inclusion_proof ??
+    input.externalTransparencyService?.rekor_inclusion_proof ??
+    null;
+
+  const requireRekorInclusionProof = resolveRequireRekorInclusionProof(input);
+
   if (rekorMeta) {
-    const rekorCheck = verifyExternalRekorWitness(rekorMeta, statementDigest || digest);
+    const rekorCheck = verifyExternalRekorWitnessWithInclusion(
+      rekorMeta,
+      statementDigest || digest,
+      bundledRekorProof ?? undefined,
+      { requireInclusionProof: requireRekorInclusionProof },
+    );
     result.checks.externalRekorValid = rekorCheck.ok;
+    result.checks.externalRekorInclusionCrypto = rekorCheck.inclusion_crypto?.ok ?? null;
     result.externalRekorVerification = rekorCheck;
+    result.rekorInclusionRequired = requireRekorInclusionProof;
   }
 
   result.ok =
@@ -216,17 +337,31 @@ export function verifyScittRefusalWitnessBundle(bundle) {
     result.checks.digestMatchesStatement &&
     (result.checks.externalRekorValid === null || result.checks.externalRekorValid === true);
 
-  result.note = result.ok
-    ? 'SCITT refusal witness verified offline — inclusion proof + optional Rekor metadata valid without Aevesa API'
-    : 'SCITT refusal witness bundle incomplete or inclusion proof invalid';
+  if (
+    !result.ok &&
+    result.externalRekorVerification?.codes?.includes(REKOR_INCLUSION_PROOF_REQUIRED)
+  ) {
+    result.note =
+      'Rekor witness incomplete — export claims rekor_inclusion_verified but cryptographic inclusion proof is not bundled';
+  } else {
+    result.note = result.ok
+      ? requireRekorInclusionProof && result.checks.externalRekorInclusionCrypto === true
+        ? 'SCITT refusal witness verified offline — Aevesa inclusion proof + Rekor RFC 6962 inclusion crypto valid without HTTP'
+        : 'SCITT refusal witness verified offline — inclusion proof + optional Rekor metadata valid without Aevesa API'
+      : 'SCITT refusal witness bundle incomplete or inclusion proof invalid';
+  }
 
   return result;
 }
+
+export { REKOR_INCLUSION_PROOF_REQUIRED, REKOR_INCLUSION_DIGEST_MISMATCH } from './rekorInclusionVerify.js';
 
 export default {
   calculateWitnessEntryHash,
   verifyWitnessInclusionProof,
   verifyExternalRekorWitness,
+  verifyExternalRekorWitnessWithInclusion,
+  resolveRequireRekorInclusionProof,
   verifyScittRefusalWitnessBundle,
   WITNESS_INCLUSION_PROOF_SCHEMA,
   WITNESS_GENESIS_HASH,

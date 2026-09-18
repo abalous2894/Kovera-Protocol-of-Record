@@ -1,11 +1,29 @@
 import { sha256HexUtf8 } from '../core/sha256.js';
-import { INDEPENDENCE_WITNESS_PACK_SCHEMA, buildIndependenceWitnessPackPreimage, deriveIndependenceReadiness } from '../core/independenceWitnessPack.js';
+import {
+  INDEPENDENCE_WITNESS_PACK_SCHEMA,
+  buildIndependenceWitnessPackPreimage,
+  deriveIndependenceReadiness,
+} from '../core/independenceWitnessPack.js';
+import { INDEPENDENT_GUARDIAN_BUNDLE_SCHEMA } from '../core/independentGuardianBundle.js';
+import { ANCHOR_COVERAGE_FORENSIC_PACK_SCHEMA } from '../core/anchorCoverageForensicPack.js';
+import { buildWitnessCustodyPathDigest } from '../core/deployerLogCustodyPack.js';
 import { stableStringify } from '../core/stableStringify.js';
 import type { IndependenceReadiness } from '../core/independenceWitnessPack.js';
 import {
   verifyWitnessDiversityBlock,
   type WitnessDiversityVerifyOptions,
 } from './witnessDiversityVerify.js';
+import {
+  verifyIndependentGuardianBundle,
+  type IndependentGuardianVerifyOptions,
+} from './independentGuardianBundleVerify.js';
+import { verifyAnchorCoverageForensicPack } from './anchorCoverageForensicPackVerify.js';
+import {
+  extractComposedPackProofLayers,
+  hashOnlyComposedPackSurface,
+  pc09MemberProofNote,
+  resolveComposedMemberVerifyState,
+} from './composedPackMemberVerify.js';
 
 export const INDEPENDENCE_WITNESS_PACK_SKU = 'aevesa-independence-witness-pack-v1' as const;
 
@@ -45,7 +63,9 @@ export interface IndependenceWitnessPackDocument {
   witness_diversity?: Record<string, unknown> | null;
 }
 
-export interface IndependenceWitnessPackVerifyOptions extends WitnessDiversityVerifyOptions {
+export interface IndependenceWitnessPackVerifyOptions
+  extends WitnessDiversityVerifyOptions,
+    Pick<IndependentGuardianVerifyOptions, 'memberContexts' | 'requireCustodianWitness'> {
   requireWitnessDiversity?: boolean;
 }
 
@@ -76,6 +96,56 @@ function hasForbiddenKeys(value: unknown, depth = 0): boolean {
   return false;
 }
 
+function memberDocumentForSchema(
+  memberDocs: Record<string, unknown>,
+  schema: string,
+): unknown {
+  if (schema === INDEPENDENT_GUARDIAN_BUNDLE_SCHEMA) {
+    return memberDocs.independent_guardian_bundle ?? memberDocs[schema] ?? null;
+  }
+  if (schema === ANCHOR_COVERAGE_FORENSIC_PACK_SCHEMA) {
+    return memberDocs.anchor_coverage_forensic_pack ?? memberDocs[schema] ?? null;
+  }
+  if (schema === 'aevesa.witness-custody-path/v1') {
+    return memberDocs.witness_custody_path ?? memberDocs[schema] ?? null;
+  }
+  return memberDocs[schema] ?? null;
+}
+
+function recomputeMemberVerifyOk(
+  schema: string,
+  embedded: unknown,
+  options: IndependenceWitnessPackVerifyOptions,
+): boolean {
+  if (embedded == null) return false;
+  if (schema === INDEPENDENT_GUARDIAN_BUNDLE_SCHEMA) {
+    return (
+      verifyIndependentGuardianBundle(embedded, {
+        memberContexts: options.memberContexts,
+        requireCustodianWitness: options.requireCustodianWitness === true,
+      }).ok === true
+    );
+  }
+  if (schema === ANCHOR_COVERAGE_FORENSIC_PACK_SCHEMA) {
+    return verifyAnchorCoverageForensicPack(embedded).ok === true;
+  }
+  if (schema === 'aevesa.witness-custody-path/v1') {
+    const path = asRecord(embedded);
+    if (!path) return false;
+    const expected = buildWitnessCustodyPathDigest({
+      witness_cosign_enabled: path.witness_cosign_enabled === true,
+      samples_ok: Number(path.samples_ok) || 0,
+      independent_verify_base: String(path.independent_verify_base || ''),
+      sample_entry_hashes: Array.isArray(path.sample_entry_hashes)
+        ? (path.sample_entry_hashes as string[])
+        : [],
+    });
+    const digestValid = expected === path.witness_custody_path_digest;
+    return digestValid && (path.witness_cosign_enabled === true || Number(path.samples_ok) > 0);
+  }
+  return false;
+}
+
 export function verifyIndependenceWitnessPack(
   docInput: unknown,
   options: IndependenceWitnessPackVerifyOptions = {},
@@ -97,25 +167,49 @@ export function verifyIndependenceWitnessPack(
     manifest.no_operator_login_required === true &&
     String(manifest.bundle_schema || '').trim() === INDEPENDENCE_WITNESS_PACK_SCHEMA;
 
-  const assertions = doc?.independence_assertions || {};
-  const derivedReadiness = deriveIndependenceReadiness(
-    members.map((m) => ({
+  const { memberDocs, memberAttestations } = extractComposedPackProofLayers(doc);
+  const anyVerifyOkAsserted = members.some((m) => m?.verify_ok === true);
+
+  const memberResolution = resolveComposedMemberVerifyState({
+    members: members.map((m) => ({
       member_schema: String(m?.member_schema || ''),
       member_digest: String(m?.member_digest || ''),
       verify_ok: m?.verify_ok === true,
       label: String(m?.label || ''),
       entry_count: m?.entry_count ?? null,
     })),
-  );
+    member_documents: memberDocs,
+    member_verify_attestations: memberAttestations,
+    resolveMemberDocument: memberDocumentForSchema,
+    recomputeMemberVerifyOk: (schema, embedded) =>
+      recomputeMemberVerifyOk(schema, embedded, options),
+  });
 
-  const guardianOk = members.some(
-    (m) => m?.member_schema === 'aevesa.independent-guardian-bundle/v1' && m?.verify_ok === true,
+  const membersForReadiness = memberResolution.members.map((m) => ({
+    member_schema: m.member_schema,
+    member_digest: m.member_digest,
+    verify_ok: m.verify_ok,
+    label: m.label,
+    entry_count: m.entry_count,
+  }));
+
+  const memberArtifactsBundled = memberResolution.memberArtifactsBundled;
+  const memberAttestationsPresent = memberResolution.memberAttestationsPresent;
+  const memberProofPresent = memberResolution.memberProofPresent;
+  const memberVerifyRecomputed = memberResolution.memberVerifyRecomputed;
+  const selfAssertedVerifyIgnored = memberResolution.selfAssertedVerifyIgnored;
+
+  const assertions = doc?.independence_assertions || {};
+  const derivedReadiness = deriveIndependenceReadiness(membersForReadiness);
+
+  const guardianOk = membersForReadiness.some(
+    (m) => m.member_schema === INDEPENDENT_GUARDIAN_BUNDLE_SCHEMA && m.verify_ok === true,
   );
-  const anchorOk = members.some(
-    (m) => m?.member_schema === 'aevesa.anchor-coverage-forensic-pack/v1' && m?.verify_ok === true,
+  const anchorOk = membersForReadiness.some(
+    (m) => m.member_schema === ANCHOR_COVERAGE_FORENSIC_PACK_SCHEMA && m.verify_ok === true,
   );
-  const witnessPathOk = members.some(
-    (m) => m?.member_schema === 'aevesa.witness-custody-path/v1' && m?.verify_ok === true,
+  const witnessPathOk = membersForReadiness.some(
+    (m) => m.member_schema === 'aevesa.witness-custody-path/v1' && m.verify_ok === true,
   );
 
   let independenceAssertionsConsistent =
@@ -176,7 +270,7 @@ export function verifyIndependenceWitnessPack(
     packDigestMatches = String(doc.pack_digest || '').toLowerCase() === expected;
   }
 
-  const hashOnlySurface = !hasForbiddenKeys(doc);
+  const hashOnlySurface = hashOnlyComposedPackSurface(docInput, hasForbiddenKeys);
 
   const requireWitnessDiversity = options.requireWitnessDiversity === true;
   const witnessDiversityPresent = witnessDiversityBlock != null;
@@ -202,13 +296,16 @@ export function verifyIndependenceWitnessPack(
     independenceAssertionsConsistent &&
     packDigestMatches &&
     hashOnlySurface &&
+    (!anyVerifyOkAsserted || (memberProofPresent && memberVerifyRecomputed)) &&
     readinessConsistent &&
     witnessDiversityOk &&
     (!requireWitnessDiversity || witnessDiversityMet);
 
   let note: string | null = null;
   if (!schemaValid) note = `schema must be ${INDEPENDENCE_WITNESS_PACK_SCHEMA}`;
-  else if (!independenceManifestPresent) note = 'independence_verify manifest incomplete';
+  else if (anyVerifyOkAsserted && (!memberProofPresent || selfAssertedVerifyIgnored)) {
+    note = pc09MemberProofNote(memberResolution);
+  } else if (!independenceManifestPresent) note = 'independence_verify manifest incomplete';
   else if (!packDigestMatches) note = 'pack_digest does not match canonical preimage';
   else if (!independenceAssertionsConsistent) {
     note = 'independence_assertions inconsistent with composed members';
@@ -229,6 +326,10 @@ export function verifyIndependenceWitnessPack(
       independenceAssertionsConsistent,
       packDigestMatches,
       hashOnlySurface,
+      memberArtifactsBundled,
+      memberAttestationsPresent,
+      memberProofPresent,
+      memberVerifyRecomputed: !anyVerifyOkAsserted || memberVerifyRecomputed,
       readinessConsistent,
       witnessDiversityPresent,
       witnessDiversityOk,

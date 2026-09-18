@@ -1,0 +1,23 @@
+{
+  "description": "Wave 15 Track B — synthetic single-leaf Rekor inclusion proof with hashedrekord digest binding",
+  "proof": {
+    "schema": "aevesa.witness.rekor-inclusion-proof/v1",
+    "log_index": 0,
+    "tree_size": 1,
+    "root_hash": "7242d8f270a70decd28ebf3f024a53aee9b63e2de814e164a9fefc1c75e69eda",
+    "hashes": [],
+    "entry_body_base64": "eyJhcGlWZXJzaW9uIjoiMC4wLjEiLCJraW5kIjoiaGFzaGVkcmVrb3JkIiwic3BlYyI6eyJkYXRhIjp7Imhhc2giOnsiYWxnb3JpdGhtIjoic2hhMjU2IiwidmFsdWUiOiIwMTIzNDU2Nzg5YWJjZGVmMDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWYwMTIzNDU2Nzg5YWJjZGVmIn19fX0=",
+    "log_id": "rekor.sigstore.dev",
+    "checkpoint": "rekor.sigstore.dev\n1\n7242d8f270a70decd28ebf3f024a53aee9b63e2de814e164a9fefc1c75e69eda\n— MEQCIFixtureOnlyNotARealSignature"
+  },
+  "metadata": {
+    "schema": "aevesa.witness.rekor-metadata/v1",
+    "type": "rekor",
+    "ok": true,
+    "uuid": "00000000-0000-4000-8000-000000000001",
+    "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "log_index": 0,
+    "witnessUrl": "https://rekor.sigstore.dev",
+    "verification_hint": "GET https://rekor.sigstore.dev/api/v1/log/entries/{uuid}"
+  }
+}

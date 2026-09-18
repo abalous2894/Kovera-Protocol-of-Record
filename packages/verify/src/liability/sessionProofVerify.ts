@@ -4,6 +4,7 @@ import { isRecord } from '../core/isRecord.js';
 import { verifyPartialPathCommitment, PARTIAL_PATH_SCHEMA } from '../core/partialPath.js';
 import { verifyReceipt } from './verifyReceipt.js';
 import { verifyReceiptDigestMatch } from './digest.js';
+import { verifyManifestMemberDisclosureDigests } from './proofStrengthDisclosureBinding.js';
 import {
   verifySetCompletenessBundle,
   SET_COMPLETENESS_SCHEMA,
@@ -26,6 +27,24 @@ import {
   MANIFEST_CUSTODIAN_SCHEMA,
 } from '../policy/permitExecutionBinding.js';
 import { verifyConstraintClosureBundle } from './constraintClosureVerify.js';
+import {
+  rollupChainEnforcement,
+  type ChainEnforcementRollupResult,
+} from './chainEnforcementRollup.js';
+import {
+  buildSessionProofExportHints,
+  type SessionProofExportHints,
+} from './sessionProofExportHints.js';
+import {
+  buildSessionCompositionGuidance,
+  type SessionCompositionGuidance,
+} from './sessionCompositionGuidance.js';
+import {
+  buildSessionCompositionClosure,
+  evaluateClosureShipGate,
+  type ClosureShipGateResult,
+  type SessionCompositionClosure,
+} from './sessionCompositionClosure.js';
 
 export const SESSION_PROOF_SCHEMA = 'aevesa.compositional-accountability/v1' as const;
 export const SESSION_PROOF_SKU = 'aevesa-cap-session-proof-v1' as const;
@@ -88,6 +107,11 @@ export interface SessionProofVerifyResult {
   session_proof_complete: boolean;
   checks: SessionProofVerifyChecks;
   set_completeness: SetCompletenessVerifyResult | null;
+  chain_enforcement: ChainEnforcementRollupResult | null;
+  export_hints: SessionProofExportHints | null;
+  composition_guidance: SessionCompositionGuidance | null;
+  composition_closure: SessionCompositionClosure | null;
+  closure_ship_gate: ClosureShipGateResult;
   custodian: EvidenceCustodianVerifyResult | null;
   gtmLine: string;
   note: string | null;
@@ -172,14 +196,15 @@ function verifyMemberReceipts(
   manifest: Record<string, unknown>,
   memberReceipts: unknown[],
   receiptOptions: { issuerPublicKey?: string | Buffer; skipIntegritySignatureWithoutKey?: boolean } = {},
-): { ok: boolean; errors: string[] } {
+): { ok: boolean; errors: string[]; verified_by_hop: Record<number, boolean> } {
   const errors: string[] = [];
+  const verified_by_hop: Record<number, boolean> = {};
   const members = Array.isArray(manifest.members) ? manifest.members : [];
   const declared = Number(manifest.declared_count);
 
   if (memberReceipts.length !== declared) {
     errors.push(`member_receipts length ${memberReceipts.length} !== declared_count ${declared}`);
-    return { ok: false, errors };
+    return { ok: false, errors, verified_by_hop };
   }
 
   const sortedMembers = [...members].sort(
@@ -188,26 +213,35 @@ function verifyMemberReceipts(
 
   for (let i = 0; i < memberReceipts.length; i += 1) {
     const receipt = memberReceipts[i];
+    let hopOk = true;
     const structural = verifyReceipt(receipt, receiptOptions);
     if (!structural.isValid) {
       errors.push(`member receipt step ${i}: ${structural.error || 'invalid'}`);
-      continue;
+      hopOk = false;
     }
-    const digestCheck = verifyReceiptDigestMatch(receipt as Record<string, unknown>);
-    if (!digestCheck.ok) {
-      errors.push(`member receipt step ${i}: digest mismatch`);
-      continue;
+    if (hopOk) {
+      const digestCheck = verifyReceiptDigestMatch(receipt as Record<string, unknown>);
+      if (!digestCheck.ok) {
+        errors.push(`member receipt step ${i}: digest mismatch`);
+        hopOk = false;
+      }
     }
-    const expected = normalizeHex64((sortedMembers[i] as { receipt_digest?: unknown })?.receipt_digest);
-    const actual = normalizeHex64(
-      (receipt as { integrity?: { receipt_digest?: unknown } })?.integrity?.receipt_digest,
-    );
-    if (expected && actual && expected !== actual) {
-      errors.push(`member receipt step ${i}: digest ${actual} !== manifest ${expected}`);
+    if (hopOk) {
+      const expected = normalizeHex64((sortedMembers[i] as { receipt_digest?: unknown })?.receipt_digest);
+      const actual = normalizeHex64(
+        (receipt as { integrity?: { receipt_digest?: unknown } })?.integrity?.receipt_digest,
+      );
+      if (expected && actual && expected !== actual) {
+        errors.push(`member receipt step ${i}: digest ${actual} !== manifest ${expected}`);
+        hopOk = false;
+      }
+    }
+    if (hopOk) {
+      verified_by_hop[i] = true;
     }
   }
 
-  return { ok: errors.length === 0, errors };
+  return { ok: errors.length === 0, errors, verified_by_hop };
 }
 
 /**
@@ -258,6 +292,11 @@ export function verifySessionProof(
         sessionProofComplete: false,
       },
       set_completeness: null,
+      chain_enforcement: null,
+      export_hints: null,
+      composition_guidance: null,
+      composition_closure: null,
+      closure_ship_gate: evaluateClosureShipGate(null),
       custodian: null,
       gtmLine:
         'Receipt protocols prove actions. Aevesa session proofs prove workflows — compositional accountability offline.',
@@ -392,15 +431,26 @@ export function verifySessionProof(
   }
 
   let memberReceiptsVerified = !requireMembers;
+  let memberReceiptVerifiedByHop: Record<number, boolean> = {};
   if (requireMembers) {
     const members = bundle.member_receipts || [];
     const memberCheck = verifyMemberReceipts(manifest, members, receiptVerifyOptions);
     memberReceiptsVerified = memberCheck.ok;
+    memberReceiptVerifiedByHop = memberCheck.verified_by_hop;
     errors.push(...memberCheck.errors);
   } else if (Array.isArray(bundle.member_receipts) && bundle.member_receipts.length > 0) {
     const memberCheck = verifyMemberReceipts(manifest, bundle.member_receipts, receiptVerifyOptions);
     memberReceiptsVerified = memberCheck.ok;
+    memberReceiptVerifiedByHop = memberCheck.verified_by_hop;
     if (!memberCheck.ok) errors.push(...memberCheck.errors);
+  }
+
+  if (Array.isArray(bundle.member_receipts) && bundle.member_receipts.length > 0) {
+    const disclosureAlign = verifyManifestMemberDisclosureDigests(manifest, bundle.member_receipts);
+    if (!disclosureAlign.ok) {
+      memberReceiptsVerified = false;
+      errors.push(...disclosureAlign.errors);
+    }
   }
 
   let policyProofValid = !requirePolicy;
@@ -448,7 +498,7 @@ export function verifySessionProof(
     }
   }
 
-  const sessionProofComplete =
+  const structuralProofComplete =
     bundleSchemaValid &&
     sessionIdAligned &&
     setCompletenessOk &&
@@ -464,14 +514,69 @@ export function verifySessionProof(
     custodianProfileValid &&
     constraintClosureValid;
 
+  const partialSteps = isRecord(terminalReceipt)
+    ? (terminalReceipt as { partial_path?: { partial_steps?: unknown[] } }).partial_path?.partial_steps
+    : undefined;
+  const manifestMembers = Array.isArray(manifest.members)
+    ? (manifest.members as Array<{ step_index?: number; entry_hash?: string }>)
+    : null;
+  const chain_enforcement =
+    (Array.isArray(bundle.member_receipts) && bundle.member_receipts.length > 0) ||
+    (Array.isArray(partialSteps) && partialSteps.length > 0)
+      ? rollupChainEnforcement({
+          member_receipts: bundle.member_receipts,
+          partial_steps: partialSteps,
+          member_receipt_verified_by_hop: memberReceiptVerifiedByHop,
+          manifest_members: manifestMembers,
+        })
+      : null;
+
+  const declaredCount = Number((manifest as { declared_count?: unknown }).declared_count);
+  const export_hints = buildSessionProofExportHints({
+    manifest,
+    declared_count: Number.isFinite(declaredCount) ? declaredCount : null,
+    member_receipts: bundle.member_receipts,
+  });
+  const composition_guidance = buildSessionCompositionGuidance({
+    chain_enforcement,
+    export_hints,
+  });
+  const composition_closure =
+    setCompletenessOk || chain_enforcement != null
+      ? buildSessionCompositionClosure({
+          set_completeness_ok: setCompletenessOk,
+          manifest,
+          member_receipts: bundle.member_receipts,
+          member_receipt_verified_by_hop: memberReceiptVerifiedByHop,
+          chain_enforcement,
+          export_hints,
+          channel_provenance: (bundle as { channel_provenance?: unknown }).channel_provenance ?? null,
+        })
+      : null;
+
+  let sessionProofComplete = structuralProofComplete;
+  if (
+    sessionProofComplete &&
+    composition_closure?.closure_verdict === 'digest_only_submission'
+  ) {
+    sessionProofComplete = false;
+  }
+
   let note: string | null = null;
   if (sessionProofComplete) {
     const count = Number(manifest.declared_count);
-    const hasMembers =
-      Array.isArray(bundle.member_receipts) && bundle.member_receipts.length === count;
-    note = hasMembers
-      ? `Session proof complete — ${count} hops with full member receipt verification, partial_path alignment, and permit–execution binding.`
-      : `Session proof complete — ${count} hops under set_root with terminal receipt and partial_path alignment. Intermediate member receipts require independent verification when not bundled.`;
+    if (composition_closure?.carrier_review_ready) {
+      note = `CAP session proof carrier-ready — ${count} hops with full member receipt verification, partial_path alignment, and permit–execution binding.`;
+    } else if (composition_closure) {
+      note = `${composition_closure.note} (closure_verdict: ${composition_closure.closure_verdict})`;
+    } else {
+      note = `Set integrity verified — ${count} hops under set_root with terminal receipt and partial_path alignment. See composition_closure.closure_verdict before carrier submission.`;
+    }
+  } else if (
+    structuralProofComplete &&
+    composition_closure?.closure_verdict === 'digest_only_submission'
+  ) {
+    note = `${composition_closure.note} session_proof_complete is false for digest-only exports — bundle member receipts for carrier submission.`;
   } else if (!setCompletenessOk) {
     note = setCompleteness.note;
   } else if (!partialPathMembersAligned) {
@@ -479,6 +584,8 @@ export function verifySessionProof(
   } else {
     note = errors[0] || 'Session proof verification failed';
   }
+
+  const closure_ship_gate = evaluateClosureShipGate(composition_closure);
 
   return {
     schema: SESSION_PROOF_VERIFY_SCHEMA,
@@ -503,6 +610,11 @@ export function verifySessionProof(
       sessionProofComplete,
     },
     set_completeness: setCompleteness,
+    chain_enforcement,
+    export_hints,
+    composition_guidance,
+    composition_closure,
+    closure_ship_gate,
     custodian,
     gtmLine:
       'Receipt protocols prove actions. Aevesa session proofs prove workflows — compositional accountability offline.',

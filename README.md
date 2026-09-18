@@ -1,4 +1,4 @@
-# KOVERA: SOVEREIGN SECURITY INFRASTRUCTURE
+# AEVESA: SOVEREIGN SECURITY INFRASTRUCTURE
 
 **Enterprise-Grade Enforcement for Autonomous AI Agents and Multi-Agent Systems**
 

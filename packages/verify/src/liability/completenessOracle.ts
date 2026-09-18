@@ -36,6 +36,11 @@ export interface CapWitness {
   set_root: string | null;
   hops: CapWitnessHop[];
   session_proof_ok?: boolean;
+  closure_verdict?: string | null;
+  carrier_review_ready?: boolean;
+  carrier_submission_ready?: boolean | null;
+  closure_ship_gate_blocked?: boolean | null;
+  carrier_handoff_allowed?: boolean | null;
 }
 
 export interface CompletenessOracleResult {
@@ -89,6 +94,18 @@ function normalizeToolName(v: unknown): string {
 
 function hopKey(toolName: string, entryHash: string | null): string {
   return entryHash ? `${normalizeToolName(toolName)}#${entryHash}` : normalizeToolName(toolName);
+}
+
+/** Incident may close only when CAP witness is complete and carrier handoff is clear (when fields present). */
+function isCapWitnessClosable(cap: CapWitness): boolean {
+  if (cap.session_proof_ok !== true) return false;
+  if (cap.carrier_handoff_allowed != null) {
+    return cap.carrier_handoff_allowed === true;
+  }
+  if (cap.carrier_submission_ready != null || cap.closure_ship_gate_blocked != null) {
+    return cap.carrier_submission_ready === true && cap.closure_ship_gate_blocked !== true;
+  }
+  return true;
 }
 
 /**
@@ -310,7 +327,7 @@ export function evaluateCompletenessOracle(
     ok,
     verdict,
     non_laundering_ok,
-    closable: ok && (cap.session_proof_ok !== false),
+    closable: ok && isCapWitnessClosable(cap),
     session_id: cap.session_id ?? claim.session_id ?? null,
     cap: {
       declared_count: cap.declared_count,
@@ -353,11 +370,32 @@ export function capWitnessFromAttachRef(attachRef: Record<string, unknown> | nul
       entry_hash: normalizeHex64(entry_hashes[i]),
     });
   }
+  const gateSummary = isRecord(attachRef.closure_ship_gate) ? attachRef.closure_ship_gate : null;
+  const carrierSubmissionReady =
+    gateSummary?.carrier_submission_ready === true
+      ? true
+      : gateSummary?.carrier_submission_ready === false
+        ? false
+        : null;
+  const closureShipGateBlocked =
+    gateSummary?.blocked === true ? true : gateSummary?.blocked === false ? false : null;
+
   return {
     session_id,
     declared_count: Number(attachRef.declared_count) || hops.length,
     set_root: normalizeHex64(attachRef.set_root),
     hops,
     session_proof_ok: attachRef.session_proof_ok === true,
+    closure_verdict:
+      attachRef.closure_verdict != null ? String(attachRef.closure_verdict).trim() : null,
+    carrier_review_ready: attachRef.carrier_review_ready === true,
+    carrier_submission_ready: carrierSubmissionReady,
+    closure_ship_gate_blocked: closureShipGateBlocked,
+    carrier_handoff_allowed:
+      attachRef.carrier_handoff_allowed === true
+        ? true
+        : attachRef.carrier_handoff_allowed === false
+          ? false
+          : null,
   };
 }

@@ -17,4 +17,16 @@ export function verifyExternalRekorWitness(
   digestHex: string,
 ): Record<string, unknown>;
 
+export function verifyExternalRekorWitnessWithInclusion(
+  rekorMeta: unknown,
+  digestHex: string,
+  inclusionProof?: unknown,
+  options?: { requireInclusionProof?: boolean; expectedLogId?: string | null },
+): Record<string, unknown>;
+
+export const REKOR_INCLUSION_PROOF_REQUIRED: string;
+export const REKOR_INCLUSION_DIGEST_MISMATCH: string;
+
+export function resolveRequireRekorInclusionProof(input: Record<string, unknown>): boolean;
+
 export function verifyScittRefusalWitnessBundle(bundle: unknown): Record<string, unknown>;

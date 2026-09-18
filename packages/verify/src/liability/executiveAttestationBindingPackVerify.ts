@@ -1,7 +1,14 @@
 import { sha256HexUtf8 } from '../core/sha256.js';
-import { buildAccountableExecutiveAttestationDigest, buildAttestationBindingDigest, deriveBindingReadiness, EXECUTIVE_ATTESTATION_BINDING_PACK_SCHEMA, buildExecutiveAttestationBindingPackPreimage } from '../core/executiveAttestationBindingPack.js';
+import {
+  buildAccountableExecutiveAttestationDigest,
+  buildAttestationBindingDigest,
+  deriveBindingReadiness,
+  EXECUTIVE_ATTESTATION_BINDING_PACK_SCHEMA,
+  buildExecutiveAttestationBindingPackPreimage,
+} from '../core/executiveAttestationBindingPack.js';
 import { stableStringify } from '../core/stableStringify.js';
 import type { BindingReadiness } from '../core/executiveAttestationBindingPack.js';
+import { verifyAttestedEvidenceSet } from './attestedEvidenceSetVerify.js';
 
 export const EXECUTIVE_ATTESTATION_BINDING_PACK_SKU =
   'aevesa-executive-attestation-binding-pack-v1' as const;
@@ -96,18 +103,44 @@ export function verifyExecutiveAttestationBindingPack(
 
   const bindingValid = binding.binding_valid === true && bindingDigestMatches;
 
+  const memberDocs = asRecord(doc?.member_documents) || {};
+  const memberArtifactsBundled = Object.keys(memberDocs).length > 0;
+  const anyVerifyOkAsserted = members.some((m) => m?.verify_ok === true);
+  const bundledEvidenceSet = memberDocs.attested_evidence_set ?? null;
+
+  let memberVerifyRecomputed = true;
+  let evidenceSetVerify: ReturnType<typeof verifyAttestedEvidenceSet> | null = null;
+  if (anyVerifyOkAsserted) {
+    if (bundledEvidenceSet == null) {
+      memberVerifyRecomputed = false;
+    } else {
+      evidenceSetVerify = verifyAttestedEvidenceSet(bundledEvidenceSet);
+      memberVerifyRecomputed =
+        evidenceSetVerify.ok === true && evidenceSetVerify.checks.memberVerifyRecomputed === true;
+    }
+  }
+
+  const selfAssertedVerifyIgnored =
+    anyVerifyOkAsserted && memberArtifactsBundled && !memberVerifyRecomputed;
+
+  const evidenceSetVerified = anyVerifyOkAsserted && memberVerifyRecomputed;
+  const membersForReadiness = members.map((m) => ({
+    verify_ok: m?.verify_ok === true && evidenceSetVerified,
+  }));
+
   const derivedReadiness = deriveBindingReadiness(
     {
       executive_display_name:
         att.executive_display_name != null ? String(att.executive_display_name) : null,
       attestation_digest: String(att.attestation_digest || ''),
     },
-    members.map((m) => ({ verify_ok: m?.verify_ok === true })),
+    membersForReadiness,
     bindingValid && bindingMatchesExecutive && bindingMatchesEvidenceSet,
   );
 
   const assertions = asRecord(doc?.binding_assertions) || {};
-  const allVerified = members.length >= 2 && members.every((m) => m?.verify_ok === true);
+  const allVerified =
+    members.length >= 2 && evidenceSetVerified && members.every((m) => m?.verify_ok === true);
 
   let bindingAssertionsConsistent =
     assertions.third_party_verifiable === true && scopePresent;
@@ -182,7 +215,8 @@ export function verifyExecutiveAttestationBindingPack(
     packDigestMatches = String(doc.pack_digest || '').toLowerCase() === expected;
   }
 
-  const hashOnlySurface = !hasForbiddenKeys(doc);
+  const { member_documents: _hashMemberDocs, ...hashOnlyDoc } = doc || {};
+  const hashOnlySurface = !hasForbiddenKeys(hashOnlyDoc);
 
   const profileComplete =
     schemaValid &&
@@ -199,11 +233,18 @@ export function verifyExecutiveAttestationBindingPack(
     bindingAssertionsConsistent &&
     packDigestMatches &&
     hashOnlySurface &&
+    (!anyVerifyOkAsserted || (memberArtifactsBundled && memberVerifyRecomputed)) &&
     readinessConsistent;
 
   let note: string | null = null;
   if (!schemaValid) note = `schema must be ${EXECUTIVE_ATTESTATION_BINDING_PACK_SCHEMA}`;
-  else if (!executiveAttestationDigestMatches) note = 'attestation_digest does not match executive ceremony preimage';
+  else if (anyVerifyOkAsserted && !memberArtifactsBundled) {
+    note =
+      'member_documents.attested_evidence_set required when evidence members assert verify_ok (PC-09)';
+  } else if (selfAssertedVerifyIgnored) {
+    note =
+      'attested_evidence_set.verify_ok is exporter self-asserted; bundle member_documents for offline re-verify';
+  } else if (!executiveAttestationDigestMatches) note = 'attestation_digest does not match executive ceremony preimage';
   else if (!bindingMatchesExecutive) note = 'attestation_binding.attestation_digest must match executive attestation';
   else if (!bindingMatchesEvidenceSet) note = 'attestation_binding.evidence_set_digest must match attested_evidence_set';
   else if (!bindingDigestMatches) note = 'attestation_binding.binding_digest does not match scope + digests';
@@ -230,6 +271,9 @@ export function verifyExecutiveAttestationBindingPack(
       bindingAssertionsConsistent,
       packDigestMatches,
       hashOnlySurface,
+      memberArtifactsBundled,
+      memberVerifyRecomputed: !anyVerifyOkAsserted || memberVerifyRecomputed,
+      attestedEvidenceSetVerifyOk: evidenceSetVerify?.ok === true,
       readinessConsistent,
       profileComplete,
     },

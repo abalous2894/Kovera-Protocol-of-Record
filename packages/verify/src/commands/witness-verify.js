@@ -42,8 +42,16 @@ export function runWitnessVerifyCommand(bundlePath, opts = {}) {
     console.log(`  inclusion:       ${result.checks.inclusionProofValid ? 'valid' : 'invalid'}`);
     if (result.checks.externalRekorValid != null) {
       console.log(`  rekor metadata:  ${result.checks.externalRekorValid ? 'valid' : 'invalid'}`);
+      if (result.checks.externalRekorInclusionCrypto != null) {
+        console.log(
+          `  rekor inclusion: ${result.checks.externalRekorInclusionCrypto ? 'crypto valid' : 'crypto invalid'}`,
+        );
+      }
       if (result.externalRekorVerification?.verification_hint) {
         console.log(`  rekor hint:      ${result.externalRekorVerification.verification_hint}`);
+      }
+      if (result.externalRekorVerification?.codes?.length) {
+        console.log(`  rekor codes:     ${result.externalRekorVerification.codes.join(', ')}`);
       }
     }
     console.log(`  note:            ${result.note ?? '—'}`);

@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { verifyReceipt, verifyReceiptDigestMatch } from '../../dist/index.js';
 import { validateConformanceLabManifest } from '../compliance/conformanceLabVerify.js';
 import { buildConformanceAttestation, computeConformanceAttestationDigest } from './conformanceAttestation.js';
+import { runChainEnforcementRollupConformanceLab } from './chainEnforcementRollupConformanceLab.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_FIXTURE = join(__dirname, '../../fixtures/conformance-local-interop.json');
@@ -205,6 +206,17 @@ export async function runConformanceLab(opts = {}) {
     ok: local.ok === true,
     steps: local.steps,
     elapsed_ms: local.elapsed_ms,
+  });
+
+  const rollupLab = runChainEnforcementRollupConformanceLab();
+  programs.push({
+    id: rollupLab.id,
+    program: rollupLab.program,
+    test: rollupLab.test,
+    ok: rollupLab.ok === true,
+    steps: rollupLab.steps,
+    elapsed_ms: rollupLab.elapsed_ms,
+    detail: rollupLab.detail,
   });
 
   /** @type {object | null} */

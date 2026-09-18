@@ -12,10 +12,15 @@ export const CHANNEL_SOURCE_CLASSIFICATIONS = [
 
 export type ChannelSourceClassification = (typeof CHANNEL_SOURCE_CLASSIFICATIONS)[number];
 
+export const CHANNEL_CONTENT_BINDINGS = ['content_bound', 'digest_only'] as const;
+export type ChannelContentBinding = (typeof CHANNEL_CONTENT_BINDINGS)[number];
+
 export interface ChannelProvenanceSource {
   source_id: string;
   classification: ChannelSourceClassification;
   content_digest: string;
+  /** Wave 16 / PC-11 — content hashed at capture vs digest+origin only */
+  content_binding?: ChannelContentBinding;
   origin?: string;
   received_at?: string;
 }
@@ -42,6 +47,12 @@ function canonicalSource(source: ChannelProvenanceSource): Record<string, string
   };
   if (source.origin) out.origin = String(source.origin).trim();
   if (source.received_at) out.received_at = String(source.received_at).trim();
+  if (
+    source.content_binding === 'content_bound' ||
+    source.content_binding === 'digest_only'
+  ) {
+    out.content_binding = source.content_binding;
+  }
   return out;
 }
 

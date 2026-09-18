@@ -26,6 +26,10 @@ export const EVIDENCE_KINDS = [
   'independent_guardian_bundle',
   'transparency_log_monitor_attestation',
   'transparency_log_monitor_status',
+  'proof_strength_disclosure',
+  'egress_attestation',
+  'egress_proxy_attribution',
+  'egress_proxy_collector_envelope',
   'conformance_attestation',
   'scitt_witness_export',
   'auditor_packet',
@@ -141,6 +145,18 @@ export function detectEvidenceType(input) {
   }
   if (schema === 'aevesa.transparency-log-monitor-status/v1') {
     return { kind: 'transparency_log_monitor_status', payload: obj };
+  }
+  if (schema === 'aevesa.proof-strength-disclosure/v1') {
+    return { kind: 'proof_strength_disclosure', payload: obj };
+  }
+  if (schema === 'aevesa.egress-attestation/v1' || schema === 'aevesa.egress-attestation/v2') {
+    return { kind: 'egress_attestation', payload: obj };
+  }
+  if (schema === 'aevesa.egress-proxy-attribution/v1') {
+    return { kind: 'egress_proxy_attribution', payload: obj };
+  }
+  if (schema === 'aevesa.egress-proxy-collector-envelope/v1') {
+    return { kind: 'egress_proxy_collector_envelope', payload: obj };
   }
   if (schema === 'aevesa.revocation-horizon/v1') {
     return { kind: 'revocation_horizon', payload: obj };

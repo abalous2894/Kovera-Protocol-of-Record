@@ -79,8 +79,11 @@ Consumers may depend on **only** the export surfaces listed below. Deep imports 
 | `BEHAVIORAL_SBOM_SCHEMA`, `BEHAVIORAL_SBOM_SKU`, `BEHAVIORAL_GAP_CLASSES` | Behavioral SBOM profile identifiers |
 | `evaluateCompletenessOracle`, `parseOrchestratorClaim`, `capWitnessFromAttachRef` | Orchestrator vs CAP witness — proof laundering oracle (Track B) |
 | `evaluateHitlCryptoBinding`, `verifyHitlApprovalWitnessJws`, `evaluateSessionHitlBindings`, `computeTargetIntentHash` | HITL crypto binding — approver scope vs tool + args (Tier 1 #3) |
-| `verifySessionProof`, `computeSessionProofDigest` | CAP session proof — compositional accountability (Phase 0) |
+| `verifySessionProof`, `computeSessionProofDigest` | CAP session proof — compositional accountability (Phase 0); result includes `composition_closure` (Wave 16-A) |
 | `SESSION_PROOF_SCHEMA`, `SESSION_PROOF_SKU`, `SESSION_PROOF_VERIFY_SCHEMA` | CAP identifiers |
+| `rollupChainEnforcement`, `CHAIN_ENFORCEMENT_ROLLUP_SCHEMA` | Weakest-link chain rollup — `member_receipt_verified_by_hop` gates partial_steps precedence (PC-01) |
+| `buildSessionCompositionClosure`, `buildReceiptPresence`, `deriveClosureVerdict` | Wave 16-A closure SKU — `receipt_presence[]`, `closure_verdict`, `carrier_review_ready` |
+| `SESSION_COMPOSITION_CLOSURE_SCHEMA`, `CLOSURE_VERDICTS`, `RECEIPT_PRESENCE_KINDS` | Composition closure identifiers |
 | `SET_COMPLETENESS_SCHEMA`, `SET_COMPLETENESS_SKU` | Set-completeness profile identifiers |
 | `verifyCommitGateBundle` | Commit-gate / escalation-failure evidence — receipt-before-action + DENIED path (Tier 1) |
 | `COMMIT_GATE_VERIFY_SCHEMA`, `COMMIT_GATE_SKU`, `PEP_INVARIANT_RECEIPT_BEFORE_ACTION` | Commit-gate profile identifiers |

@@ -5,6 +5,7 @@ import {
   verifyKillSwitchAttestationBundle,
   type KillSwitchAttestationVerifyOptions,
 } from './killSwitchAttestationVerify.js';
+import { validateShutdownDrillEnforcementDecay } from './shutdownDrillEnforcementDecay.js';
 
 export const SHUTDOWN_DRILL_BUNDLE_SKU = 'aevesa-shutdown-drill-bundle-v1' as const;
 
@@ -30,6 +31,7 @@ export interface ShutdownDrillBundleVerifyChecks {
   silenceWindowProven: boolean;
   witnessValid: boolean;
   temporalOrderingValid: boolean;
+  enforcementDecayValid: boolean;
   profileComplete: boolean;
 }
 
@@ -147,8 +149,19 @@ export function verifyShutdownDrillBundle(
       lastAt <= killAt &&
       killAt <= startedMs);
 
+  const enforcementDecayRaw = doc?.enforcement_decay;
+  const enforcementDecayCheck = validateShutdownDrillEnforcementDecay(
+    enforcementDecayRaw,
+    doc?.session_scope != null ? String(doc.session_scope) : null,
+  );
+  const enforcementDecayValid = enforcementDecayCheck.ok === true;
+
   let bundleDigestMatches = false;
   if (schemaValid && doc && killSwitchDoc) {
+    const decayRecord =
+      enforcementDecayRaw != null && typeof enforcementDecayRaw === 'object' && !Array.isArray(enforcementDecayRaw)
+        ? (enforcementDecayRaw as Record<string, unknown>)
+        : null;
     const preimage = buildShutdownDrillBundlePreimage({
       drill_id: String(doc.drill_id || ''),
       organization_id,
@@ -175,6 +188,20 @@ export function verifyShutdownDrillBundle(
       },
       verify_manifest: parseVerifyManifest(doc.verify_manifest),
       non_goals: Array.isArray(doc.non_goals) ? doc.non_goals.map(String) : [],
+      enforcement_decay: decayRecord
+        ? {
+            schema: String(decayRecord.schema || ''),
+            session_id: decayRecord.session_id != null ? String(decayRecord.session_id) : null,
+            pre_drill_chain_enforcement_mode: String(decayRecord.pre_drill_chain_enforcement_mode || ''),
+            pre_drill_weakest_link_index:
+              decayRecord.pre_drill_weakest_link_index != null
+                ? Number(decayRecord.pre_drill_weakest_link_index)
+                : null,
+            post_kill_switch_effective_mode: String(decayRecord.post_kill_switch_effective_mode || ''),
+            decay_note: String(decayRecord.decay_note || ''),
+            chain_enforcement_rollup_schema: String(decayRecord.chain_enforcement_rollup_schema || ''),
+          }
+        : null,
     });
     const expected = sha256HexUtf8(stableStringify(preimage));
     bundleDigestMatches = String(doc.bundle_digest || '') === expected;
@@ -191,12 +218,14 @@ export function verifyShutdownDrillBundle(
     silenceWindowValid &&
     silenceWindowProven &&
     witnessValid &&
-    temporalOrderingValid;
+    temporalOrderingValid &&
+    enforcementDecayValid;
 
   const ok = profileComplete;
 
   let note: string | null = null;
   if (!schemaValid) note = `schema must be ${SHUTDOWN_DRILL_BUNDLE_SCHEMA}`;
+  else if (!enforcementDecayValid) note = enforcementDecayCheck.note || 'enforcement_decay invalid';
   else if (!bundleDigestMatches) note = 'bundle_digest does not match canonical preimage';
   else if (!lastPermitValid) note = 'last_permit requires hex entry_hash, PERMITTED/HITL_RELEASED profile, observed_at';
   else if (!killSwitchAttestationValid) note = killSwitchVerify?.note || 'kill_switch_attestation verification failed';
@@ -222,6 +251,7 @@ export function verifyShutdownDrillBundle(
       silenceWindowProven,
       witnessValid,
       temporalOrderingValid,
+      enforcementDecayValid,
       profileComplete,
     },
     kill_switch: killSwitchVerify,

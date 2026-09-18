@@ -1,11 +1,21 @@
 import {
   deriveTimelineReadiness,
+  INCIDENT_NOTIFICATION_TIMELINE_SCHEMA,
 } from '../core/incidentNotificationTimeline.js';
 import { sha256HexUtf8 } from '../core/sha256.js';
 import { INCIDENT_NOTIFICATION_TIMELINE_PACK_SCHEMA, buildIncidentNotificationTimelinePackPreimage } from '../core/incidentNotificationTimelinePack.js';
+import { TRACEABLE_CONDUCT_MANIFEST_SCHEMA } from '../core/traceableConductManifest.js';
 import { stableStringify } from '../core/stableStringify.js';
 import type { TimelineCompliance } from '../core/incidentNotificationTimeline.js';
-import type { IncidentNotificationMilestone } from '../core/incidentNotificationTimeline.js';
+import { validateIncidentCustodyPackManifest } from '../compliance/incidentCustodyPackVerify.js';
+import { verifyIncidentNotificationTimeline } from './incidentNotificationTimelineVerify.js';
+import { verifyTraceableConductManifest } from './traceableConductManifestVerify.js';
+import {
+  extractComposedPackProofLayers,
+  hashOnlyComposedPackSurface,
+  pc09MemberProofNote,
+  resolveComposedMemberVerifyState,
+} from './composedPackMemberVerify.js';
 
 export const INCIDENT_NOTIFICATION_TIMELINE_PACK_SKU =
   'aevesa-incident-notification-timeline-pack-v1' as const;
@@ -36,6 +46,38 @@ function hasForbiddenKeys(value: unknown, depth = 0): boolean {
   for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
     if (FORBIDDEN_KEYS.test(key)) return true;
     if (hasForbiddenKeys(child, depth + 1)) return true;
+  }
+  return false;
+}
+
+const INCIDENT_CUSTODY_PACK_SCHEMA = 'kovera-incident-custody-pack/1' as const;
+
+function memberDocumentForSchema(
+  memberDocs: Record<string, unknown>,
+  schema: string,
+): unknown {
+  if (schema === INCIDENT_NOTIFICATION_TIMELINE_SCHEMA) {
+    return memberDocs.notification_timeline ?? memberDocs.incident_notification_timeline ?? memberDocs[schema] ?? null;
+  }
+  if (schema === INCIDENT_CUSTODY_PACK_SCHEMA) {
+    return memberDocs.incident_custody_manifest ?? memberDocs.incident_custody_pack ?? memberDocs[schema] ?? null;
+  }
+  if (schema === TRACEABLE_CONDUCT_MANIFEST_SCHEMA) {
+    return memberDocs.conduct_manifest ?? memberDocs.traceable_conduct_manifest ?? memberDocs[schema] ?? null;
+  }
+  return memberDocs[schema] ?? null;
+}
+
+function recomputeMemberVerifyOk(schema: string, embedded: unknown): boolean {
+  if (embedded == null) return false;
+  if (schema === INCIDENT_NOTIFICATION_TIMELINE_SCHEMA) {
+    return verifyIncidentNotificationTimeline(embedded).ok === true;
+  }
+  if (schema === INCIDENT_CUSTODY_PACK_SCHEMA) {
+    return validateIncidentCustodyPackManifest(embedded).ok === true;
+  }
+  if (schema === TRACEABLE_CONDUCT_MANIFEST_SCHEMA) {
+    return verifyTraceableConductManifest(embedded).ok === true;
   }
   return false;
 }
@@ -99,14 +141,38 @@ export function verifyIncidentNotificationTimelinePack(
         : null,
   };
 
-  const derivedReadiness = deriveTimelineReadiness(
-    compliance,
-    custodyMember?.verify_ok === true,
-  );
+  const { memberDocs, memberAttestations } = extractComposedPackProofLayers(doc);
 
-  const timelineOk = timelineMember?.verify_ok === true;
-  const custodyOk = custodyMember?.verify_ok === true;
-  const conductOk = conductMember?.verify_ok === true;
+  const memberResolution = resolveComposedMemberVerifyState({
+    members: members.map((m) => ({
+      member_schema: String(m?.member_schema || ''),
+      member_digest: String(m?.member_digest || ''),
+      verify_ok: m?.verify_ok === true,
+      label: String(m?.label || ''),
+      entry_count: m?.entry_count ?? null,
+    })),
+    member_documents: memberDocs,
+    member_verify_attestations: memberAttestations,
+    resolveMemberDocument: memberDocumentForSchema,
+    recomputeMemberVerifyOk,
+  });
+
+  const timelineOk =
+    memberResolution.members.find((m) => m.member_schema === INCIDENT_NOTIFICATION_TIMELINE_SCHEMA)
+      ?.verify_ok === true;
+  const custodyOk =
+    memberResolution.members.find((m) => m.member_schema === INCIDENT_CUSTODY_PACK_SCHEMA)
+      ?.verify_ok === true;
+  const conductOk =
+    memberResolution.members.find((m) => m.member_schema === TRACEABLE_CONDUCT_MANIFEST_SCHEMA)
+      ?.verify_ok === true;
+
+  const memberArtifactsBundled = memberResolution.memberArtifactsBundled;
+  const memberAttestationsPresent = memberResolution.memberAttestationsPresent;
+  const memberProofPresent = memberResolution.memberProofPresent;
+  const selfAssertedVerifyIgnored = memberResolution.selfAssertedVerifyIgnored;
+
+  const derivedReadiness = deriveTimelineReadiness(compliance, custodyOk);
 
   let timelineAssertionsConsistent =
     assertions.third_party_verifiable === true && String(doc?.incident_id || '').trim().length > 0;
@@ -175,7 +241,9 @@ export function verifyIncidentNotificationTimelinePack(
     packDigestMatches = String(doc.pack_digest || '').toLowerCase() === expected;
   }
 
-  const hashOnlySurface = !hasForbiddenKeys(doc);
+  const hashOnlySurface = hashOnlyComposedPackSurface(docInput, hasForbiddenKeys);
+
+  const memberVerifyRecomputed = timelineOk && custodyOk && conductOk;
 
   const profileComplete =
     schemaValid &&
@@ -189,11 +257,15 @@ export function verifyIncidentNotificationTimelinePack(
     timelineAssertionsConsistent &&
     packDigestMatches &&
     hashOnlySurface &&
+    memberProofPresent &&
+    memberVerifyRecomputed &&
     readinessConsistent;
 
   let note: string | null = null;
   if (!schemaValid) note = `schema must be ${INCIDENT_NOTIFICATION_TIMELINE_PACK_SCHEMA}`;
-  else if (!bindingMatchesMembers) note = 'timeline_session_binding digests must match composed members';
+  else if (!memberProofPresent || selfAssertedVerifyIgnored) {
+    note = pc09MemberProofNote(memberResolution);
+  } else if (!bindingMatchesMembers) note = 'timeline_session_binding digests must match composed members';
   else if (!packDigestMatches) note = 'pack_digest does not match canonical preimage';
   else if (!timelineAssertionsConsistent) note = 'timeline_assertions inconsistent with members or binding';
   else if (!readinessConsistent) note = 'timeline_readiness inconsistent with NCA deadline state';
@@ -214,6 +286,10 @@ export function verifyIncidentNotificationTimelinePack(
       timelineAssertionsConsistent,
       packDigestMatches,
       hashOnlySurface,
+      memberArtifactsBundled,
+      memberAttestationsPresent,
+      memberProofPresent,
+      memberVerifyRecomputed,
       readinessConsistent,
       profileComplete,
       conductMemberPresent: Boolean(conductMember),

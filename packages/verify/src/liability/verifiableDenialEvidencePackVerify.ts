@@ -2,6 +2,15 @@ import { sha256HexUtf8 } from '../core/sha256.js';
 import { VERIFIABLE_DENIAL_EVIDENCE_PACK_SCHEMA, buildVerifiableDenialEvidencePackPreimage, deriveDenialReadiness } from '../core/verifiableDenialEvidencePack.js';
 import { stableStringify } from '../core/stableStringify.js';
 import type { DenialReadiness, EnforcementPlane } from '../core/verifiableDenialEvidencePack.js';
+import { verifyReceipt } from './verifyReceipt.js';
+import { verifySetCompletenessBundle } from './setCompletenessVerify.js';
+import { verifyShutdownDrillBundle } from './shutdownDrillBundleVerify.js';
+import {
+  extractComposedPackProofLayers,
+  hashOnlyComposedPackSurface,
+  pc09MemberProofNote,
+  resolveComposedMemberVerifyState,
+} from './composedPackMemberVerify.js';
 
 export const VERIFIABLE_DENIAL_EVIDENCE_PACK_SKU =
   'aevesa-verifiable-denial-evidence-pack-v1' as const;
@@ -52,6 +61,10 @@ export interface VerifiableDenialEvidencePackVerifyChecks {
   denialAssertionsConsistent: boolean;
   packDigestMatches: boolean;
   hashOnlySurface: boolean;
+  memberArtifactsBundled: boolean;
+  memberAttestationsPresent: boolean;
+  memberProofPresent: boolean;
+  memberVerifyRecomputed: boolean;
   readinessConsistent: boolean;
   profileComplete: boolean;
 }
@@ -85,6 +98,40 @@ function hasForbiddenKeys(value: unknown, depth = 0): boolean {
   return false;
 }
 
+const LIABILITY_RECEIPT_SCHEMA = 'liability-receipt/v1' as const;
+const SET_COMPLETENESS_SCHEMA = 'aevesa.set-completeness/v1' as const;
+const SHUTDOWN_DRILL_SCHEMA = 'aevesa.shutdown-drill-bundle/v1' as const;
+
+function memberDocumentForSchema(
+  memberDocs: Record<string, unknown>,
+  schema: string,
+): unknown {
+  if (schema === LIABILITY_RECEIPT_SCHEMA) {
+    return memberDocs.liability_receipt ?? memberDocs.denied_receipt ?? memberDocs[schema] ?? null;
+  }
+  if (schema === SET_COMPLETENESS_SCHEMA) {
+    return memberDocs.set_completeness_manifest ?? memberDocs.set_completeness ?? memberDocs[schema] ?? null;
+  }
+  if (schema === SHUTDOWN_DRILL_SCHEMA) {
+    return memberDocs.shutdown_drill_bundle ?? memberDocs[schema] ?? null;
+  }
+  return memberDocs[schema] ?? null;
+}
+
+function recomputeMemberVerifyOk(schema: string, embedded: unknown): boolean {
+  if (embedded == null) return false;
+  if (schema === LIABILITY_RECEIPT_SCHEMA) {
+    return verifyReceipt(embedded, { skipIntegritySignatureWithoutKey: true }).isValid === true;
+  }
+  if (schema === SET_COMPLETENESS_SCHEMA) {
+    return verifySetCompletenessBundle(embedded).ok === true;
+  }
+  if (schema === SHUTDOWN_DRILL_SCHEMA) {
+    return verifyShutdownDrillBundle(embedded, { skipSignatureVerification: true }).ok === true;
+  }
+  return false;
+}
+
 export function verifyVerifiableDenialEvidencePack(
   docInput: unknown,
 ): VerifiableDenialEvidencePackVerifyResult {
@@ -106,23 +153,47 @@ export function verifyVerifiableDenialEvidencePack(
     members.length === 0 ||
     members.every((m) => HEX64.test(String(m?.member_digest || '').toLowerCase()));
 
-  const derivedReadiness = deriveDenialReadiness(
-    members.map((m) => ({
+  const { memberDocs, memberAttestations } = extractComposedPackProofLayers(doc);
+
+  const memberResolution = resolveComposedMemberVerifyState({
+    members: members.map((m) => ({
       member_schema: String(m?.member_schema || ''),
       member_digest: String(m?.member_digest || ''),
       verify_ok: m?.verify_ok === true,
       label: String(m?.label || ''),
       entry_count: m?.entry_count ?? null,
     })),
-  );
+    member_documents: memberDocs,
+    member_verify_attestations: memberAttestations,
+    resolveMemberDocument: memberDocumentForSchema,
+    recomputeMemberVerifyOk,
+  });
+
+  const membersForReadiness = memberResolution.members.map((m) => ({
+    member_schema: m.member_schema,
+    member_digest: m.member_digest,
+    verify_ok: m.verify_ok,
+    label: m.label,
+    entry_count: m.entry_count,
+  }));
+
+  const derivedReadiness = deriveDenialReadiness(membersForReadiness);
 
   const assertions = doc?.denial_assertions || {};
-  const deniedMemberOk = members.some(
-    (m) => m?.member_schema === 'liability-receipt/v1' && m?.verify_ok === true,
+  const deniedMemberOk = membersForReadiness.some(
+    (m) => m.member_schema === LIABILITY_RECEIPT_SCHEMA && m.verify_ok === true,
   );
-  const completenessMemberOk = members.some(
-    (m) => m?.member_schema === 'aevesa.set-completeness/v1' && m?.verify_ok === true,
+  const completenessMemberOk = membersForReadiness.some(
+    (m) => m.member_schema === SET_COMPLETENESS_SCHEMA && m.verify_ok === true,
   );
+  const silenceMemberOk = membersForReadiness.some(
+    (m) => m.member_schema === SHUTDOWN_DRILL_SCHEMA && m.verify_ok === true,
+  );
+
+  const memberArtifactsBundled = memberResolution.memberArtifactsBundled;
+  const memberAttestationsPresent = memberResolution.memberAttestationsPresent;
+  const memberProofPresent = memberResolution.memberProofPresent;
+  const selfAssertedVerifyIgnored = memberResolution.selfAssertedVerifyIgnored;
 
   let denialAssertionsConsistent =
     assertions.pre_execution === true &&
@@ -169,7 +240,14 @@ export function verifyVerifiableDenialEvidencePack(
     packDigestMatches = String(doc.pack_digest || '').toLowerCase() === expected;
   }
 
-  const hashOnlySurface = !hasForbiddenKeys(doc);
+  const hashOnlySurface = hashOnlyComposedPackSurface(docInput, hasForbiddenKeys);
+
+  const memberVerifyRecomputed =
+    deniedMemberOk &&
+    completenessMemberOk &&
+    (members.some((m) => m?.member_schema === SHUTDOWN_DRILL_SCHEMA)
+      ? silenceMemberOk
+      : true);
 
   const profileComplete =
     schemaValid &&
@@ -181,13 +259,17 @@ export function verifyVerifiableDenialEvidencePack(
     denialAssertionsConsistent &&
     packDigestMatches &&
     hashOnlySurface &&
+    memberProofPresent &&
+    memberVerifyRecomputed &&
     readinessConsistent;
 
   const ok = profileComplete;
 
   let note: string | null = null;
   if (!schemaValid) note = `schema must be ${VERIFIABLE_DENIAL_EVIDENCE_PACK_SCHEMA}`;
-  else if (!enforcementPlaneValid) note = 'enforcement_plane invalid';
+  else if (!memberProofPresent || selfAssertedVerifyIgnored) {
+    note = pc09MemberProofNote(memberResolution);
+  } else if (!enforcementPlaneValid) note = 'enforcement_plane invalid';
   else if (!packDigestMatches) note = 'pack_digest does not match canonical preimage';
   else if (!denialAssertionsConsistent) note = 'denial_assertions inconsistent with composed members';
   else if (!readinessConsistent) note = 'denial_readiness inconsistent with member verify state';
@@ -207,6 +289,10 @@ export function verifyVerifiableDenialEvidencePack(
       denialAssertionsConsistent,
       packDigestMatches,
       hashOnlySurface,
+      memberArtifactsBundled,
+      memberAttestationsPresent,
+      memberProofPresent,
+      memberVerifyRecomputed,
       readinessConsistent,
       profileComplete,
     },

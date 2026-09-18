@@ -53,6 +53,7 @@ export { verifyIntegritySignatures } from './liability/signatures.js';
 export { validateAccountabilityPillars } from './liability/pillars.js';
 export type { VerifyReceiptOptions } from './liability/verifyReceipt.js';
 export { verifyReceipt } from './liability/verifyReceipt.js';
+export { resolveEmbeddedIssuerPublicKey } from './liability/embeddedIssuerKey.js';
 export type {
   ProveBundleVerifyOptions,
   ProveBundleVerifyResult,
@@ -138,6 +139,186 @@ export {
   SESSION_PROOF_VERIFY_SCHEMA,
 } from './liability/sessionProofVerify.js';
 export type {
+  ChainEnforcementMode,
+  ChainEnforcementRollupInput,
+  ChainEnforcementRollupResult,
+  HopEnforcementEntry,
+  HopEnforcementSource,
+} from './liability/chainEnforcementRollup.js';
+export {
+  rollupChainEnforcement,
+  CHAIN_ENFORCEMENT_ROLLUP_SCHEMA,
+  CHAIN_ENFORCEMENT_ROLLUP_SKU,
+} from './liability/chainEnforcementRollup.js';
+export type { SessionProofExportHints } from './liability/sessionProofExportHints.js';
+export {
+  buildSessionProofExportHints,
+  SESSION_PROOF_EXPORT_HINTS_SCHEMA,
+} from './liability/sessionProofExportHints.js';
+export type {
+  CapExportGatePolicy,
+  CapExportGatePolicyInput,
+} from './liability/capExportGatePolicy.js';
+export {
+  buildCapExportGatePolicy,
+  isCapExportEnvelopeStale,
+  isCapExportGatePolicySupported,
+  parseCapExportGatePolicyRevision,
+  CAP_EXPORT_GATE_POLICY_SCHEMA,
+  CAP_EXPORT_GATE_POLICY_VERSION,
+  CAP_EXPORT_GATE_POLICY_MIN_SUPPORTED_VERSION,
+  CAP_EXPORT_GATE_POLICY_EFFECTIVE_FROM,
+} from './liability/capExportGatePolicy.js';
+export type {
+  CapExportCarrierHandoffEvaluation,
+  CapExportCarrierHandoffRefusalReason,
+} from './liability/capExportCarrierHandoff.js';
+export {
+  evaluateCapExportCarrierHandoff,
+  CAP_EXPORT_CARRIER_HANDOFF_SCHEMA,
+} from './liability/capExportCarrierHandoff.js';
+export type {
+  CompositeEvidenceProfile,
+  CompositeEvidenceVerdict,
+  CompositeEvidenceGraphResult,
+} from './liability/compositeEvidenceGraph.js';
+export {
+  evaluateCompositeEvidenceGraph,
+  COMPOSITE_EVIDENCE_GRAPH_SCHEMA,
+} from './liability/compositeEvidenceGraph.js';
+export type {
+  EgressProxyAssuranceTier,
+  EgressProxyProvenanceDisclosureEvaluation,
+} from './liability/egressProxyProvenanceDisclosure.js';
+export {
+  EGRESS_PROXY_ASSURANCE_TIER_VALUES,
+  EGRESS_PROXY_SELF_ATTESTED_LIMITATION,
+  egressProxyTierMeetsMinimum,
+  evaluateEgressProxyProvenanceDisclosure,
+  extractProxyAttributionProvenance,
+} from './liability/egressProxyProvenanceDisclosure.js';
+export type { SessionCompositionGuidance } from './liability/sessionCompositionGuidance.js';
+export {
+  buildSessionCompositionGuidance,
+  buildCarrierChainCompositionDisclosure,
+  SESSION_COMPOSITION_GUIDANCE_SCHEMA,
+  SESSION_COMPOSITION_GUIDANCE_SKU,
+  OWASP_ASI_GL3_HINT,
+  OWASP_AT7_HINT,
+  CARRIER_CHAIN_FOOTNOTE,
+} from './liability/sessionCompositionGuidance.js';
+export type {
+  ReceiptPresenceKind,
+  ReceiptVerifyProfile,
+  ClosureVerdict,
+  HopReceiptPresence,
+  SessionCompositionClosure,
+  SessionCompositionClosureInput,
+  BuildSessionCompositionClosureInput,
+  ChainEnforcementAdvisory,
+  ChainEnforcementRollupScope,
+  ChannelProvenanceAdvisory,
+  ClosureShipGateResult,
+} from './liability/sessionCompositionClosure.js';
+export {
+  buildReceiptPresence,
+  buildChainEnforcementAdvisory,
+  buildChannelProvenanceAdvisory,
+  buildSessionCompositionClosure,
+  deriveClosureVerdict,
+  evaluateClosureShipGate,
+  verifySessionCompositionClosure,
+  CHAIN_ENFORCEMENT_ROLLUP_SCOPES,
+  CLOSURE_SHIP_GATE_SCHEMA,
+  SESSION_COMPOSITION_CLOSURE_SCHEMA,
+  SESSION_COMPOSITION_CLOSURE_SKU,
+  RECEIPT_PRESENCE_KINDS,
+  RECEIPT_VERIFY_PROFILES,
+  CLOSURE_VERDICTS,
+} from './liability/sessionCompositionClosure.js';
+export type {
+  EgressAttestationMode,
+  EgressAttestationInput,
+  EgressAttestationDocument,
+} from './core/egressAttestation.js';
+export {
+  buildEgressAttestationDocument,
+  buildEgressAttestationPreimage,
+  EGRESS_ATTESTATION_SCHEMA,
+  EGRESS_ATTESTATION_SKU,
+  EGRESS_ATTESTATION_MODES,
+  STANDARD_EGRESS_LIMITATIONS,
+} from './core/egressAttestation.js';
+export type {
+  AttributionTiming,
+  EgressAttestationV2Input,
+  EgressAttestationV2Document,
+} from './core/egressAttestationV2.js';
+export {
+  buildEgressAttestationV2Document,
+  buildEgressAttestationV2Preimage,
+  EGRESS_ATTESTATION_V2_SCHEMA,
+  EGRESS_ATTESTATION_V2_SKU,
+  ATTRIBUTION_TIMING_VALUES,
+  STANDARD_EGRESS_V2_LIMITATIONS,
+} from './core/egressAttestationV2.js';
+export type {
+  AttributionSource,
+  EgressProxyAttributionInput,
+  EgressProxyAttributionDocument,
+} from './core/egressProxyAttribution.js';
+export {
+  buildEgressProxyAttributionDocument,
+  buildEgressProxyAttributionPreimage,
+  EGRESS_PROXY_ATTRIBUTION_SCHEMA,
+  EGRESS_PROXY_ATTRIBUTION_SKU,
+  ATTRIBUTION_SOURCE_VALUES,
+} from './core/egressProxyAttribution.js';
+export type { EgressProxyAttributionVerifyResult } from './liability/egressProxyAttributionVerify.js';
+export { verifyEgressProxyAttributionBundle } from './liability/egressProxyAttributionVerify.js';
+export type {
+  EgressProxyCollectorEnvelopeInput,
+  EgressProxyCollectorEnvelopeDocument,
+  EgressProxyCollectorFeedSchema,
+} from './core/egressProxyCollectorEnvelope.js';
+export {
+  buildEgressProxyCollectorEnvelopeDocument,
+  buildEgressProxyCollectorEnvelopePreimage,
+  computeEgressProxyCollectorEnvelopeDigest,
+  EGRESS_PROXY_COLLECTOR_ENVELOPE_SCHEMA,
+  EGRESS_PROXY_COLLECTOR_ENVELOPE_SKU,
+  EGRESS_PROXY_COLLECTOR_DEFAULT_AUD,
+  EGRESS_PROXY_COLLECTOR_FEED_SCHEMAS,
+} from './core/egressProxyCollectorEnvelope.js';
+export type {
+  EgressProxyCollectorEnvelopeVerifyOptions,
+  EgressProxyCollectorEnvelopeVerifyChecks,
+  EgressProxyCollectorEnvelopeVerifyResult,
+} from './liability/egressProxyCollectorEnvelopeVerify.js';
+export { verifyEgressProxyCollectorEnvelope } from './liability/egressProxyCollectorEnvelopeVerify.js';
+export {
+  SQUID_ACCESS_LOG_SCHEMA,
+  ENVOY_ACCESS_LOG_SCHEMA,
+  MITMPROXY_FLOW_SCHEMA,
+  GENERIC_PROXY_WEBHOOK_SCHEMA,
+  EGRESS_PROXY_VENDOR_ADAPTER_IDS,
+  detectEgressProxyVendor,
+  observedChannelsFromUrl,
+  normalizeSquidAccessLog,
+  normalizeEnvoyAccessLog,
+  normalizeMitmproxyFlow,
+  normalizeZscalerZiaLog,
+  normalizeGenericProxyWebhook,
+  normalizeEgressProxyVendorPayload,
+  buildEgressProxyAttributionFromVendor,
+} from './core/egressProxyVendorAdapter.js';
+export type {
+  EgressProxyVendorAdapterId,
+  EgressProxyVendorAdaptContext,
+} from './core/egressProxyVendorAdapter.js';
+export type { EgressAttestationVerifyResult } from './liability/egressAttestationVerify.js';
+export { verifyEgressAttestationBundle } from './liability/egressAttestationVerify.js';
+export type {
   CommitGateVerifyOptions,
   CommitGateVerifyResult,
   CommitGateVerifyChecks,
@@ -220,14 +401,24 @@ export type {
   ChannelProvenanceSource,
   ChannelSourceClassification,
   ChannelProvenanceManifestInput,
+  ChannelContentBinding,
 } from './core/channelProvenance.js';
 export {
   CHANNEL_PROVENANCE_SCHEMA as CORE_CHANNEL_PROVENANCE_SCHEMA,
   CHANNEL_SOURCE_CLASSIFICATIONS,
+  CHANNEL_CONTENT_BINDINGS,
   computeChannelProvenanceDigest,
   computeClassificationDigest,
   isValidContentDigest,
 } from './core/channelProvenance.js';
+export type {
+  ChannelSourceContentBindingRow,
+  ChannelProvenanceContentBindingReport,
+} from './liability/channelProvenanceContentBinding.js';
+export {
+  resolveSourceContentBinding,
+  buildChannelProvenanceContentBindingReport,
+} from './liability/channelProvenanceContentBinding.js';
 export type {
   ChannelProvenanceDocument,
   ChannelProvenanceVerifyOptions,
@@ -1265,6 +1456,13 @@ export {
   buildShutdownDrillBundlePreimage,
   buildKillSwitchDrillFreshnessDigest,
 } from './core/shutdownDrillBundle.js';
+export type { ShutdownDrillEnforcementDecayInput } from './core/shutdownDrillBundle.js';
+export {
+  buildShutdownDrillEnforcementDecay,
+  validateShutdownDrillEnforcementDecay,
+  SHUTDOWN_DRILL_ENFORCEMENT_DECAY_SCHEMA,
+} from './liability/shutdownDrillEnforcementDecay.js';
+export type { ShutdownDrillEnforcementDecay } from './liability/shutdownDrillEnforcementDecay.js';
 export type {
   FlightRecorderExportInput,
   FlightRecorderEventRow,
@@ -1600,13 +1798,31 @@ export {
   calculateWitnessEntryHash,
   verifyWitnessInclusionProof,
   verifyExternalRekorWitness,
+  verifyExternalRekorWitnessWithInclusion,
+  resolveRequireRekorInclusionProof,
   verifyScittRefusalWitnessBundle,
   WITNESS_INCLUSION_PROOF_SCHEMA,
   WITNESS_GENESIS_HASH,
   SCITT_REFUSAL_WITNESS_VERIFY_SCHEMA as WITNESS_SCITT_REFUSAL_VERIFY_SCHEMA,
   SCITT_REFUSAL_STATEMENT_TYPE,
   REKOR_WITNESS_METADATA_SCHEMA,
+  REKOR_INCLUSION_PROOF_REQUIRED,
 } from './witness/witnessInclusionVerify.js';
+export {
+  REKOR_INCLUSION_PROOF_SCHEMA,
+  REKOR_INCLUSION_VERIFY_SCHEMA,
+  REKOR_INCLUSION_DIGEST_MISMATCH,
+  verifyRekorCryptoInclusionProof,
+  computeRfc6962RootFromInclusionProof,
+  rfc6962LeafHash,
+  rfc6962NodeHash,
+  computeRekorLeafHashFromBodyBase64,
+  buildHashedRekordEntryBodyJson,
+  buildHashedRekordEntryBodyBase64,
+  extractHashedRekordDigestFromEntryBody,
+  buildSingleLeafRekorInclusionProofDocument,
+  parseRekorCheckpointEnvelope,
+} from './witness/rekorInclusionVerify.js';
 export {
   verifyWitnessConsistencyProof,
   WITNESS_CONSISTENCY_PROOF_SCHEMA,
@@ -1634,6 +1850,75 @@ export type {
   TransparencyLogMonitorAttestationVerifyOptions,
   TransparencyLogMonitorAttestationVerifyResult,
 } from './liability/transparencyLogMonitorAttestationVerify.js';
+export {
+  PROOF_STRENGTH_DISCLOSURE_SCHEMA,
+  PROOF_STRENGTH_DISCLOSURE_SKU,
+  PEP_INVARIANT_RECEIPT_BEFORE_ACTION as PROOF_STRENGTH_PEP_INVARIANT,
+  ENFORCEMENT_MODES,
+  CAPTURE_TIMINGS,
+  WITNESS_MODES,
+  WITNESS_PERSISTENCE_LEVELS,
+  EXTERNAL_TRANSPARENCY_LEVELS,
+  STANDARD_PROOF_LIMITATIONS,
+  buildProofStrengthDisclosureDocument,
+  buildProofStrengthDisclosurePreimage,
+  deriveProofStrengthDisclosureFromContext,
+} from './core/proofStrengthDisclosure.js';
+export type {
+  ProofStrengthDisclosureInput,
+  ProofStrengthDisclosureDocument,
+  ProofStrengthCaptureContext,
+  EnforcementMode,
+  CaptureTiming,
+  WitnessMode,
+  WitnessPersistence,
+  ExternalTransparency,
+} from './core/proofStrengthDisclosure.js';
+export {
+  verifyProofStrengthDisclosure,
+  defaultProofStrengthLimitations,
+} from './liability/proofStrengthDisclosureVerify.js';
+export type { ProofStrengthDisclosureVerifyResult } from './liability/proofStrengthDisclosureVerify.js';
+export {
+  extractProofStrengthDisclosureFromReceipt,
+  applyProofStrengthDisclosureDigestBinding,
+  verifyProofStrengthDisclosureReceiptBinding,
+  verifyManifestMemberDisclosureDigests,
+} from './liability/proofStrengthDisclosureBinding.js';
+export type { ProofStrengthDisclosureBindingResult } from './liability/proofStrengthDisclosureBinding.js';
+export {
+  MEMBER_VERIFY_ATTESTATION_SCHEMA,
+  MEMBER_VERIFY_ATTESTATION_SKU,
+  buildMemberVerifyAttestationPreimage,
+  computeMemberVerifyAttestationDigest,
+  buildMemberVerifyAttestationDocument,
+} from './core/memberVerifyAttestation.js';
+export type {
+  MemberVerifyAttestationInput,
+  MemberVerifyAttestationDocument,
+  MemberVerifyAttestationWitnessCosign,
+} from './core/memberVerifyAttestation.js';
+export {
+  verifyMemberVerifyAttestation,
+} from './liability/memberVerifyAttestationVerify.js';
+export type {
+  MemberVerifyAttestationVerifyOptions,
+  MemberVerifyAttestationVerifyChecks,
+  MemberVerifyAttestationVerifyResult,
+} from './liability/memberVerifyAttestationVerify.js';
+export {
+  resolveComposedMemberVerifyState,
+  composedMemberDigestsValid,
+  extractComposedPackProofLayers,
+  hashOnlyComposedPackSurface,
+  pc09MemberProofNote,
+} from './liability/composedPackMemberVerify.js';
+export type {
+  ComposedMemberVerifySource,
+  ResolvedComposedMember,
+  ResolveComposedMemberVerifyOptions,
+  ResolveComposedMemberVerifyResult,
+} from './liability/composedPackMemberVerify.js';
 export {
   CONFORMANCE_ATTESTATION_SCHEMA,
   computeConformanceAttestationDigest,

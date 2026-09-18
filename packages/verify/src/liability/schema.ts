@@ -2,6 +2,10 @@ import { z } from 'zod';
 import { causalLineageSchema } from './causalLineageSchema.js';
 import { gatewayAttestationSchema } from './gatewayAttestationSchema.js';
 import { partialPathSchema } from './partialPathSchema.js';
+import {
+  ENFORCEMENT_MODES,
+  PROOF_STRENGTH_DISCLOSURE_SCHEMA,
+} from '../core/proofStrengthDisclosure.js';
 import { memoryCommitmentSchema } from './memoryCommitmentSchema.js';
 import { toolManifestFingerprintSchema } from './toolManifestFingerprintSchema.js';
 import { intentContextSchema } from './intentContext.js';
@@ -114,6 +118,32 @@ export const liabilityReceiptV1ZodSchema = z
     gateway_attestation: gatewayAttestationSchema.optional(),
     /** Proof Moat Phase 3 — Kaptein path binding for multi-hop sessions. */
     partial_path: partialPathSchema.optional(),
+    /**
+     * Wave 16 PC-08 — hash-only bind for verified proof_strength_disclosure (included in receipt digest when present).
+     * Full disclosure document remains under governance (digest-excluded export metadata).
+     */
+    proof_strength_disclosure_digest: hex64.optional(),
+    /** Phase 2 — export-bound governance metadata (excluded from receipt digest). */
+    governance: z
+      .object({
+        proof_strength_disclosure: z
+          .object({
+            schema: z.literal(PROOF_STRENGTH_DISCLOSURE_SCHEMA),
+            enforcement_mode: z.enum(ENFORCEMENT_MODES),
+            capture_timing: z.string().optional(),
+            pep_invariant: z.string().nullable().optional(),
+            witness_mode: z.string().optional(),
+            witness_persistence: z.string().optional(),
+            external_transparency: z.string().optional(),
+            limitations: z.array(z.string()).optional(),
+            generated_at: z.string().optional(),
+            disclosure_digest: z.string().optional(),
+          })
+          .passthrough()
+          .optional(),
+      })
+      .strict()
+      .optional(),
     /** Wave 9 Track Q — ASI06 memory state commitment at material-action intercept. */
     memory_commitment: memoryCommitmentSchema.optional(),
     /** Wave 9 Track R — ASI04 MCP manifest session bind at tool invoke. */
@@ -193,6 +223,13 @@ export const liabilityReceiptV1ZodSchema = z
       signature_alg: z.enum(['RS256', 'Ed25519', 'none']),
       signature: z.string().nullable().optional(),
       manifest_signature_jws: z.string().nullable().optional(),
+      /** Optional SPKI PEM for offline RS256/Ed25519 verify (PC-05 optional). */
+      issuer_public_key_pem: z.string().max(8192).nullable().optional(),
+      /** Optional JWK JSON string or object for offline verify. */
+      issuer_public_key_jwk: z
+        .union([z.string().max(8192), z.record(z.unknown())])
+        .nullable()
+        .optional(),
     }),
     diligence_summary: z.object({
       who_acted: z.string().max(2000),

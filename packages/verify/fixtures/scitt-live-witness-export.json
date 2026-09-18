@@ -1,17 +1,17 @@
 {
   "ok": true,
   "schema": "aevesa.witness-offline-export/v1",
-  "receiptDigest": "06793b94a7347d30502c6aa6f1554dce5987124561e8700b0cb6305ddd5b826e",
+  "receiptDigest": "3a2b44b4d44d13039e003d5675c992fd112a9e1e5701c37df263f4aecaca511c",
   "scrapiStatement": {
     "schema": "https://scitt.io/statement/v1",
     "statement_type": "https://scitt.io/statement/refusal/v0",
     "digest": {
       "alg": "sha256",
-      "value": "06793b94a7347d30502c6aa6f1554dce5987124561e8700b0cb6305ddd5b826e"
+      "value": "3a2b44b4d44d13039e003d5675c992fd112a9e1e5701c37df263f4aecaca511c"
     },
     "metadata": {
       "scitt_profile": "SCITT-refusal-event-draft-01",
-      "ledger_entry_hash": "ddacfc6f30f7ca6bc904c3f6c24ba58fa1c64367b38981b2883dcc4b8bcccc06",
+      "ledger_entry_hash": "ef4f008e84103cdafdfcfb450956a021f55c8ec2dd704b1435f4a279d5fbd190",
       "gateway_source": "databricks_unity_ai",
       "refusal_alignment": {
         "profile": "SCITT-refusal-event-draft-01",
@@ -25,49 +25,59 @@
           "timestamp",
           "evidence_hash"
         ],
-        "evidence_hash": "ddacfc6f30f7ca6bc904c3f6c24ba58fa1c64367b38981b2883dcc4b8bcccc06",
+        "evidence_hash": "ef4f008e84103cdafdfcfb450956a021f55c8ec2dd704b1435f4a279d5fbd190",
         "kovera_receipt_profile": "DENIED"
       },
       "kovera_receipt_profile": "DENIED",
       "export_schema": "aevesa.scitt-refusal-export/v1"
     },
-    "issued_at": "2026-08-26T18:11:22.977Z"
+    "issued_at": "2026-09-10T17:31:09.238Z"
   },
   "inclusionProof": {
     "schema": "aevesa.witness.inclusion-proof/v1",
     "log_id": "aevesa-witness-log-1",
     "entry_index": 1,
-    "entry_id": "da0a3a4f-bcec-4cf0-b5fc-2083ff7c4534",
-    "root_hash": "503724eb83a8a8330711e3d59412b69ed1e2c52d8132c6d29fb1f76363414fec",
+    "entry_id": "bbd7dd87-f916-4dc6-a72f-09fe1ec22f99",
+    "root_hash": "cb914051b5f99012a96595e588738e556fd85616c0fb072f641eb729f0d26071",
     "parent_hash": "0000000000000000000000000000000000000000000000000000000000000000",
     "org_id": "org-scitt-live-witness",
-    "issued_at": "2026-08-26T18:11:22.977Z"
+    "issued_at": "2026-09-10T17:31:09.238Z"
+  },
+  "rekorInclusionProof": {
+    "schema": "aevesa.witness.rekor-inclusion-proof/v1",
+    "log_index": 0,
+    "tree_size": 1,
+    "root_hash": "075dffdd8564ff677f98d4899a7f323fbd00574639394a3ca1f941eef2bbe0ef",
+    "hashes": [],
+    "entry_body_base64": "eyJhcGlWZXJzaW9uIjoiMC4wLjEiLCJraW5kIjoiaGFzaGVkcmVrb3JkIiwic3BlYyI6eyJkYXRhIjp7Imhhc2giOnsiYWxnb3JpdGhtIjoic2hhMjU2IiwidmFsdWUiOiIzYTJiNDRiNGQ0NGQxMzAzOWUwMDNkNTY3NWM5OTJmZDExMmE5ZTFlNTcwMWMzN2RmMjYzZjRhZWNhY2E1MTFjIn19fX0=",
+    "log_id": "rekor.sigstore.dev",
+    "checkpoint": "rekor.sigstore.dev\n1\n075dffdd8564ff677f98d4899a7f323fbd00574639394a3ca1f941eef2bbe0ef\n— MEQCIFixtureOnlyNotARealSignature"
   },
   "ledgerAppend": {
-    "entryHash": "503724eb83a8a8330711e3d59412b69ed1e2c52d8132c6d29fb1f76363414fec",
+    "entryHash": "cb914051b5f99012a96595e588738e556fd85616c0fb072f641eb729f0d26071",
     "sequence": 1,
     "parentHash": "0000000000000000000000000000000000000000000000000000000000000000",
-    "idempotencyHash": "574739adf4fb4c1ce24df913f58dbcd48a44272278ebd365dd15463205de38dd",
+    "idempotencyHash": "500095f8f654455e87918e5e401fd39cf4070ce4181f95743e0ca94cdf3f80a0",
     "orgId": "org-scitt-live-witness"
   },
   "verificationExport": {
     "orgId": "org-scitt-live-witness",
     "prevHash": "0000000000000000000000000000000000000000000000000000000000000000",
-    "digest": "06793b94a7347d30502c6aa6f1554dce5987124561e8700b0cb6305ddd5b826e",
-    "eventTimestamp": "2026-08-26T18:11:22.977Z",
-    "nonce": "da0a3a4f-bcec-4cf0-b5fc-2083ff7c4534",
+    "digest": "3a2b44b4d44d13039e003d5675c992fd112a9e1e5701c37df263f4aecaca511c",
+    "eventTimestamp": "2026-09-10T17:31:09.238Z",
+    "nonce": "bbd7dd87-f916-4dc6-a72f-09fe1ec22f99",
     "payload": {
-      "entry_id": "da0a3a4f-bcec-4cf0-b5fc-2083ff7c4534",
+      "entry_id": "bbd7dd87-f916-4dc6-a72f-09fe1ec22f99",
       "scrapi_statement": {
         "schema": "https://scitt.io/statement/v1",
         "statement_type": "https://scitt.io/statement/refusal/v0",
         "digest": {
           "alg": "sha256",
-          "value": "06793b94a7347d30502c6aa6f1554dce5987124561e8700b0cb6305ddd5b826e"
+          "value": "3a2b44b4d44d13039e003d5675c992fd112a9e1e5701c37df263f4aecaca511c"
         },
         "metadata": {
           "scitt_profile": "SCITT-refusal-event-draft-01",
-          "ledger_entry_hash": "ddacfc6f30f7ca6bc904c3f6c24ba58fa1c64367b38981b2883dcc4b8bcccc06",
+          "ledger_entry_hash": "ef4f008e84103cdafdfcfb450956a021f55c8ec2dd704b1435f4a279d5fbd190",
           "gateway_source": "databricks_unity_ai",
           "refusal_alignment": {
             "profile": "SCITT-refusal-event-draft-01",
@@ -81,13 +91,13 @@
               "timestamp",
               "evidence_hash"
             ],
-            "evidence_hash": "ddacfc6f30f7ca6bc904c3f6c24ba58fa1c64367b38981b2883dcc4b8bcccc06",
+            "evidence_hash": "ef4f008e84103cdafdfcfb450956a021f55c8ec2dd704b1435f4a279d5fbd190",
             "kovera_receipt_profile": "DENIED"
           },
           "kovera_receipt_profile": "DENIED",
           "export_schema": "aevesa.scitt-refusal-export/v1"
         },
-        "issued_at": "2026-08-26T18:11:22.977Z"
+        "issued_at": "2026-09-10T17:31:09.238Z"
       },
       "witnesses": [
         {
@@ -104,8 +114,8 @@
           "httpStatus": 201,
           "witnessUrl": "https://rekor.sigstore.dev",
           "uuid": "scitt-live-witness-test-uuid-001",
-          "logIndex": 9001,
-          "logId": "sha256:scittlivewitness",
+          "logIndex": 0,
+          "logId": "rekor.sigstore.dev",
           "integratedTime": null,
           "verification_hint": "Rekor lookup: GET {witnessUrl}/api/v1/log/entries/scitt-live-witness-test-uuid-001",
           "raw_keys": [
@@ -113,7 +123,20 @@
             "logIndex",
             "logID"
           ],
-          "digest": "06793b94a7347d30502c6aa6f1554dce5987124561e8700b0cb6305ddd5b826e"
+          "digest": "3a2b44b4d44d13039e003d5675c992fd112a9e1e5701c37df263f4aecaca511c",
+          "rekor_inclusion_proof": {
+            "schema": "aevesa.witness.rekor-inclusion-proof/v1",
+            "log_index": 0,
+            "tree_size": 1,
+            "root_hash": "075dffdd8564ff677f98d4899a7f323fbd00574639394a3ca1f941eef2bbe0ef",
+            "hashes": [],
+            "entry_body_base64": "eyJhcGlWZXJzaW9uIjoiMC4wLjEiLCJraW5kIjoiaGFzaGVkcmVrb3JkIiwic3BlYyI6eyJkYXRhIjp7Imhhc2giOnsiYWxnb3JpdGhtIjoic2hhMjU2IiwidmFsdWUiOiIzYTJiNDRiNGQ0NGQxMzAzOWUwMDNkNTY3NWM5OTJmZDExMmE5ZTFlNTcwMWMzN2RmMjYzZjRhZWNhY2E1MTFjIn19fX0=",
+            "log_id": "rekor.sigstore.dev",
+            "checkpoint": "rekor.sigstore.dev\n1\n075dffdd8564ff677f98d4899a7f323fbd00574639394a3ca1f941eef2bbe0ef\n— MEQCIFixtureOnlyNotARealSignature"
+          },
+          "inclusion_binding": {
+            "ok": true
+          }
         }
       ]
     }
@@ -133,8 +156,8 @@
       "httpStatus": 201,
       "witnessUrl": "https://rekor.sigstore.dev",
       "uuid": "scitt-live-witness-test-uuid-001",
-      "logIndex": 9001,
-      "logId": "sha256:scittlivewitness",
+      "logIndex": 0,
+      "logId": "rekor.sigstore.dev",
       "integratedTime": null,
       "verification_hint": "Rekor lookup: GET {witnessUrl}/api/v1/log/entries/scitt-live-witness-test-uuid-001",
       "raw_keys": [
@@ -142,7 +165,20 @@
         "logIndex",
         "logID"
       ],
-      "digest": "06793b94a7347d30502c6aa6f1554dce5987124561e8700b0cb6305ddd5b826e"
+      "digest": "3a2b44b4d44d13039e003d5675c992fd112a9e1e5701c37df263f4aecaca511c",
+      "rekor_inclusion_proof": {
+        "schema": "aevesa.witness.rekor-inclusion-proof/v1",
+        "log_index": 0,
+        "tree_size": 1,
+        "root_hash": "075dffdd8564ff677f98d4899a7f323fbd00574639394a3ca1f941eef2bbe0ef",
+        "hashes": [],
+        "entry_body_base64": "eyJhcGlWZXJzaW9uIjoiMC4wLjEiLCJraW5kIjoiaGFzaGVkcmVrb3JkIiwic3BlYyI6eyJkYXRhIjp7Imhhc2giOnsiYWxnb3JpdGhtIjoic2hhMjU2IiwidmFsdWUiOiIzYTJiNDRiNGQ0NGQxMzAzOWUwMDNkNTY3NWM5OTJmZDExMmE5ZTFlNTcwMWMzN2RmMjYzZjRhZWNhY2E1MTFjIn19fX0=",
+        "log_id": "rekor.sigstore.dev",
+        "checkpoint": "rekor.sigstore.dev\n1\n075dffdd8564ff677f98d4899a7f323fbd00574639394a3ca1f941eef2bbe0ef\n— MEQCIFixtureOnlyNotARealSignature"
+      },
+      "inclusion_binding": {
+        "ok": true
+      }
     }
   ],
   "externalTransparencyService": {
@@ -154,8 +190,8 @@
       "httpStatus": 201,
       "witnessUrl": "https://rekor.sigstore.dev",
       "uuid": "scitt-live-witness-test-uuid-001",
-      "logIndex": 9001,
-      "logId": "sha256:scittlivewitness",
+      "logIndex": 0,
+      "logId": "rekor.sigstore.dev",
       "integratedTime": null,
       "verification_hint": "Rekor lookup: GET {witnessUrl}/api/v1/log/entries/scitt-live-witness-test-uuid-001",
       "raw_keys": [
@@ -163,35 +199,58 @@
         "logIndex",
         "logID"
       ],
-      "digest": "06793b94a7347d30502c6aa6f1554dce5987124561e8700b0cb6305ddd5b826e"
+      "digest": "3a2b44b4d44d13039e003d5675c992fd112a9e1e5701c37df263f4aecaca511c",
+      "rekor_inclusion_proof": {
+        "schema": "aevesa.witness.rekor-inclusion-proof/v1",
+        "log_index": 0,
+        "tree_size": 1,
+        "root_hash": "075dffdd8564ff677f98d4899a7f323fbd00574639394a3ca1f941eef2bbe0ef",
+        "hashes": [],
+        "entry_body_base64": "eyJhcGlWZXJzaW9uIjoiMC4wLjEiLCJraW5kIjoiaGFzaGVkcmVrb3JkIiwic3BlYyI6eyJkYXRhIjp7Imhhc2giOnsiYWxnb3JpdGhtIjoic2hhMjU2IiwidmFsdWUiOiIzYTJiNDRiNGQ0NGQxMzAzOWUwMDNkNTY3NWM5OTJmZDExMmE5ZTFlNTcwMWMzN2RmMjYzZjRhZWNhY2E1MTFjIn19fX0=",
+        "log_id": "rekor.sigstore.dev",
+        "checkpoint": "rekor.sigstore.dev\n1\n075dffdd8564ff677f98d4899a7f323fbd00574639394a3ca1f941eef2bbe0ef\n— MEQCIFixtureOnlyNotARealSignature"
+      },
+      "inclusion_binding": {
+        "ok": true
+      }
+    },
+    "rekor_inclusion_proof": {
+      "schema": "aevesa.witness.rekor-inclusion-proof/v1",
+      "log_index": 0,
+      "tree_size": 1,
+      "root_hash": "075dffdd8564ff677f98d4899a7f323fbd00574639394a3ca1f941eef2bbe0ef",
+      "hashes": [],
+      "entry_body_base64": "eyJhcGlWZXJzaW9uIjoiMC4wLjEiLCJraW5kIjoiaGFzaGVkcmVrb3JkIiwic3BlYyI6eyJkYXRhIjp7Imhhc2giOnsiYWxnb3JpdGhtIjoic2hhMjU2IiwidmFsdWUiOiIzYTJiNDRiNGQ0NGQxMzAzOWUwMDNkNTY3NWM5OTJmZDExMmE5ZTFlNTcwMWMzN2RmMjYzZjRhZWNhY2E1MTFjIn19fX0=",
+      "log_id": "rekor.sigstore.dev",
+      "checkpoint": "rekor.sigstore.dev\n1\n075dffdd8564ff677f98d4899a7f323fbd00574639394a3ca1f941eef2bbe0ef\n— MEQCIFixtureOnlyNotARealSignature"
     },
     "independent_verify_hint": "Rekor lookup: GET {witnessUrl}/api/v1/log/entries/scitt-live-witness-test-uuid-001"
   },
-  "ledgerEntryHash": "ddacfc6f30f7ca6bc904c3f6c24ba58fa1c64367b38981b2883dcc4b8bcccc06",
+  "ledgerEntryHash": "ef4f008e84103cdafdfcfb450956a021f55c8ec2dd704b1435f4a279d5fbd190",
   "scitt_refusal_export": {
     "ok": true,
     "schema": "aevesa.scitt-refusal-export/v1",
-    "generatedAt": "2026-08-26T18:11:22.976Z",
+    "generatedAt": "2026-09-10T17:31:09.237Z",
     "scittProfile": "SCITT-refusal-event-draft-01",
-    "receiptDigest": "06793b94a7347d30502c6aa6f1554dce5987124561e8700b0cb6305ddd5b826e",
+    "receiptDigest": "3a2b44b4d44d13039e003d5675c992fd112a9e1e5701c37df263f4aecaca511c",
     "scrapiStatement": {
       "schema": "https://scitt.io/statement/v1",
       "statement_type": "https://scitt.io/statement/refusal/v0",
       "digest": {
         "alg": "sha256",
-        "value": "06793b94a7347d30502c6aa6f1554dce5987124561e8700b0cb6305ddd5b826e"
+        "value": "3a2b44b4d44d13039e003d5675c992fd112a9e1e5701c37df263f4aecaca511c"
       },
-      "issued_at": "2026-08-26T18:11:22.962Z",
+      "issued_at": "2026-09-10T17:31:09.140Z",
       "metadata": {
         "scitt_profile": "SCITT-refusal-event-draft-01",
-        "evidence_hash": "ddacfc6f30f7ca6bc904c3f6c24ba58fa1c64367b38981b2883dcc4b8bcccc06",
+        "evidence_hash": "ef4f008e84103cdafdfcfb450956a021f55c8ec2dd704b1435f4a279d5fbd190",
         "decision": "deny"
       }
     },
     "liabilityReceipt": {
       "schema": "liability-receipt/v1",
-      "receipt_id": "367a9d5c-b769-4bfc-b2f6-d53c7a32d412",
-      "issued_at": "2026-08-26T18:11:22.962Z",
+      "receipt_id": "68384c11-98d1-4ce6-95c5-3e24dd0e7ca6",
+      "issued_at": "2026-09-10T17:31:09.140Z",
       "issuer": {
         "name": "Aevesa",
         "product": "Verified Autonomous Sessions",
@@ -199,12 +258,12 @@
         "organization_display_name": "Gateway Attestation"
       },
       "session": {
-        "session_id": "5cfa3e47-f30f-4f16-add7-d797c75c8fbc",
-        "correlation_id": "5cfa3e47-f30f-4f16-add7-d797c75c8fbc",
+        "session_id": "a9feb0fd-c847-4ce0-b2ba-fa47b72862d9",
+        "correlation_id": "a9feb0fd-c847-4ce0-b2ba-fa47b72862d9",
         "vertical": "enterprise_ops",
         "outcome": "blocked",
-        "started_at": "2026-08-26T18:11:22.962Z",
-        "completed_at": "2026-08-26T18:11:22.962Z"
+        "started_at": "2026-09-10T17:31:09.140Z",
+        "completed_at": "2026-09-10T17:31:09.140Z"
       },
       "identity": {
         "primary_actor": {
@@ -242,9 +301,9 @@
       "proof": {
         "ledger_spec": "aegis/1",
         "primary_anchor": {
-          "entry_hash": "ddacfc6f30f7ca6bc904c3f6c24ba58fa1c64367b38981b2883dcc4b8bcccc06",
+          "entry_hash": "ef4f008e84103cdafdfcfb450956a021f55c8ec2dd704b1435f4a279d5fbd190",
           "event_type": "GATEWAY_DECISION_ATTESTATION",
-          "timestamp": "2026-08-26T18:11:22.962Z"
+          "timestamp": "2026-09-10T17:31:09.140Z"
         },
         "verification": {
           "status": "verified",
@@ -256,31 +315,31 @@
             "denied_receipt_profile",
             "partial_path_binding"
           ],
-          "verified_at": "2026-08-26T18:11:22.962Z",
+          "verified_at": "2026-09-10T17:31:09.140Z",
           "portal_urls": {
-            "auditor_portal": "https://app.aevesa.com/auditor-portal/367a9d5c-b769-4bfc-b2f6-d53c7a32d412",
-            "truth_portal": "https://verify.aevesa.com/?entryHash=ddacfc6f30f7ca6bc904c3f6c24ba58fa1c64367b38981b2883dcc4b8bcccc06",
-            "open_evidence": "/api/v1/public/truth?entryHash=ddacfc6f30f7ca6bc904c3f6c24ba58fa1c64367b38981b2883dcc4b8bcccc06"
+            "auditor_portal": "https://app.aevesa.com/auditor-portal/68384c11-98d1-4ce6-95c5-3e24dd0e7ca6",
+            "truth_portal": "https://verify.aevesa.com/?entryHash=ef4f008e84103cdafdfcfb450956a021f55c8ec2dd704b1435f4a279d5fbd190",
+            "open_evidence": "/api/v1/public/truth?entryHash=ef4f008e84103cdafdfcfb450956a021f55c8ec2dd704b1435f4a279d5fbd190"
           }
         }
       },
       "diligence_summary": {
         "who_acted": "Agent \"unity-agent-catalog-001\" attempted sql.execute.",
         "what_policy_allowed": "Runtime firewall evaluated structural intent alignment before execution.",
-        "what_proof_says": "Primary anchor ddacfc6f30f7… under aegis/1. Gateway decision dbx-a4705414-f423-45ba-9372-489150a4382a (databricks_unity_ai) cosigned with Aevesa anchor ddacfc6f30f7…."
+        "what_proof_says": "Primary anchor ef4f008e8410… under aegis/1. Gateway decision dbx-d129a99e-8299-4762-95d4-891275b5c9c5 (databricks_unity_ai) cosigned with Aevesa anchor ef4f008e8410…."
       },
       "_meta": {
         "generated_by": "aevesa-liability-receipt-v1-service",
-        "source_entry_hash": "ddacfc6f30f7ca6bc904c3f6c24ba58fa1c64367b38981b2883dcc4b8bcccc06"
+        "source_entry_hash": "ef4f008e84103cdafdfcfb450956a021f55c8ec2dd704b1435f4a279d5fbd190"
       },
       "gateway_attestation": {
-        "gateway_decision_id": "dbx-a4705414-f423-45ba-9372-489150a4382a",
+        "gateway_decision_id": "dbx-d129a99e-8299-4762-95d4-891275b5c9c5",
         "gateway_source": "databricks_unity_ai",
         "decision": "deny",
-        "gateway_event_hash": "c0c75c276b9d5e941ef181fc41a0b91aad35b96857760a238ebec8a54b2bf58b",
+        "gateway_event_hash": "673131d5d947a48b4dc86f126cfdd698fa02efe7f9da6542c9970a0e955fa138",
         "data_classification_tag": "PII-L3",
         "policy_reference": "unity-ai-gateway/default",
-        "evaluated_at": "2026-08-26T18:11:22.962Z"
+        "evaluated_at": "2026-09-10T17:31:09.140Z"
       },
       "receipt_profile": "DENIED",
       "denial": {
@@ -301,21 +360,37 @@
           "timestamp",
           "evidence_hash"
         ],
-        "evidence_hash": "ddacfc6f30f7ca6bc904c3f6c24ba58fa1c64367b38981b2883dcc4b8bcccc06",
+        "evidence_hash": "ef4f008e84103cdafdfcfb450956a021f55c8ec2dd704b1435f4a279d5fbd190",
         "kovera_receipt_profile": "DENIED"
       },
       "partial_path": {
         "schema": "aevesa.partial-path/v1",
-        "session_id": "5cfa3e47-f30f-4f16-add7-d797c75c8fbc",
+        "session_id": "a9feb0fd-c847-4ce0-b2ba-fa47b72862d9",
         "proposed_action": "sql.execute",
         "step_index": 0,
         "read_count_prior": null,
         "path_digest": null,
         "partial_steps": [],
-        "partial_path_hash": "d73e4a288971a6f0255295257358bbae9ac215ad867b0f4a533931b062885d05"
+        "capability_budget": {
+          "schema": "aevesa.capability-budget/v1",
+          "sinks": {
+            "external_network": true,
+            "email": true,
+            "database_write": true,
+            "file_export": true,
+            "shell_exec": true
+          },
+          "budget_state_hash": "9f095d3c6a8ee376978c676eb39e69d5f7471575b8a3682a9fc0e6ac4f5f0186"
+        },
+        "permit_execution": {
+          "schema": "aevesa.permit-execution-binding/v1",
+          "step_bindings": [],
+          "binding_state_hash": "03d3570b64a3fb444ccb19fcbe19d06318172b353291dded5cb98e8159495544"
+        },
+        "partial_path_hash": "c8a3a40c79265aa4c958ad9eb5f72883c273b85bc6eb9f35f7b2dbd063e4ae40"
       },
       "integrity": {
-        "receipt_digest": "06793b94a7347d30502c6aa6f1554dce5987124561e8700b0cb6305ddd5b826e",
+        "receipt_digest": "3a2b44b4d44d13039e003d5675c992fd112a9e1e5701c37df263f4aecaca511c",
         "signature_alg": "none",
         "signature": null,
         "manifest_signature_jws": null
@@ -333,7 +408,7 @@
         "timestamp",
         "evidence_hash"
       ],
-      "evidence_hash": "ddacfc6f30f7ca6bc904c3f6c24ba58fa1c64367b38981b2883dcc4b8bcccc06",
+      "evidence_hash": "ef4f008e84103cdafdfcfb450956a021f55c8ec2dd704b1435f4a279d5fbd190",
       "kovera_receipt_profile": "DENIED"
     }
   }

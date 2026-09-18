@@ -105,12 +105,14 @@ export function verifyAnchorCoverageForensicPack(
 
   let packDigestMatches = false;
   if (doc && typeof doc.pack_digest === 'string' && HEX64.test(doc.pack_digest)) {
-    const { pack_digest, disclaimer: _d, ...rest } = doc as Record<string, unknown>;
+    const { pack_digest, disclaimer: _d, member_documents: _md, ...rest } = doc as Record<string, unknown>;
     const recomputed = sha256HexUtf8(stableStringify(rest));
     packDigestMatches = recomputed === pack_digest;
   }
 
-  const hashOnlySurface = !hasForbiddenKeys(docInput);
+  const hashOnlyInput = asRecord(docInput);
+  const { member_documents: _hashMemberDocs, ...hashOnlyDoc } = hashOnlyInput || {};
+  const hashOnlySurface = !hasForbiddenKeys(hashOnlyDoc);
   const passCount = countStatus(evals, 'pass');
   const failCount = countStatus(evals, 'fail');
   const readiness = doc?.attribution_readiness ?? null;

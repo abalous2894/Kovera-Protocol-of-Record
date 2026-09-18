@@ -46,6 +46,16 @@ export interface MgaAcceptanceAssertionsInput {
   broker_submission_ready: boolean;
 }
 
+export interface ChainCompositionDisclosure {
+  chain_enforcement_mode: string;
+  uniformly_enforced: boolean;
+  weakest_link_index: number | null;
+  owasp_asi_gl3_hint: string;
+  owasp_at7_hint: string;
+  carrier_footnote: string;
+  egress_attestation_schema: string;
+}
+
 export interface CarrierMgaAcceptanceKitInput {
   organization_id: string;
   generated_at?: string;
@@ -53,6 +63,8 @@ export interface CarrierMgaAcceptanceKitInput {
   mga_acceptance_assertions: MgaAcceptanceAssertionsInput;
   composed_members: ComposedMgaMemberRef[];
   submission_cadence: SubmissionCadenceInput;
+  /** Phase 3 — prominent chain enforcement disclosure for MGA/carrier review */
+  chain_composition_disclosure?: ChainCompositionDisclosure | null;
   disclaimer?: string;
 }
 
@@ -121,7 +133,7 @@ export function buildCarrierMgaAcceptanceKitPreimage(
     }))
     .sort((a, b) => a.member_schema.localeCompare(b.member_schema));
 
-  return {
+  const body: Record<string, unknown> = {
     schema: CARRIER_MGA_ACCEPTANCE_KIT_SCHEMA,
     organization_id: String(input.organization_id || '').trim(),
     generated_at: input.generated_at,
@@ -142,6 +154,24 @@ export function buildCarrierMgaAcceptanceKitPreimage(
       drill_fresh_for_submission: input.submission_cadence.drill_fresh_for_submission === true,
     },
   };
+
+  if (input.chain_composition_disclosure && typeof input.chain_composition_disclosure === 'object') {
+    const c = input.chain_composition_disclosure;
+    body.chain_composition_disclosure = {
+      chain_enforcement_mode: String(c.chain_enforcement_mode || 'unknown').trim(),
+      uniformly_enforced: c.uniformly_enforced === true,
+      weakest_link_index:
+        c.weakest_link_index != null && Number.isInteger(c.weakest_link_index)
+          ? c.weakest_link_index
+          : null,
+      owasp_asi_gl3_hint: String(c.owasp_asi_gl3_hint || '').trim(),
+      owasp_at7_hint: String(c.owasp_at7_hint || '').trim(),
+      carrier_footnote: String(c.carrier_footnote || '').trim(),
+      egress_attestation_schema: String(c.egress_attestation_schema || 'aevesa.egress-attestation/v2').trim(),
+    };
+  }
+
+  return body;
 }
 
 export function buildCarrierMgaAcceptanceKitDocument(input: CarrierMgaAcceptanceKitInput) {

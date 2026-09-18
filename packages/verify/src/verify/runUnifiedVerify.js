@@ -2,7 +2,7 @@
  * Unified offline verification — one entry point for all Aevesa evidence types.
  */
 
-import { verifyReceipt, verifyProveBundle, verifySessionProof, verifyChannelProvenanceBundle, verifySessionPayloadGateBundle, verifyAegIntegrityBundle, verifyConstraintClosureBundle, verifyHitlPreimageBindingBundle, verifyExecutionSurfaceCompletenessBundle, verifyProvableExecutionBoundaryBundle, verifyBehavioralSbomBundle, verifyRevocationHorizonBundle, verifyConformityClosureBundle, verifyDeclaredAdaptationEnvelopeBundle, verifySubstantialModificationSignalBundle, verifyAdaptationLifecycleExportBundle, verifyEvidenceResurrectionBatchBundle, verifyLicenseSurvivableBundle, verifyIndependentGuardianBundle, verifyTransparencyLogMonitorAttestation, verifyTransparencyLogMonitorStatus } from '../../dist/index.js';
+import { verifyReceipt, verifyProveBundle, verifySessionProof, evaluateClosureShipGate, verifyChannelProvenanceBundle, verifySessionPayloadGateBundle, verifyAegIntegrityBundle, verifyConstraintClosureBundle, verifyHitlPreimageBindingBundle, verifyExecutionSurfaceCompletenessBundle, verifyProvableExecutionBoundaryBundle, verifyBehavioralSbomBundle, verifyRevocationHorizonBundle, verifyConformityClosureBundle, verifyDeclaredAdaptationEnvelopeBundle, verifySubstantialModificationSignalBundle, verifyAdaptationLifecycleExportBundle, verifyEvidenceResurrectionBatchBundle, verifyLicenseSurvivableBundle, verifyIndependentGuardianBundle, verifyTransparencyLogMonitorAttestation, verifyTransparencyLogMonitorStatus, verifyProofStrengthDisclosure, verifyEgressAttestationBundle } from '../../dist/index.js';
 import { detectEvidenceType, isProofOfActionBundle } from './detectEvidenceType.js';
 import { buildVerificationReport, executiveSummaryFromReceipt } from './verificationReport.js';
 import { replayProofBundle } from '../replay/replayProofBundle.js';
@@ -193,14 +193,37 @@ export async function runUnifiedVerify(input, opts = {}) {
     entryHash =
       payload.terminal_receipt?.proof?.primary_anchor?.entry_hash ??
       entryHash;
-    executiveSummary = result.ok
-      ? `CAP session proof verified — ${payload.manifest?.declared_count ?? '?'} hops under set_root with partial_path alignment.`
-      : 'Session proof verification failed.';
-    detail = result;
+    const closure = result.composition_closure;
+    const closureShipGate = evaluateClosureShipGate(closure);
+    if (closureShipGate.blocked && closureShipGate.note) {
+      checks.push({
+        id: 'closure_ship_gate',
+        ok: false,
+        detail: closureShipGate.note,
+      });
+      errors.push(closureShipGate.note);
+    } else if (closureShipGate.carrier_submission_ready) {
+      checks.push({
+        id: 'closure_ship_gate',
+        ok: true,
+        detail: 'carrier_submission_ready',
+      });
+    }
+    if (result.ok && closure?.carrier_review_ready) {
+      executiveSummary = `CAP session proof carrier-ready — ${payload.manifest?.declared_count ?? '?'} hops bundled and verified under set_root.`;
+    } else if (result.ok && closure) {
+      executiveSummary = `Set integrity verified — closure ${closure.closure_verdict}. ${closure.note || 'See composition_closure before carrier submission.'}`;
+    } else if (result.ok) {
+      executiveSummary = `CAP set integrity verified — ${payload.manifest?.declared_count ?? '?'} hops under set_root with partial_path alignment.`;
+    } else {
+      executiveSummary = 'Session proof verification failed.';
+    }
+    detail = { ...result, closure_ship_gate: closureShipGate };
+    const carrierReady = closureShipGate.carrier_submission_ready === true;
     return buildVerificationReport({
       ok: result.ok === true,
       kind: 'session_proof_bundle',
-      verdict: result.session_proof_complete ? 'VERIFIED' : 'TAMPERED',
+      verdict: result.ok && carrierReady ? 'VERIFIED' : result.ok ? 'PARTIAL' : 'TAMPERED',
       checks,
       errors,
       entryHash,
@@ -522,6 +545,46 @@ export async function runUnifiedVerify(input, opts = {}) {
     return buildVerificationReport({
       ok: result.ok === true,
       kind: 'transparency_log_monitor_attestation',
+      checks,
+      errors,
+      executiveSummary,
+      detail,
+    });
+  }
+
+  if (detected.kind === 'proof_strength_disclosure') {
+    const result = verifyProofStrengthDisclosure(payload);
+    checks.push({
+      id: 'proof_strength_disclosure',
+      ok: result.ok === true,
+      detail: result.note,
+    });
+    if (!result.ok && result.note) errors.push(result.note);
+    executiveSummary = result.gtmLine;
+    detail = result;
+    return buildVerificationReport({
+      ok: result.ok === true,
+      kind: 'proof_strength_disclosure',
+      checks,
+      errors,
+      executiveSummary,
+      detail,
+    });
+  }
+
+  if (detected.kind === 'egress_attestation') {
+    const result = verifyEgressAttestationBundle(payload);
+    checks.push({
+      id: 'egress_attestation',
+      ok: result.ok === true,
+      detail: result.note,
+    });
+    if (!result.ok && result.note) errors.push(result.note);
+    executiveSummary = result.gtmLine;
+    detail = result;
+    return buildVerificationReport({
+      ok: result.ok === true,
+      kind: 'egress_attestation',
       checks,
       errors,
       executiveSummary,
